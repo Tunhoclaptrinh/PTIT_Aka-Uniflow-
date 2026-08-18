@@ -51,8 +51,24 @@ export const LandingPage: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
 
   // ── FAQ STATE ────────────────────────────────────────────────────────────
-  const [faqCategory, setFaqCategory] = useState('Tất cả');
+  const [faqCategory, setFaqCategory] = useState('Tích hợp & Kết nối');
   const [faqOpenIdx, setFaqOpenIdx] = useState<number | null>(0);
+  const [isFaqHovered, setIsFaqHovered] = useState(false);
+
+  // ── AUTO-CYCLING FAQ TABS ────────────────────────────────────────────────
+  useEffect(() => {
+    if (isFaqHovered) return; // Pause auto-cycling while user is reading
+
+    const faqList = ['Tích hợp & Kết nối', 'AI & Tự động hóa', 'Bảo mật & Tin cậy', 'Hiệu năng & SLA'];
+    const faqTimer = setInterval(() => {
+      setFaqCategory((prev) => {
+        const nextIdx = (faqList.indexOf(prev) + 1) % faqList.length;
+        return faqList[nextIdx];
+      });
+      setFaqOpenIdx(0); // Reset to open the first item of the new category
+    }, 6000);
+    return () => clearInterval(faqTimer);
+  }, [isFaqHovered]);
 
   // ── AUTO-CYCLING DEV DOCS TABS ──────────────────────────────────────────
   const codeTabs: ('udm' | 'curl' | 'webhook')[] = ['udm', 'curl', 'webhook'];
@@ -111,9 +127,15 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    const onScroll = (e: any) => {
+      const target = e.target;
+      const scrollTop = target === document ? window.scrollY : target.scrollTop;
+      if (scrollTop !== undefined) {
+        setScrolled(scrollTop > 20);
+      }
+    };
+    window.addEventListener('scroll', onScroll, true);
+    return () => window.removeEventListener('scroll', onScroll, true);
   }, []);
 
   useEffect(() => {
@@ -138,7 +160,11 @@ export const LandingPage: React.FC = () => {
     notify.success('Đã sao chép vào bộ nhớ tạm! 📋');
   };
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const root = document.getElementById('root');
+    if (root) root.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // ── SAMPLES FOR CODE EXPLORER ──────────────────────────────────────────
   const udmCodeSample = `{
@@ -237,16 +263,16 @@ export function verifyTikTokWebhook(
   const sc = scenarios[demoScenario];
 
   const connectors = [
-    { name: 'TikTok Shop', abbr: 'TT', desc: 'Inbound Webhook & Order API', bg: '#010101', text: '#FFFFFF' },
-    { name: 'Shopee', abbr: 'SP', desc: 'Open Platform Push v2 SLA', bg: '#EE4D2D', text: '#FFFFFF' },
-    { name: 'Lazada', abbr: 'LZ', desc: 'Đồng bộ đơn & kho Realtime', bg: '#0F146D', text: '#FFFFFF' },
-    { name: 'Tiki', abbr: 'TK', desc: 'Marketplace Connector Open API', bg: '#189EFF', text: '#FFFFFF' },
-    { name: 'Sapo POS', abbr: 'SA', desc: 'Trừ tồn kho tức thời Live Sync', bg: '#0088FF', text: '#FFFFFF' },
-    { name: 'KiotViet', abbr: 'KV', desc: 'Đa chi nhánh & Master SKU', bg: '#004F9E', text: '#FFFFFF' },
-    { name: 'Haravan', abbr: 'HR', desc: 'Omnichannel Retail & E-com', bg: '#E02329', text: '#FFFFFF' },
-    { name: 'GHTK', abbr: 'GK', desc: 'Vận đơn A6 tự động API v2', bg: '#005D38', text: '#FFFFFF' },
-    { name: 'GHN', abbr: 'GN', desc: 'Định tuyến thông minh SLA', bg: '#EA5400', text: '#FFFFFF' },
-    { name: 'Viettel Post', abbr: 'VP', desc: 'Vận chuyển phủ sóng toàn quốc', bg: '#ED1C24', text: '#FFFFFF' },
+    { name: 'TikTok Shop', logo: '/logopartner/Tiktok Shop Logo - Colored - zonalogo.com.svg', abbr: 'TT', desc: 'Sàn Thương mại điện tử', bg: '#FFFFFF', text: '#010101' },
+    { name: 'Shopee', logo: '/logopartner/Shopee_Logo.svg', abbr: 'SP', desc: 'Sàn Thương mại điện tử', bg: '#FFFFFF', text: '#EE4D2D' },
+    { name: 'Lazada', logo: '/logopartner/Lazada_Logo.svg', abbr: 'LZ', desc: 'Sàn Thương mại điện tử', bg: '#FFFFFF', text: '#0F146D' },
+    { name: 'Tiki', logo: '/logopartner/Tiki.svg', abbr: 'TK', desc: 'Sàn Thương mại điện tử', bg: '#FFFFFF', text: '#189EFF' },
+    { name: 'Sapo POS', logo: '/logopartner/Sapo_Logo.png', abbr: 'SA', desc: 'Phần mềm Quản lý Bán hàng', bg: '#FFFFFF', text: '#0088FF' },
+    { name: 'KiotViet', logo: '/logopartner/KiotViet.svg', abbr: 'KV', desc: 'Phần mềm Quản lý Bán hàng', bg: '#FFFFFF', text: '#004F9E' },
+    { name: 'Haravan', logo: '/logopartner/Haravan_Logo.svg', abbr: 'HR', desc: 'Nền tảng Omnichannel', bg: '#FFFFFF', text: '#E02329' },
+    { name: 'GHTK', logo: '/logopartner/GHTK.svg', abbr: 'GK', desc: 'Đơn vị Vận chuyển', bg: '#FFFFFF', text: '#005D38' },
+    { name: 'GHN', logo: '/logopartner/GHN_Logo.png', abbr: 'GN', desc: 'Đơn vị Vận chuyển', bg: '#FFFFFF', text: '#EA5400' },
+    { name: 'Viettel Post', logo: '/logopartner/ViettelPost.svg', abbr: 'VP', desc: 'Đơn vị Vận chuyển', bg: '#FFFFFF', text: '#ED1C24' },
   ];
 
   const isDark = themeMode === 'dark';
@@ -266,7 +292,7 @@ export function verifyTikTokWebhook(
               <div className="brand-title">
                 <span>Uni</span>
                 <span style={{ color: '#ed1c24' }}>Flow</span>
-                <span style={{ color: '#D86A04' }}> AI</span>
+                <span style={{ color: '#FCC20F' }}> AI</span>
               </div>
               <div className="brand-sub">PTIT_Aka · OMNICHANNEL IPAAS</div>
             </div>
@@ -1032,7 +1058,7 @@ export function verifyTikTokWebhook(
         </div>
 
         <div className="lp-conveyor-wrapper">
-          <button 
+          <button
             className="conveyor-nav-btn prev"
             onClick={() => setConveyorCenter((prev) => (prev - 1 + connectors.length) % connectors.length)}
             aria-label="Previous connector"
@@ -1051,8 +1077,20 @@ export function verifyTikTokWebhook(
                   onClick={() => setConveyorCenter(itemIdx)}
                   className={`conveyor-card offset-${offset} ${isCenter ? 'is-center-active' : ''}`}
                 >
-                  <div className="conveyor-badge-icon" style={{ background: c.bg, color: c.text }}>
-                    {c.abbr}
+                  <div className={`conveyor-badge-icon ${c.logo ? 'has-logo' : ''}`} style={!c.logo ? { background: c.bg, color: c.text } : {}}>
+                    {c.logo ? (
+                      <img
+                        src={c.logo}
+                        alt={c.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'inline-block';
+                        }}
+                      />
+                    ) : null}
+                    <span style={{ display: c.logo ? 'none' : 'inline-block' }}>{c.abbr}</span>
                   </div>
                   <div className="conveyor-name">{c.name}</div>
                   <div className="conveyor-desc">{c.desc}</div>
@@ -1066,7 +1104,7 @@ export function verifyTikTokWebhook(
             })}
           </div>
 
-          <button 
+          <button
             className="conveyor-nav-btn next"
             onClick={() => setConveyorCenter((prev) => (prev + 1) % connectors.length)}
             aria-label="Next connector"
@@ -1091,7 +1129,11 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           7. FAQ & RELIABILITY — PREMIUM SECTION
       ══════════════════════════════════════════════════════════════════ */}
-      <section className="lp-faq-section">
+      <section 
+        className="lp-faq-section"
+        onMouseEnter={() => setIsFaqHovered(true)}
+        onMouseLeave={() => setIsFaqHovered(false)}
+      >
         <div className="lp-section" style={{ maxWidth: 1060, margin: '0 auto' }}>
           <div className="section-header">
             <div className="section-badge"><SafetyCertificateOutlined /> CÂU HỎI THƯỜNG GẶP</div>
@@ -1102,7 +1144,6 @@ export function verifyTikTokWebhook(
           {/* Category Tab Filter */}
           {(() => {
             const faqCategories: { key: string; label: string; icon: React.ReactNode }[] = [
-              { key: 'Tất cả', label: 'Tất cả', icon: <GlobalOutlined /> },
               { key: 'Tích hợp & Kết nối', label: 'Tích hợp', icon: <ApiOutlined /> },
               { key: 'AI & Tự động hóa', label: 'AI & Tự động hóa', icon: <RobotOutlined /> },
               { key: 'Bảo mật & Tin cậy', label: 'Bảo mật', icon: <LockOutlined /> },
@@ -1203,9 +1244,7 @@ export function verifyTikTokWebhook(
         <div className="cta-inner">
 
           <h2 className="cta-title">
-            Bắt đầu hành trình{' '}
-            <span className="cta-title-highlight">0‑chạm</span>{' '}
-            ngày hôm nay
+            Bắt đầu hành trình <span className="cta-title-highlight">0‑chạm</span> ngày hôm nay
           </h2>
           <p className="cta-desc">
             Đăng ký nhận bản tin cập nhật công nghệ và trải nghiệm nền tảng Omnichannel iPaaS hàng đầu — miễn phí.
@@ -1223,7 +1262,7 @@ export function verifyTikTokWebhook(
                 onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
               />
             </div>
-            <button className="cta-btn" onClick={handleSubscribe}>
+            <button className="cta-btn anim-glow-btn" onClick={handleSubscribe}>
               <span>Đăng ký miễn phí</span>
               <ArrowRightOutlined style={{ fontSize: 13 }} />
             </button>
@@ -1248,9 +1287,11 @@ export function verifyTikTokWebhook(
                 <img src="/logo.svg" alt="UniFlow" className="footer-logo" />
                 <div>
                   <div className="footer-brand-name">
-                    UniFlow <span className="footer-brand-accent">AI</span>
+                    <span>Uni</span>
+                    <span style={{ color: '#ed1c24' }}>Flow</span>
+                    <span style={{ color: '#FCC20F' }}> AI</span>
                   </div>
-                  <div className="footer-brand-sub">PTIT_Aka · Omnichannel iPaaS</div>
+                  <div className="footer-brand-sub">PTIT_Aka · OMNICHANNEL IPAAS</div>
                 </div>
               </div>
               <p className="footer-brand-desc">
@@ -1357,19 +1398,25 @@ export function verifyTikTokWebhook(
               <a href="/terms" className="footer-legal-link">Terms of Service</a>
               <span className="footer-legal-dot">·</span>
               <a href="/cookies" className="footer-legal-link">Cookie Policy</a>
-              <Button
-                type="primary"
-                shape="circle"
-                icon={<VerticalAlignTopOutlined />}
-                onClick={scrollToTop}
-                size="small"
-                className="footer-scroll-top"
-              />
             </div>
           </div>
 
         </div>
       </footer>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          10. FAB SCROLL TO TOP
+      ══════════════════════════════════════════════════════════════════ */}
+      {scrolled && (
+        <Button
+          type="primary"
+          shape="circle"
+          icon={<VerticalAlignTopOutlined />}
+          onClick={scrollToTop}
+          size="large"
+          className="fab-scroll-top anim-glow-btn"
+        />
+      )}
     </div>
   );
 };
