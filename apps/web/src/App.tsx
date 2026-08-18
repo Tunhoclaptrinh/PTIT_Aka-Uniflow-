@@ -8,30 +8,81 @@ import { LiveEventStream } from './components/dashboard/LiveEventStream';
 import { WorkflowCanvas } from './components/workflow/WorkflowCanvas';
 import { SkuMappingTable } from './components/mapping/SkuMappingTable';
 import { ConnectorsHub } from './components/connectors/ConnectorsHub';
-import './styles/global.less';
+import { LandingPage } from './pages/LandingPage';
+import { LiveLogsPage } from './pages/LiveLogsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
-const DashboardPage: React.FC = () => (
-  <div>
-    <KpiCards />
-    <LiveEventStream />
-  </div>
-);
+// Dashboard Overview Page
+const DashboardOverview: React.FC = () => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <KpiCards />
+      <LiveEventStream />
+    </div>
+  );
+};
 
 export const App: React.FC = () => {
   return (
     <ConfigProvider theme={darkThemeConfig}>
       <BrowserRouter>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/workflows" element={<WorkflowCanvas />} />
-            <Route path="/connectors" element={<ConnectorsHub />} />
-            <Route path="/mapping" element={<SkuMappingTable />} />
-            <Route path="/logs" element={<LiveEventStream />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </MainLayout>
+        <Routes>
+          {/* 1. Landing Page (Public Showcase) */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* 2. Admin Dashboard Pages (Protected by MainLayout) */}
+          <Route
+            path="/dashboard"
+            element={
+              <MainLayout>
+                <DashboardOverview />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/workflows"
+            element={
+              <MainLayout>
+                <WorkflowCanvas />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/mapping"
+            element={
+              <MainLayout>
+                <SkuMappingTable />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/connectors"
+            element={
+              <MainLayout>
+                <ConnectorsHub />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/logs"
+            element={
+              <MainLayout>
+                <LiveLogsPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <MainLayout>
+                <SettingsPage />
+              </MainLayout>
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </BrowserRouter>
     </ConfigProvider>
   );

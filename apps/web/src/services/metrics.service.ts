@@ -11,6 +11,7 @@ export interface DashboardMetrics {
 
 export interface SyncLogItem {
   _id: string;
+  tenantId?: string;
   platform: string;
   sourceOrderId: string;
   status: string;
