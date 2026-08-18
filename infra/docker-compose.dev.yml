@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # MongoDB 7.0 - Database lưu trữ Workflows, Mappings, Webhooks & Logs (Phase 1 MVP)
+  mongo:
+    image: mongo:7.0
+    container_name: uniflow_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: uniflow_admin
+      MONGO_INITDB_ROOT_PASSWORD: uniflow_secret_2026
+      MONGO_INITDB_DATABASE: uniflow_db
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 7.2 - Idempotency Key Chống trùng 24h, Rate Limiting & BullMQ Queue
+  redis:
+    image: redis:7.2-alpine
+    container_name: uniflow_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "uniflow_redis_secret"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "uniflow_redis_secret", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Qdrant Vector Database - Lưu trữ SKU Embeddings 768 chiều & Cosine Similarity
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    container_name: uniflow_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333" # HTTP REST API
+      - "6334:6334" # gRPC API
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
+    name: uniflow_mongo_data
+  redis_data:
+    name: uniflow_redis_data
+  qdrant_data:
+    name: uniflow_qdrant_data

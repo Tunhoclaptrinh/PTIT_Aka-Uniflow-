@@ -1,0 +1,33 @@
+{
+  "name": "uniflow-ptit-aka",
+  "version": "1.0.0",
+  "description": "UniFlow AI - Lean Middleware / Omnichannel iPaaS with AI Agent Engine for E-Commerce",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "dev:ai": "cd apps/ai-engine && uvicorn app.main:app --reload --port 8000",
+    "dev:infra": "docker-compose -f infra/docker-compose.dev.yml up -d",
+    "build:all": "npm run build --workspaces",
+    "lint:all": "npm run lint --workspaces",
+    "test:all": "npm run test --workspaces"
+  },
+  "keywords": [
+    "uniflow",
+    "ecommerce",
+    "ipaas",
+    "middleware",
+    "react-flow",
+    "antd",
+    "nestjs",
+    "fastapi",
+    "qdrant",
+    "gemini"
+  ],
+  "author": "PTIT Aka Team",
+  "license": "UNLICENSED"
+}
