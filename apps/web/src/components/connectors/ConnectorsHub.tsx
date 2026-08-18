@@ -1,8 +1,8 @@
 import React from 'react';
 import { Row, Col, Card, Tag, Button, Space, Typography, Avatar } from 'antd';
-import { ApiOutlined, CheckCircleFilled, PlusOutlined, SettingOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, SettingOutlined } from '@ant-design/icons';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface Connector {
   id: string;
@@ -83,7 +83,7 @@ export const ConnectorsHub: React.FC = () => {
         </Text>
       </div>
 
-      <Row orientation="horizontal" gutter={[16, 16]}>
+      <Row gutter={[16, 16]}>
         {connectors.map((c) => (
           <Col xs={24} sm={12} lg={8} key={c.id}>
             <Card

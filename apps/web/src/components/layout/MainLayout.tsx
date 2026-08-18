@@ -130,7 +130,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             height: 64,
           }}
         >
-          <Space orientation="horizontal" size="middle">
+          <Space size="middle">
             <span className="live-pulse-dot" />
             <Text style={{ color: '#10B981', fontWeight: 600, fontSize: 13 }}>
               Hệ thống trực tuyến (WebSocket Connected)

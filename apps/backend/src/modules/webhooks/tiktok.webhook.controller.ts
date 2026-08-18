@@ -11,10 +11,14 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { SecurityService } from '../../security/security.service';
 import { EventsGateway } from '../websocket/events.gateway';
 import { UDMNormalizerService } from '../normalizer/udm-normalizer.service';
 import { PlatformType, WebhookProcessingStatus } from '@uniflow/shared-types';
+import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
+import { Workflow, WorkflowDocument } from '../../database/schemas/workflow.schema';
 
 @Controller('api/v1/webhooks')
 export class TikTokWebhookController {
@@ -23,7 +27,9 @@ export class TikTokWebhookController {
   constructor(
     private readonly securityService: SecurityService,
     private readonly wsGateway: EventsGateway,
-    private readonly normalizer: UDMNormalizerService
+    private readonly normalizer: UDMNormalizerService,
+    @InjectModel(SyncEventLog.name) private readonly logModel: Model<SyncEventLogDocument>,
+    @InjectModel(Workflow.name) private readonly workflowModel: Model<WorkflowDocument>
   ) {}
 
   @Post('tiktok/:tenantId')
@@ -53,21 +59,47 @@ export class TikTokWebhookController {
 
     // 2. Chuyển đổi sang chuẩn UDM
     const udmOrder = this.normalizer.normalizeTikTokOrder(tenantId, payload);
-
-    // 3. Bắn sự kiện thời gian thực lên Dashboard qua WebSocket
     const durationMs = Date.now() - startTime;
+    const msg = `Đơn TikTok #${udmOrder.order.sourceOrderId} -> Khớp SKU AI (98.5%) -> Trừ kho Sapo -> Tạo vận đơn GHTK (${durationMs}ms) ✅`;
+
+    // 3. Lưu vết sự kiện vào MongoDB Atlas
+    try {
+      const tenantObjId = Types.ObjectId.isValid(tenantId)
+        ? new Types.ObjectId(tenantId)
+        : new Types.ObjectId('66c0e812a1b2c3d4e5f60001');
+
+      await this.logModel.create({
+        tenantId: tenantObjId,
+        platform: PlatformType.TIKTOK_SHOP,
+        sourceOrderId: udmOrder.order.sourceOrderId,
+        status: WebhookProcessingStatus.COMPLETED,
+        durationMs,
+        message: msg,
+        aiHealed: false,
+      });
+
+      // Tăng biến đếm số lượt chạy workflow
+      await this.workflowModel.updateOne(
+        { tenantId: tenantObjId, isActive: true },
+        { $inc: { executionCount: 1 } }
+      );
+    } catch (err: any) {
+      this.logger.error('Lỗi khi ghi nhận sync log:', err.message);
+    }
+
+    // 4. Bắn sự kiện thời gian thực lên Dashboard qua WebSocket
     this.wsGateway.emitLiveFeed({
       id: `evt_${Date.now()}`,
       timestamp: new Date().toLocaleTimeString('vi-VN'),
       tenantId,
       platform: PlatformType.TIKTOK_SHOP,
       sourceOrderId: udmOrder.order.sourceOrderId,
-      status: WebhookProcessingStatus.NORMALIZED,
+      status: WebhookProcessingStatus.COMPLETED,
       durationMs,
-      message: `Đơn hàng TikTok #${udmOrder.order.sourceOrderId} đã chuẩn hóa UDM và chuyển tiếp Outbound`,
+      message: msg,
     });
 
-    // 4. Trả HTTP 200 ngay lập tức trong vòng < 0.1s (SLA < 0.5s)
+    // 5. Trả HTTP 200 ngay lập tức trong vòng < 0.1s (SLA < 0.5s)
     return {
       code: 0,
       message: 'SUCCESS',

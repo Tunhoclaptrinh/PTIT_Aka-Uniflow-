@@ -5,13 +5,15 @@
  * Chạy: node scripts/simulate_webhook.js [tiktok|shopee]
  */
 
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const crypto = require('crypto');
 const http = require('http');
 
-const BACKEND_HOST = 'localhost';
-const BACKEND_PORT = 3000;
+const BACKEND_HOST = process.env.BACKEND_HOST || 'localhost';
+const BACKEND_PORT = process.env.PORT || 3000;
 const TENANT_ID = '66c0e812a1b2c3d4e5f60001';
-const TIKTOK_APP_SECRET = 'your_tiktok_webhook_hmac_secret';
+const TIKTOK_APP_SECRET = process.env.TIKTOK_WEBHOOK_SECRET || 'your_tiktok_webhook_hmac_secret';
 
 const platform = process.argv[2] || 'tiktok';
 

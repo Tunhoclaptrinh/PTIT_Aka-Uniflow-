@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Tag } from 'antd';
 import {
   SyncOutlined,
@@ -7,10 +7,34 @@ import {
   DollarOutlined,
   ArrowUpOutlined,
 } from '@ant-design/icons';
+import { metricsService, DashboardMetrics } from '../../services/metrics.service';
 
 export const KpiCards: React.FC = () => {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalSyncedOrders: 42850,
+    averageLatencyMs: 180,
+    successRate: 99.98,
+    costSavedVND: 21500000,
+    healedOrdersCount: 0,
+    totalLogsCount: 0,
+  });
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        const data = await metricsService.getMetrics();
+        if (data) setMetrics(data);
+      } catch (err: any) {
+        console.warn('Lấy metrics API lỗi, sử dụng fallback:', err.message);
+      }
+    };
+    loadMetrics();
+    const interval = setInterval(loadMetrics, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <Row orientation="horizontal" gutter={[16, 16]}>
+    <Row gutter={[16, 16]}>
       {/* KPI 1: Đơn hàng đã đồng bộ */}
       <Col xs={24} sm={12} lg={6}>
         <Card
@@ -30,7 +54,7 @@ export const KpiCards: React.FC = () => {
             </Tag>
           </div>
           <Statistic
-            value={42850}
+            value={metrics.totalSyncedOrders}
             valueStyle={{ color: '#F9FAFB', fontWeight: 800, fontSize: 28, marginTop: 8 }}
             prefix={<SyncOutlined spin style={{ color: '#ed1c24', marginRight: 8 }} />}
           />
@@ -59,7 +83,7 @@ export const KpiCards: React.FC = () => {
             </Tag>
           </div>
           <Statistic
-            value={180}
+            value={metrics.averageLatencyMs}
             suffix="ms"
             valueStyle={{ color: '#10B981', fontWeight: 800, fontSize: 28, marginTop: 8 }}
             prefix={<ThunderboltOutlined style={{ color: '#10B981', marginRight: 8 }} />}
@@ -89,13 +113,13 @@ export const KpiCards: React.FC = () => {
             </Tag>
           </div>
           <Statistic
-            value={99.98}
+            value={metrics.successRate}
             suffix="%"
             valueStyle={{ color: '#F9FAFB', fontWeight: 800, fontSize: 28, marginTop: 8 }}
             prefix={<CheckCircleOutlined style={{ color: '#10B981', marginRight: 8 }} />}
           />
           <div style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>
-            Chỉ 8 đơn cần duyệt thủ công
+            Tự chữa lành: {metrics.healedOrdersCount} sự cố
           </div>
         </Card>
       </Col>
@@ -119,7 +143,7 @@ export const KpiCards: React.FC = () => {
             </Tag>
           </div>
           <Statistic
-            value={21500000}
+            value={metrics.costSavedVND}
             formatter={(val) => `${(Number(val) / 1000000).toFixed(1)} Tr VNĐ`}
             valueStyle={{ color: '#fcc20f', fontWeight: 800, fontSize: 28, marginTop: 8 }}
             prefix={<DollarOutlined style={{ color: '#fcc20f', marginRight: 8 }} />}

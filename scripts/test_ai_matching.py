@@ -4,7 +4,11 @@ Chạy: python scripts/test_ai_matching.py
 """
 
 import sys
-import math
+import io
+
+# Đảm bảo UTF-8 cho Windows console
+if sys.platform.startswith('win'):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def calculate_attribute_similarity(name_source: str, name_target: str) -> float:
     """Tính toán tương đồng thuộc tính từ khóa đơn giản"""
@@ -24,22 +28,22 @@ def evaluate_sku_pair(marketplace_item: str, pos_master_sku: str, simulated_vect
     
     status = ""
     if final_score >= 0.95:
-        status = "🟢 AUTO_APPROVED (Tự động liên kết)"
+        status = "[AUTO_APPROVED] - Tu dong lien ket"
     elif final_score >= 0.70:
-        status = "🟡 NEEDS_REVIEW (Gợi ý 1-click lên Dashboard)"
+        status = "[NEEDS_REVIEW] - Goi y 1-click len Dashboard"
     else:
-        status = "🔴 MANUAL_REQUIRED (Yêu cầu ghép tay)"
+        status = "[MANUAL_REQUIRED] - Yeu cau ghep tay"
 
-    print(f"\n[Sản phẩm Sàn]  : {marketplace_item}")
+    print(f"\n[San pham San]  : {marketplace_item}")
     print(f"[SKU Kho POS]   : {pos_master_sku}")
     print(f"-> Vector Cosine : {simulated_vector_sim}")
-    print(f"-> Thuộc tính Jaccard: {round(attr_sim, 4)}")
+    print(f"-> Thuoc tinh Jaccard: {round(attr_sim, 4)}")
     print(f"-> Hybrid Score : {final_score}")
-    print(f"-> Quyết định   : {status}")
+    print(f"-> Quyet dinh   : {status}")
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🧪 KIỂM THỬ THUẬT TOÁN HYBRID AI SKU MATCHING (UNIFLOW AI)")
+    print("TEST THUAT TOAN HYBRID AI SKU MATCHING (UNIFLOW AI)")
     print("=" * 60)
 
     # Test Case 1: Tương đồng cao

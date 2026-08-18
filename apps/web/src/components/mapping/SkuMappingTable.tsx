@@ -1,77 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Tag, Button, Space, Input, Progress, message } from 'antd';
 import {
   CheckOutlined,
   SearchOutlined,
   ThunderboltFilled,
-  SyncOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
-
-interface SkuMappingItem {
-  key: string;
-  sourcePlatform: 'TIKTOK_SHOP' | 'SHOPEE';
-  sourceSku: string;
-  sourceName: string;
-  posPlatform: 'SAPO' | 'KIOTVIET';
-  targetSku: string;
-  targetName: string;
-  confidence: number;
-  status: 'AUTO_APPROVED' | 'NEEDS_REVIEW' | 'MANUAL';
-}
-
-const initialData: SkuMappingItem[] = [
-  {
-    key: '1',
-    sourcePlatform: 'TIKTOK_SHOP',
-    sourceSku: 'TTS-AT-COT-BLK-L',
-    sourceName: 'Áo thun Cotton Nam Màu Đen Size L Cao Cấp PTIT',
-    posPlatform: 'SAPO',
-    targetSku: 'AT-COT-BLK-L',
-    targetName: 'Áo Thun Cotton Nam Đen Size L',
-    confidence: 0.985,
-    status: 'AUTO_APPROVED',
-  },
-  {
-    key: '2',
-    sourcePlatform: 'SHOPEE',
-    sourceSku: 'SP-POLO-PIMA-WHT-M',
-    sourceName: 'Áo Polo Pima Nam Trắng M Co Giãn 4 Chiều',
-    posPlatform: 'SAPO',
-    targetSku: 'PL-PIMA-WHT-M',
-    targetName: 'Áo Polo Pima Trắng Size M',
-    confidence: 0.912,
-    status: 'NEEDS_REVIEW',
-  },
-  {
-    key: '3',
-    sourcePlatform: 'TIKTOK_SHOP',
-    sourceSku: 'TTS-SM-OXFORD-BLU-XL',
-    sourceName: 'Sơ mi Oxford Xanh Nhạt Dài Tay Form Rộng XL',
-    posPlatform: 'KIOTVIET',
-    targetSku: 'SM-OXF-BLU-XL',
-    targetName: 'Sơ Mi Oxford Xanh Dài Tay Size XL',
-    confidence: 0.894,
-    status: 'NEEDS_REVIEW',
-  },
-];
+import { mappingService, SKUMappingItem } from '../../services/mapping.service';
 
 export const SkuMappingTable: React.FC = () => {
-  const [data, setData] = useState<SkuMappingItem[]>(initialData);
+  const [data, setData] = useState<SKUMappingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
-  const handleApprove = (key: string) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.key === key ? { ...item, status: 'AUTO_APPROVED' } : item
-      )
-    );
-    message.success('Đã xác nhận liên kết SKU thành công!');
+  const loadMappings = async () => {
+    setLoading(true);
+    try {
+      const mappings = await mappingService.getMappings();
+      if (mappings && mappings.length > 0) {
+        setData(mappings);
+      }
+    } catch (err: any) {
+      console.warn('Lỗi khi tải SKU Mappings từ API, dùng fallback:', err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadMappings();
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    setApprovingId(id);
+    try {
+      await mappingService.approveMapping(id);
+      setData((prev) =>
+        prev.map((item) =>
+          item._id === id ? { ...item, mappingStatus: 'AUTO_APPROVED' } : item
+        )
+      );
+      message.success('Đã xác nhận liên kết SKU thành công vào MongoDB Atlas!');
+    } catch (err: any) {
+      message.error('Lỗi khi phê duyệt SKU: ' + err.message);
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const filteredData = data.filter(
+    (item) =>
+      item.sourceSkuCode?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.sourceProductName?.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.targetMasterSku?.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   const columns = [
     {
       title: 'Sản phẩm Sàn TMĐT',
       key: 'source',
-      render: (_: any, record: SkuMappingItem) => (
+      render: (_: any, record: SKUMappingItem) => (
         <div>
           <Space>
             <Tag
@@ -85,41 +74,46 @@ export const SkuMappingTable: React.FC = () => {
               {record.sourcePlatform === 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'}
             </Tag>
             <span style={{ fontFamily: 'JetBrains Mono', color: '#fcc20f', fontWeight: 600 }}>
-              {record.sourceSku}
+              {record.sourceSkuCode}
             </span>
           </Space>
           <div style={{ color: '#F9FAFB', fontSize: 13, marginTop: 4 }}>
-            {record.sourceName}
+            {record.sourceProductName}
           </div>
+          {record.sourceVariationText && (
+            <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>
+              {record.sourceVariationText}
+            </div>
+          )}
         </div>
       ),
     },
     {
       title: 'SKU Kho POS Đích',
       key: 'target',
-      render: (_: any, record: SkuMappingItem) => (
+      render: (_: any, record: SKUMappingItem) => (
         <div>
           <Space>
             <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 700 }}>
-              {record.posPlatform}
+              {record.targetPosPlatform || 'SAPO'}
             </Tag>
             <span style={{ fontFamily: 'JetBrains Mono', color: '#10B981', fontWeight: 600 }}>
-              {record.targetSku}
+              {record.targetMasterSku}
             </span>
           </Space>
           <div style={{ color: '#D1D5DB', fontSize: 13, marginTop: 4 }}>
-            {record.targetName}
+            {record.targetProductName}
           </div>
         </div>
       ),
     },
     {
       title: 'Độ Tin Cậy AI (Hybrid Score)',
-      dataIndex: 'confidence',
-      key: 'confidence',
+      dataIndex: 'confidenceScore',
+      key: 'confidenceScore',
       width: 220,
       render: (confidence: number) => {
-        const percent = Math.round(confidence * 100);
+        const percent = Math.round((confidence || 0.9) * 100);
         let strokeColor = '#10B981';
         if (percent < 95) strokeColor = '#fcc20f';
         if (percent < 70) strokeColor = '#EF4444';
@@ -145,8 +139,8 @@ export const SkuMappingTable: React.FC = () => {
       title: 'Trạng thái & Thao tác',
       key: 'action',
       width: 200,
-      render: (_: any, record: SkuMappingItem) => {
-        if (record.status === 'AUTO_APPROVED') {
+      render: (_: any, record: SKUMappingItem) => {
+        if (record.mappingStatus === 'AUTO_APPROVED') {
           return (
             <Tag color="#10B981" style={{ borderRadius: 6, fontWeight: 600, padding: '4px 8px' }}>
               <CheckOutlined /> Đã Đồng Bộ Tự Động
@@ -159,7 +153,8 @@ export const SkuMappingTable: React.FC = () => {
             type="primary"
             size="small"
             icon={<ThunderboltFilled />}
-            onClick={() => handleApprove(record.key)}
+            loading={approvingId === record._id}
+            onClick={() => handleApprove(record._id)}
             style={{
               background: 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
               border: 'none',
@@ -184,11 +179,22 @@ export const SkuMappingTable: React.FC = () => {
               Bảng Ánh Xạ SKU Thông Minh (AI SKU Auto-Mapping Hub)
             </span>
           </Space>
-          <Input
-            prefix={<SearchOutlined style={{ color: '#6B7280' }} />}
-            placeholder="Tìm kiếm theo mã SKU hoặc tên SP..."
-            style={{ width: 280, background: '#0B0F19', borderColor: '#374151', color: '#F9FAFB' }}
-          />
+          <Space>
+            <Input
+              prefix={<SearchOutlined style={{ color: '#6B7280' }} />}
+              placeholder="Tìm kiếm theo mã SKU hoặc tên SP..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: 280, background: '#0B0F19', borderColor: '#374151', color: '#F9FAFB' }}
+            />
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadMappings}
+              style={{ borderColor: '#374151', color: '#9CA3AF' }}
+            >
+              Làm mới
+            </Button>
+          </Space>
         </div>
       }
       bordered={false}
@@ -199,8 +205,10 @@ export const SkuMappingTable: React.FC = () => {
       }}
     >
       <Table
-        dataSource={data}
+        dataSource={filteredData}
         columns={columns}
+        rowKey="_id"
+        loading={loading}
         pagination={{ pageSize: 10 }}
         style={{ background: 'transparent' }}
       />

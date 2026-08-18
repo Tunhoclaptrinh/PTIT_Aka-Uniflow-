@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@uniflow/shared-types': path.resolve(__dirname, '../../packages/shared-types/src'),
+      '@uniflow/udm-schema': path.resolve(__dirname, '../../packages/udm-schema/src'),
     },
   },
   css: {

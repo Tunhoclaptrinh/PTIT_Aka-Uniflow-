@@ -3,17 +3,26 @@
  * Tạo Tenant mẫu, User quản trị, Cấu hình Workflow React Flow và Danh mục SKU Mappings
  */
 
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { MongoClient, ObjectId } = require('mongodb');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://uniflow_admin:uniflow_secret_2026@localhost:27017/uniflow_db?authSource=admin';
+const MONGO_URI = process.env.MONGO_URI;
+const MONGO_DB_NAME = process.env.MONGO_DB_NAME || 'PTIT_Aka';
+
+if (!MONGO_URI || MONGO_URI.includes('<db_password>')) {
+  console.error('\n❌ LỖI: Bạn chưa điền mật khẩu thật vào <db_password> trong file .env!');
+  console.error('Hãy mở file .env và thay thế <db_password> bằng mật khẩu của user tuannguyentien16_db_user.\n');
+  process.exit(1);
+}
 
 async function seed() {
-  console.log('>>> Kết nối tới MongoDB để nạp dữ liệu mẫu...');
+  console.log(`>>> Kết nối tới MongoDB Atlas (${MONGO_DB_NAME}) để nạp dữ liệu mẫu...`);
   const client = new MongoClient(MONGO_URI);
 
   try {
     await client.connect();
-    const db = client.db('uniflow_db');
+    const db = client.db(MONGO_DB_NAME);
 
     const tenantId = new ObjectId('66c0e812a1b2c3d4e5f60001');
 
@@ -41,7 +50,7 @@ async function seed() {
       },
       { upsert: true }
     );
-    console.log('✅ Đã nạp Tenant mẫu.');
+    console.log('✅ Đã nạp Tenant mẫu (Thời Trang An Khang).');
 
     // 2. Seed Workflow Mẫu (TikTok -> AI Mapper -> Sapo Deduct & GHTK Waybill)
     const workflowId = new ObjectId('66c0e812a1b2c3d4e5f60004');
@@ -97,7 +106,7 @@ async function seed() {
       },
       { upsert: true }
     );
-    console.log('✅ Đã nạp Workflow Canvas mẫu.');
+    console.log('✅ Đã nạp Workflow Canvas mẫu (TikTok -> Sapo + GHTK).');
 
     // 3. Seed SKU Mappings
     const mappings = [
@@ -138,7 +147,7 @@ async function seed() {
     }
     console.log('✅ Đã nạp danh sách SKU Mappings mẫu.');
 
-    console.log('\n🎉 Hoàn thành nạp dữ liệu mẫu thành công!');
+    console.log('\n🎉 Hoàn thành nạp dữ liệu mẫu vào MongoDB Atlas thành công! ✅');
   } catch (err) {
     console.error('❌ Lỗi khi nạp dữ liệu:', err.message);
   } finally {
