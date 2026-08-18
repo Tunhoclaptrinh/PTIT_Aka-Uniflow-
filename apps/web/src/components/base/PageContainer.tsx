@@ -1,14 +1,12 @@
 import React from 'react';
-import { Breadcrumb, Tabs, Skeleton } from 'antd';
+import { Breadcrumb, Tabs, Skeleton, Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
-import { HomeOutlined } from '@ant-design/icons';
+import { HomeOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { PageContainerProps } from './types';
 
 export const PageContainer: React.FC<PageContainerProps> = ({
   title,
-  subtitle,
-  icon,
-  avatarBg = 'linear-gradient(135deg, rgba(237, 28, 36, 0.1) 0%, rgba(252, 194, 15, 0.1) 100%)',
+  tooltip,
   breadcrumbs,
   extra,
   tags,
@@ -22,7 +20,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, ...style }}>
-      {/* 1. Horizontal Page Title Bar (Chuẩn G:\Base) */}
+      {/* 1. Horizontal Page Title Bar (Chuẩn Base) */}
       {(title || breadcrumbs) && (
         <div
           style={{
@@ -37,7 +35,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
           <div>
             {breadcrumbs && breadcrumbs.length > 0 && (
               <Breadcrumb
-                style={{ marginBottom: 6, fontSize: 12 }}
+                style={{ marginBottom: 4, fontSize: 12 }}
                 items={[
                   {
                     title: (
@@ -53,56 +51,33 @@ export const PageContainer: React.FC<PageContainerProps> = ({
               />
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {icon && (
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 8,
-                    background: avatarBg,
-                    border: '1px solid rgba(237, 28, 36, 0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                    color: '#ed1c24',
-                    flexShrink: 0,
-                  }}
-                >
-                  {icon}
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h1
+                style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: 'var(--text-primary, #111827)',
+                  letterSpacing: '-0.2px',
+                  margin: 0,
+                  lineHeight: 1.3,
+                }}
+              >
+                {title}
+              </h1>
+
+              {tooltip && (
+                <Tooltip title={tooltip}>
+                  <QuestionCircleOutlined
+                    style={{
+                      color: '#9CA3AF',
+                      fontSize: 14,
+                      cursor: 'help',
+                    }}
+                  />
+                </Tooltip>
               )}
 
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <h1
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 800,
-                      color: 'var(--text-primary, #111827)',
-                      letterSpacing: '-0.4px',
-                      margin: 0,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {title}
-                  </h1>
-                  {tags}
-                </div>
-
-                {subtitle && (
-                  <div
-                    style={{
-                      color: 'var(--text-secondary, #6B7280)',
-                      fontSize: 12,
-                      marginTop: 2,
-                    }}
-                  >
-                    {subtitle}
-                  </div>
-                )}
-              </div>
+              {tags}
             </div>
           </div>
 

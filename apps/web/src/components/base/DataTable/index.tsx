@@ -23,6 +23,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../BaseButton';
+import { IconButton } from '../IconButton';
 import { EmptyState } from '../EmptyState';
 import { StatisticsCard } from '../StatisticCard';
 import { FilterBuilder } from './FilterBuilder';
@@ -156,37 +157,28 @@ export const DataTable = <T extends Record<string, any>>({
         return (
           <Space size={4}>
             {onView && (
-              <Tooltip title="Xem chi tiết">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<EyeOutlined />}
-                  onClick={() => onView(record)}
-                  style={{ width: 28, height: 28, padding: 0 }}
-                />
-              </Tooltip>
+              <IconButton
+                icon={<EyeOutlined />}
+                tooltip="Xem chi tiết"
+                onClick={() => onView(record)}
+              />
             )}
             {onEdit && (
-              <Tooltip title="Chỉnh sửa">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<EditOutlined style={{ color: '#fcc20f' }} />}
-                  onClick={() => onEdit(record)}
-                  style={{ width: 28, height: 28, padding: 0 }}
-                />
-              </Tooltip>
+              <IconButton
+                icon={<EditOutlined />}
+                tooltip="Chỉnh sửa"
+                color="#fcc20f"
+                hoverColor="#d49e07"
+                onClick={() => onEdit(record)}
+              />
             )}
             {onDelete && (
-              <Tooltip title="Xóa bản ghi">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<DeleteOutlined style={{ color: '#EF4444' }} />}
-                  onClick={() => onDelete(recKey)}
-                  style={{ width: 28, height: 28, padding: 0 }}
-                />
-              </Tooltip>
+              <IconButton
+                icon={<DeleteOutlined />}
+                tooltip="Xóa bản ghi"
+                danger
+                onClick={() => onDelete(recKey)}
+              />
             )}
           </Space>
         );

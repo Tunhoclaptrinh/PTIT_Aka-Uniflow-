@@ -1,6 +1,7 @@
 // Single Source of Truth for all Base Components and Types
 export * from './types';
 export * from './BaseButton';
+export * from './IconButton';
 export * from './BaseCard';
 export * from './CardGrid';
 export * from './StatisticCard';

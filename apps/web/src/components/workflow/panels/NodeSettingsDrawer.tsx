@@ -36,7 +36,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         ...selectedNode.data,
         ...values,
       });
-      notify.success('Đã cập nhật tham số cấu hình Node!');
+      notify.success('Đã cập nhật tham số khối xử lý!');
       onClose();
     }
   };
@@ -47,27 +47,28 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
       onClose={onClose}
       onSubmit={handleSave}
       initialValues={initialValues}
-      width={420}
+      width={400}
       title={
         <Space>
-          <SettingFilled style={{ color: '#fcc20f' }} />
-          <span>Cấu Hình Node ({selectedNode?.data?.label || selectedNode?.id})</span>
+          <SettingFilled style={{ color: '#ed1c24' }} />
+          <span style={{ fontWeight: 600 }}>Cấu hình khối xử lý ({selectedNode?.data?.label || selectedNode?.id})</span>
         </Space>
       }
-      submitText="Lưu Cấu Hình"
+      submitText="Lưu cấu hình"
+      cancelText="Hủy bỏ"
     >
       {selectedNode && (
         <>
-          <Form.Item label="Tên Khối Node" name="label">
-            <Input />
+          <Form.Item label="Tên khối xử lý" name="label">
+            <Input placeholder="Nhập tên khối..." />
           </Form.Item>
 
-          <Form.Item label="Mô Tả Chức Năng" name="description">
-            <Input />
+          <Form.Item label="Mô tả chức năng" name="description">
+            <Input placeholder="Nhập mô tả..." />
           </Form.Item>
 
           {selectedNode.type === 'trigger' && (
-            <Form.Item label="Sự Kiện Webhook Inbound" name="eventType">
+            <Form.Item label="Sự kiện webhook đầu vào" name="eventType">
               <Select
                 style={{ width: '100%' }}
                 options={[
@@ -80,12 +81,12 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
           )}
 
           {selectedNode.type === 'ai' && (
-            <Form.Item label="Ngưỡng Tự Động Phê Duyệt (%)" name="threshold">
+            <Form.Item label="Ngưỡng tự động phê duyệt (%)" name="threshold">
               <Select
                 style={{ width: '100%' }}
                 options={[
-                  { label: '>= 95% (Khuyến nghị cho Mega Sale)', value: 95 },
-                  { label: '>= 90% (Tiêu chuẩn)', value: 90 },
+                  { label: '>= 95% (Khuyến nghị cho ngày Mega Sale)', value: 95 },
+                  { label: '>= 90% (Tiêu chuẩn vận hành)', value: 90 },
                   { label: '>= 80% (Duyệt nới lỏng)', value: 80 },
                 ]}
               />
@@ -94,7 +95,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
           {selectedNode.type === 'action' && (
             <>
-              <Form.Item label="Mã Kho POS Đích" name="warehouseId">
+              <Form.Item label="Mã kho POS đích" name="warehouseId">
                 <Select
                   style={{ width: '100%' }}
                   options={[
@@ -105,7 +106,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 />
               </Form.Item>
 
-              <Form.Item label="Tự Động In Vận Đơn Ngay" name="autoPrint" valuePropName="checked">
+              <Form.Item label="Tự động in vận đơn ngay" name="autoPrint" valuePropName="checked">
                 <Switch />
               </Form.Item>
             </>
@@ -121,7 +122,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 onClose();
               }}
             >
-              Xóa Khối Node Này Khỏi Canvas
+              Xóa khối này khỏi quy trình
             </BaseButton>
           </div>
         </>

@@ -17,11 +17,13 @@ import {
   DataTable,
   ConfirmModal,
   BaseButton,
+  IconButton,
   PageContainer,
   StatisticsItem,
 } from '../base';
 import { useCRUD } from '../../hooks';
 import { notify } from '../../utils/notification';
+import { downloadExcelTemplate, parseImportFile } from '../../utils/export';
 
 export const SkuMappingTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState('ALL');
@@ -156,6 +158,16 @@ export const SkuMappingTable: React.FC = () => {
     setDetailModalOpen(true);
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await remove(id);
+      notify.success('Đã xóa liên kết ánh xạ SKU thành công!');
+      refresh();
+    } catch (err: any) {
+      notify.error('Lỗi khi xóa: ' + err.message);
+    }
+  };
+
   const handleTabChange = (key: string) => {
     setActiveTab(key);
     if (key === 'ALL') {
@@ -241,6 +253,7 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'Sản phẩm Sàn TMĐT (Nguồn)',
       key: 'source',
+      sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.sourceSkuCode.localeCompare(b.sourceSkuCode),
       filters: [
         { text: 'TikTok Shop', value: 'TIKTOK_SHOP' },
         { text: 'Shopee', value: 'SHOPEE' },
@@ -248,7 +261,7 @@ export const SkuMappingTable: React.FC = () => {
       ],
       onFilter: (value: any, record: SKUMappingItem) => record.sourcePlatform === value,
       render: (_: any, record: SKUMappingItem) => (
-        <div>
+        <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
           <Space>
             <Tag
               color={
@@ -287,13 +300,14 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'SKU Kho POS Đích (Master SKU)',
       key: 'target',
+      sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.targetMasterSku.localeCompare(b.targetMasterSku),
       filters: [
         { text: 'Sapo', value: 'SAPO' },
         { text: 'KiotViet', value: 'KIOTVIET' },
       ],
       onFilter: (value: any, record: SKUMappingItem) => (record.targetPosPlatform || 'SAPO').includes(value),
       render: (_: any, record: SKUMappingItem) => (
-        <div>
+        <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
           <Space>
             <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 700 }}>
               {record.targetPosPlatform || 'SAPO'}
@@ -312,7 +326,7 @@ export const SkuMappingTable: React.FC = () => {
       title: 'Điểm Tin Cậy AI',
       dataIndex: 'confidenceScore',
       key: 'confidenceScore',
-      width: 200,
+      width: 190,
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => (a.confidenceScore || 0) - (b.confidenceScore || 0),
       render: (confidence: number) => {
         const percent = Math.round((confidence || 0.9) * 100);
@@ -338,45 +352,70 @@ export const SkuMappingTable: React.FC = () => {
       },
     },
     {
+      title: 'Trạng Thái',
+      key: 'mappingStatus',
+      width: 140,
+      sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.mappingStatus.localeCompare(b.mappingStatus),
+      filters: [
+        { text: 'Tự động duyệt', value: 'AUTO_APPROVED' },
+        { text: 'Chờ duyệt 1-click', value: 'PENDING_REVIEW' },
+        { text: 'Cần ghép thủ công', value: 'MANUAL_REQUIRED' },
+      ],
+      onFilter: (value: any, record: SKUMappingItem) => record.mappingStatus === value,
+      render: (_: any, record: SKUMappingItem) => {
+        if (record.mappingStatus === 'AUTO_APPROVED') {
+          return <Tag color="#10B981" style={{ fontWeight: 600 }}>✓ Tự động duyệt</Tag>;
+        }
+        if (record.mappingStatus === 'PENDING_REVIEW') {
+          return <Tag color="#fcc20f" style={{ fontWeight: 600, color: '#111827' }}>⚡ Chờ duyệt</Tag>;
+        }
+        return <Tag color="#EF4444" style={{ fontWeight: 600 }}>Cần ghép tay</Tag>;
+      },
+    },
+    {
       title: 'Thao Tác',
       key: 'action',
-      width: 110,
+      width: 130,
       align: 'center' as const,
       fixed: 'right' as const,
       render: (_: any, record: SKUMappingItem) => {
+        const isApproved = record.mappingStatus === 'AUTO_APPROVED';
         return (
-          <Space size={6}>
-            {/* Eye Icon Button (Xem chi tiết / AI Explanation) */}
-            <button
-              className="action-btn-standard"
-              onClick={() => openDetailModal(record)}
-              title="Xem chi tiết & Giải thích AI"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 16,
-                color: '#8B0000',
-              }}
-            >
-              <EyeOutlined />
-            </button>
+          <Space size={2}>
+            {/* 1. Fixed Position: Approve 1-Click (Active if pending, Disabled if already approved) */}
+            <IconButton
+              icon={<CheckOutlined />}
+              tooltip={isApproved ? 'Đã được phê duyệt tự động' : 'Phê duyệt nhanh 1-Click'}
+              success={!isApproved}
+              disabled={isApproved}
+              onClick={() => handleApprove(record._id)}
+            />
 
-            {/* Menu / Hamburger Icon Button (Dropdown Actions) */}
+            {/* 2. Fixed Position: Manual Edit */}
+            <IconButton
+              icon={<EditOutlined />}
+              tooltip="Ghép nối thủ công"
+              color="#fcc20f"
+              hoverColor="#d49e07"
+              onClick={() => openEditModal(record)}
+            />
+
+            {/* 3. Fixed Position: Delete Mapping */}
+            <IconButton
+              icon={<DeleteOutlined />}
+              tooltip="Xóa liên kết ánh xạ"
+              danger
+              onClick={() => handleDelete(record._id)}
+            />
+
+            {/* 4. Fixed Position: Menu Dropdown */}
             <Dropdown menu={{ items: getActionMenuItems(record) }} trigger={['click']} placement="bottomRight">
-              <button
-                className="action-btn-standard"
-                title="Tùy chọn thao tác"
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: 16,
-                  color: '#8B0000',
-                }}
-              >
-                <MenuOutlined />
-              </button>
+              <span>
+                <IconButton
+                  icon={<MenuOutlined />}
+                  tooltip="Tùy chọn khác"
+                />
+              </span>
             </Dropdown>
           </Space>
         );
@@ -386,9 +425,8 @@ export const SkuMappingTable: React.FC = () => {
 
   return (
     <PageContainer
-      icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
-      title="Bảng Ánh Xạ SKU Thông Minh (AI SKU Auto-Mapping Hub)"
-      subtitle="Khớp nối sản phẩm sàn TMĐT và Master SKU trong kho POS bằng Vector Cosine và Gemini NLP"
+      title="Ánh Xạ SKU"
+      tooltip="Khớp nối sản phẩm sàn TMĐT và Master SKU trong kho POS bằng thuật toán AI Vector Cosine"
       extra={
         <Space size="middle">
           {/* AI Playground Button */}
@@ -429,11 +467,47 @@ export const SkuMappingTable: React.FC = () => {
         onRefresh={refresh}
         onAdd={openAddModal}
         importable={true}
-        onImport={(file) => {
-          notify.success(`Đã nhận tệp ${file.name}, tiến hành phân tích UDM Schema...`);
+        onImport={async (file) => {
+          try {
+            const records = await parseImportFile(file);
+            if (records.length === 0) {
+              notify.warning('Tệp tải lên không có dữ liệu hợp lệ!');
+              return;
+            }
+            let successCount = 0;
+            for (const r of records) {
+              const skuData = {
+                sourcePlatform: r.sourcePlatform || r['Nền tảng sàn'] || 'TIKTOK_SHOP',
+                sourceSkuCode: r.sourceSkuCode || r['Mã SKU sàn'] || `IMPORT_${Date.now()}`,
+                sourceProductName: r.sourceProductName || r['Tên sản phẩm sàn'] || 'Sản phẩm Import',
+                targetPosPlatform: r.targetPosPlatform || r['Nền tảng POS'] || 'SAPO',
+                targetMasterSku: r.targetMasterSku || r['Mã Master SKU'] || 'MASTER_SKU_DEFAULT',
+                targetProductName: r.targetProductName || r['Tên sản phẩm Master'] || 'Master Product',
+                mappingStatus: 'PENDING_REVIEW' as const,
+                confidenceScore: 0.95,
+              };
+              await create(skuData);
+              successCount++;
+            }
+            notify.success(`Đã import thành công ${successCount} bản ghi ánh xạ SKU vào Database!`);
+            refresh();
+          } catch (err: any) {
+            notify.error('Lỗi khi xử lý tệp import: ' + err.message);
+          }
         }}
         onDownloadTemplate={() => {
-          notify.success('Đang tải tệp Excel mẫu uniflow_sku_mapping_template.xlsx');
+          downloadExcelTemplate(
+            [
+              { key: 'sourcePlatform', label: 'Nền tảng sàn (SHOPEE/TIKTOK_SHOP/LAZADA)', sample: 'SHOPEE' },
+              { key: 'sourceSkuCode', label: 'Mã SKU sàn', sample: 'AO-POLO-NAM-DEN-L' },
+              { key: 'sourceProductName', label: 'Tên sản phẩm sàn', sample: 'Áo Polo Nam Cotton Cổ Bẻ Cao Cấp' },
+              { key: 'targetPosPlatform', label: 'Nền tảng POS (SAPO/KIOTVIET)', sample: 'SAPO' },
+              { key: 'targetMasterSku', label: 'Mã Master SKU POS', sample: 'AP-COT-BLK-L' },
+              { key: 'targetProductName', label: 'Tên sản phẩm Master POS', sample: 'Áo Polo Nam Cotton Compact - Đen - L' },
+            ],
+            'uniflow_sku_mapping_template.csv'
+          );
+          notify.success('Đã tải xuống tệp mẫu uniflow_sku_mapping_template.csv!');
         }}
         exportable={true}
         exportFilename="uniflow-sku-mappings"

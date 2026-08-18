@@ -1,11 +1,14 @@
 /**
- * Script nạp dữ liệu khởi tạo mở rộng (Rich Real Seed Data) cho UniFlow AI
- * Nạp đầy đủ: Tenant, 3 Workflows thực tế, 10+ SKU Mappings phong phú và 20+ Nhật ký Sync Logs
+ * Script nạp dữ liệu khởi tạo mở rộng (Rich Real Multi-Tenant Seed Data) cho UniFlow AI
+ * Nạp dữ liệu cách ly riêng biệt cho 2 tài khoản thực tế:
+ * 1. Admin Master (admin@uniflow.vn / Admin@123456) -> Tenant: Thời Trang An Khang (PTIT_Aka)
+ * 2. Demo Merchant (demo@uniflow.vn / Demo@123456) -> Tenant: Mỹ Phẩm & Skincare GlowTech
  */
 
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { MongoClient, ObjectId } = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 const MONGO_URI = process.env.MONGO_URI;
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME || 'PTIT_Aka';
@@ -16,47 +19,117 @@ if (!MONGO_URI || MONGO_URI.includes('<db_password>')) {
 }
 
 async function seed() {
-  console.log(`>>> Kết nối tới MongoDB Atlas (${MONGO_DB_NAME}) để nạp dữ liệu mẫu phong phú...`);
+  console.log(`>>> Kết nối tới MongoDB Atlas (${MONGO_DB_NAME}) để nạp dữ liệu đa tài khoản mẫu phong phú...`);
   const client = new MongoClient(MONGO_URI);
 
   try {
     await client.connect();
     const db = client.db(MONGO_DB_NAME);
-    const tenantId = new ObjectId('66c0e812a1b2c3d4e5f60001');
 
-    // 1. Seed Tenant
-    await db.collection('tenants').updateOne(
-      { _id: tenantId },
+    const tenant1Id = new ObjectId('66c0e812a1b2c3d4e5f60001');
+    const tenant2Id = new ObjectId('66c0e812a1b2c3d4e5f60002');
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 1. SEED TENANTS
+    // ══════════════════════════════════════════════════════════════════════════
+    const tenants = [
       {
-        $set: {
-          name: 'Thời Trang An Khang (PTIT_Aka Store)',
-          subdomain: 'ankhang-ptit',
-          planTier: 'GROWTH',
-          brandTheme: {
-            primaryColor: '#ed1c24',
-            secondaryColor: '#fcc20f',
-          },
-          settings: {
-            autoRetryOnFailure: true,
-            defaultCarrier: 'GHTK',
-            alertChannels: ['TELEGRAM', 'WEBSOCKET'],
-          },
-          isActive: true,
-          updatedAt: new Date(),
+        _id: tenant1Id,
+        name: 'Thời Trang An Khang (PTIT_Aka Store)',
+        subdomain: 'ankhang-ptit',
+        planTier: 'ENTERPRISE',
+        brandTheme: {
+          primaryColor: '#ed1c24',
+          secondaryColor: '#fcc20f',
         },
-        $setOnInsert: { createdAt: new Date() },
+        settings: {
+          autoRetryOnFailure: true,
+          defaultCarrier: 'GHTK',
+          alertChannels: ['TELEGRAM', 'WEBSOCKET'],
+        },
+        isActive: true,
+        updatedAt: new Date(),
       },
-      { upsert: true }
-    );
-    console.log('✅ 1. Đã cập nhật Tenant: Thời Trang An Khang.');
+      {
+        _id: tenant2Id,
+        name: 'Mỹ Phẩm & Skincare GlowTech Store',
+        subdomain: 'glowtech-cosmetics',
+        planTier: 'GROWTH',
+        brandTheme: {
+          primaryColor: '#EC4899',
+          secondaryColor: '#8B5CF6',
+        },
+        settings: {
+          autoRetryOnFailure: true,
+          defaultCarrier: 'GHN',
+          alertChannels: ['WEBSOCKET'],
+        },
+        isActive: true,
+        updatedAt: new Date(),
+      },
+    ];
 
-    // 2. Seed 3 Workflows thực tế
+    for (const t of tenants) {
+      await db.collection('tenants').updateOne(
+        { _id: t._id },
+        { $set: t, $setOnInsert: { createdAt: new Date() } },
+        { upsert: true }
+      );
+    }
+    console.log('✅ 1. Đã cập nhật 2 Tenants đa kênh: Thời Trang An Khang & Mỹ Phẩm GlowTech.');
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 1.1 SEED USERS (ADMIN & MERCHANT)
+    // ══════════════════════════════════════════════════════════════════════════
+    const adminPasswordHash = await bcrypt.hash('Admin@123456', 10);
+    const demoPasswordHash = await bcrypt.hash('Demo@123456', 10);
+
+    const users = [
+      {
+        _id: new ObjectId('66c0e812a1b2c3d4e5f60010'),
+        email: 'admin@uniflow.vn',
+        password: adminPasswordHash,
+        name: 'Admin Master (PTIT_Aka)',
+        phone: '0988888888',
+        role: 'ADMIN',
+        tenantId: tenant1Id,
+        avatar: 'https://ui-avatars.com/api/?name=Admin+Master&background=ed1c24&color=fff&bold=true',
+        isActive: true,
+        updatedAt: new Date(),
+      },
+      {
+        _id: new ObjectId('66c0e812a1b2c3d4e5f60011'),
+        email: 'demo@uniflow.vn',
+        password: demoPasswordHash,
+        name: 'Chủ Gian Hàng GlowTech',
+        phone: '0977777777',
+        role: 'MERCHANT',
+        tenantId: tenant2Id,
+        avatar: 'https://ui-avatars.com/api/?name=Glow+Tech&background=EC4899&color=fff&bold=true',
+        isActive: true,
+        updatedAt: new Date(),
+      },
+    ];
+
+    for (const u of users) {
+      await db.collection('users').updateOne(
+        { email: u.email },
+        { $set: u, $setOnInsert: { createdAt: new Date() } },
+        { upsert: true }
+      );
+    }
+    console.log(`✅ 1.1. Đã nạp ${users.length} Tài khoản mẫu thực tế (admin@uniflow.vn / demo@uniflow.vn).`);
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 2. SEED WORKFLOWS FOR BOTH TENANTS
+    // ══════════════════════════════════════════════════════════════════════════
     const workflows = [
+      // ── TENANT 1: Thời Trang An Khang ──────────────────────────────────────
       {
         _id: new ObjectId('66c0e812a1b2c3d4e5f60004'),
-        tenantId,
+        tenantId: tenant1Id,
         name: 'Tự động trừ kho Sapo và Đẩy đơn GHTK từ TikTok Shop',
-        description: 'Luồng xử lý đơn hàng 0-chạm đa kênh tự động với AI Matching cho TikTok Shop',
+        description: 'Luồng xử lý đơn hàng thời trang 0-chạm đa kênh tự động với AI Matching cho TikTok Shop',
         isActive: true,
         triggerType: 'WEBHOOK',
         nodes: [
@@ -96,7 +169,7 @@ async function seed() {
       },
       {
         _id: new ObjectId('66c0e812a1b2c3d4e5f60007'),
-        tenantId,
+        tenantId: tenant1Id,
         name: 'Đồng bộ Shopee sang KiotViet & Tự động tạo đơn GHN',
         description: 'Tự động lấy chi tiết đơn Shopee qua Open API và điều phối vận chuyển',
         isActive: true,
@@ -136,39 +209,48 @@ async function seed() {
         executionCount: 14220,
         updatedAt: new Date(),
       },
+
+      // ── TENANT 2: Mỹ Phẩm & Skincare GlowTech ──────────────────────────────
       {
-        _id: new ObjectId('66c0e812a1b2c3d4e5f60008'),
-        tenantId,
-        name: 'Đồng bộ Lazada sang Sapo & Viettel Post (Luồng Siêu Sale)',
-        description: 'Tối ưu hóa thông lượng cao cho sự kiện Mega Sale 11/11 & Payday',
-        isActive: false,
+        _id: new ObjectId('66c0e812a1b2c3d4e5f60020'),
+        tenantId: tenant2Id,
+        name: 'Đồng bộ đơn Skincare TikTok Shop sang KiotViet & GHN',
+        description: 'Tự động kiểm tra hạn sử dụng mỹ phẩm, trừ kho KiotViet và bàn giao GHN Express',
+        isActive: true,
         triggerType: 'WEBHOOK',
         nodes: [
           {
-            id: 'node_lz_1',
+            id: 'node_gl_1',
             type: 'trigger',
             position: { x: 60, y: 150 },
-            data: { label: 'Lazada Inbound Webhook', description: 'Đơn hàng mới' },
+            data: { label: 'TikTok Live Stream Order', description: 'Đơn chốt trực tiếp trên phiên Live' },
           },
           {
-            id: 'node_ai_lz_2',
+            id: 'node_gl_ai_2',
             type: 'ai',
             position: { x: 400, y: 150 },
-            data: { label: 'AI SKU Matcher', description: 'Khớp danh mục tự động' },
+            data: { label: 'AI Cosmetics SKU Matcher', description: 'Khớp Combo quà tặng & Mã sản phẩm' },
           },
           {
-            id: 'node_sapo_lz_3',
+            id: 'node_gl_kv_3',
             type: 'action',
-            position: { x: 740, y: 150 },
-            data: { label: 'Trừ tồn Sapo & ViettelPost', description: 'Đẩy đơn siêu tốc', category: 'POS' },
+            position: { x: 740, y: 60 },
+            data: { label: 'Trừ kho KiotViet Cosmetics', description: 'Kho: WH_BEAUTY_HCM', category: 'POS' },
+          },
+          {
+            id: 'node_gl_ghn_4',
+            type: 'action',
+            position: { x: 740, y: 250 },
+            data: { label: 'Tạo vận đơn GHN Hỏa Tốc', description: 'Giao trong ngày 4H HCM', category: 'LOGISTICS' },
           },
         ],
         edges: [
-          { id: 'e_lz_1-2', source: 'node_lz_1', target: 'node_ai_lz_2', animated: true, style: { stroke: '#0F146D', strokeWidth: 2 } },
-          { id: 'e_lz_2-3', source: 'node_ai_lz_2', target: 'node_sapo_lz_3', animated: true, style: { stroke: '#10B981', strokeWidth: 2 } },
+          { id: 'e_gl_1-2', source: 'node_gl_1', target: 'node_gl_ai_2', animated: true, style: { stroke: '#EC4899', strokeWidth: 2 } },
+          { id: 'e_gl_2-3', source: 'node_gl_ai_2', target: 'node_gl_kv_3', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 } },
+          { id: 'e_gl_2-4', source: 'node_gl_ai_2', target: 'node_gl_ghn_4', animated: true, style: { stroke: '#10B981', strokeWidth: 2 } },
         ],
         viewport: { x: 0, y: 0, zoom: 1 },
-        executionCount: 5180,
+        executionCount: 19680,
         updatedAt: new Date(),
       },
     ];
@@ -180,12 +262,15 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 2. Đã nạp ${workflows.length} Workflows Canvas thực tế.`);
+    console.log(`✅ 2. Đã nạp ${workflows.length} Workflows Canvas phân tầng cho 2 Tenant.`);
 
-    // 3. Seed 10 SKU Mappings thực tế ngành TMĐT
+    // ══════════════════════════════════════════════════════════════════════════
+    // 3. SEED SKU MAPPINGS FOR BOTH TENANTS
+    // ══════════════════════════════════════════════════════════════════════════
     const skuMappings = [
+      // ── TENANT 1: Fashion Items ───────────────────────────────────────────
       {
-        tenantId,
+        tenantId: tenant1Id,
         sourcePlatform: 'TIKTOK_SHOP',
         sourceSkuCode: 'TTS-AT-COT-BLK-L',
         sourceProductName: 'Áo thun Cotton Nam Màu Đen Size L Cao Cấp PTIT_Aka',
@@ -198,7 +283,7 @@ async function seed() {
         updatedAt: new Date(),
       },
       {
-        tenantId,
+        tenantId: tenant1Id,
         sourcePlatform: 'SHOPEE',
         sourceSkuCode: 'SP-POLO-PIMA-WHT-M',
         sourceProductName: 'Áo Polo Pima Nam Trắng M Co Giãn 4 Chiều Thoáng Mát',
@@ -211,7 +296,7 @@ async function seed() {
         updatedAt: new Date(),
       },
       {
-        tenantId,
+        tenantId: tenant1Id,
         sourcePlatform: 'TIKTOK_SHOP',
         sourceSkuCode: 'TTS-SM-OXFORD-BLU-XL',
         sourceProductName: 'Áo Sơ Mi Nam Oxford Xanh Nhạt Dài Tay Form Rộng Chuẩn Hàn',
@@ -224,7 +309,7 @@ async function seed() {
         updatedAt: new Date(),
       },
       {
-        tenantId,
+        tenantId: tenant1Id,
         sourcePlatform: 'SHOPEE',
         sourceSkuCode: 'SP-QJ-SLIM-BLK-32',
         sourceProductName: 'Quần Jean Nam Co Giãn Ống Đứng Đen Size 32',
@@ -237,33 +322,7 @@ async function seed() {
         updatedAt: new Date(),
       },
       {
-        tenantId,
-        sourcePlatform: 'TIKTOK_SHOP',
-        sourceSkuCode: 'TTS-AK-BOMBER-GRN-L',
-        sourceProductName: 'Áo Khoác Bomber 2 Lớp Chống Nước Màu Rêu Size L',
-        sourceVariationText: 'Xanh Rêu / L',
-        targetPosPlatform: 'SAPO',
-        targetMasterSku: 'AK-BOMB-GRN-L',
-        targetProductName: 'Áo Khoác Bomber Rêu Size L',
-        confidenceScore: 0.941,
-        mappingStatus: 'PENDING_REVIEW',
-        updatedAt: new Date(),
-      },
-      {
-        tenantId,
-        sourcePlatform: 'SHOPEE',
-        sourceSkuCode: 'SP-GI-SNEAKER-WHT-42',
-        sourceProductName: 'Giày Sneaker Nam Thể Thao Màu Trắng Đế Cao 4cm Size 42',
-        sourceVariationText: 'Trắng Full / 42',
-        targetPosPlatform: 'KIOTVIET',
-        targetMasterSku: 'GI-SNK-WHT-42',
-        targetProductName: 'Giày Sneaker Classic Trắng 42',
-        confidenceScore: 0.958,
-        mappingStatus: 'AUTO_APPROVED',
-        updatedAt: new Date(),
-      },
-      {
-        tenantId,
+        tenantId: tenant1Id,
         sourcePlatform: 'LAZADA',
         sourceSkuCode: 'LZD-VI-DA-BO-BRN',
         sourceProductName: 'Ví Da Nam Bò Thật Khắc Tên Cao Cấp Nâu Đậm',
@@ -275,30 +334,58 @@ async function seed() {
         mappingStatus: 'AUTO_APPROVED',
         updatedAt: new Date(),
       },
+
+      // ── TENANT 2: Cosmetics & Skincare Items ──────────────────────────────
       {
-        tenantId,
+        tenantId: tenant2Id,
         sourcePlatform: 'TIKTOK_SHOP',
-        sourceSkuCode: 'TTS-THAT-LUNG-BLK',
-        sourceProductName: 'Thắt Lưng Nam Mặt Khóa Tự Động Hợp Kim Đen',
-        sourceVariationText: 'Khóa Tự Động Đen',
+        sourceSkuCode: 'TTS-SR-B5-HYDRA-30ML',
+        sourceProductName: 'Serum Phục Hồi Cấp Ẩm Vitamin B5 Hyaluronic Acid 30ml GlowTech',
+        sourceVariationText: 'Chai 30ml',
+        targetPosPlatform: 'KIOTVIET',
+        targetMasterSku: 'SRM-B5-30ML',
+        targetProductName: 'Serum Phục Hồi Da B5 30ml',
+        confidenceScore: 0.988,
+        mappingStatus: 'AUTO_APPROVED',
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant2Id,
+        sourcePlatform: 'SHOPEE',
+        sourceSkuCode: 'SP-KCN-CENTELLA-50SPF',
+        sourceProductName: 'Kem Chống Nắng Rau Má Centella SPF50+ PA++++ Kiềm Dầu Nâng Tông',
+        sourceVariationText: 'Tuýp 50ml',
         targetPosPlatform: 'SAPO',
-        targetMasterSku: 'TL-KHOA-AUT-BLK',
-        targetProductName: 'Thắt Lưng Da Khóa Tự Động Đen',
-        confidenceScore: 0.882,
+        targetMasterSku: 'KCN-CENT-50ML',
+        targetProductName: 'Kem Chống Nắng Rau Má Centella 50ml',
+        confidenceScore: 0.952,
+        mappingStatus: 'AUTO_APPROVED',
+        updatedAt: new Date(),
+      },
+      {
+        tenantId: tenant2Id,
+        sourcePlatform: 'TIKTOK_SHOP',
+        sourceSkuCode: 'TTS-SON-LIP-VELVET-03',
+        sourceProductName: 'Son Kem Lì Mịn Môi Velvet Lip Tint Màu Đỏ Cam Cháy #03 GlowTech',
+        sourceVariationText: 'Màu #03 Đỏ Cam',
+        targetPosPlatform: 'KIOTVIET',
+        targetMasterSku: 'SON-VELVET-03',
+        targetProductName: 'Son Kem Lì Velvet #03 Đỏ Cam',
+        confidenceScore: 0.925,
         mappingStatus: 'PENDING_REVIEW',
         updatedAt: new Date(),
       },
       {
-        tenantId,
+        tenantId: tenant2Id,
         sourcePlatform: 'SHOPEE',
-        sourceSkuCode: 'SP-TAT-CO-NGAN-SET5',
-        sourceProductName: 'Set 5 Đôi Tất Vớ Nam Cổ Ngắn Khử Mùi Thoáng Khí',
-        sourceVariationText: 'Set 5 Đôi Mix Màu',
-        targetPosPlatform: 'KIOTVIET',
-        targetMasterSku: 'SET-TAT-NAM-05',
-        targetProductName: 'Hộp 5 Đôi Tất Cổ Ngắn Cotton',
-        confidenceScore: 0.684,
-        mappingStatus: 'MANUAL_REQUIRED',
+        sourceSkuCode: 'SP-TT-MICELLAR-400ML',
+        sourceProductName: 'Nước Tẩy Trang Làm Sạch Sâu Dịu Nhẹ Micellar Cleansing Water 400ml',
+        sourceVariationText: 'Chai Lớn 400ml',
+        targetPosPlatform: 'SAPO',
+        targetMasterSku: 'NTT-MICEL-400ML',
+        targetProductName: 'Nước Tẩy Trang Micellar 400ml',
+        confidenceScore: 0.965,
+        mappingStatus: 'AUTO_APPROVED',
         updatedAt: new Date(),
       },
     ];
@@ -310,22 +397,25 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 3. Đã nạp ${skuMappings.length} SKU Mappings ngành thời trang TMĐT.`);
+    console.log(`✅ 3. Đã nạp ${skuMappings.length} SKU Mappings phân biệt cho cả 2 ngành hàng.`);
 
-    // 4. Seed 12 Sync Event Logs thực tế
+    // ══════════════════════════════════════════════════════════════════════════
+    // 4. SEED SYNC EVENT LOGS FOR BOTH TENANTS
+    // ══════════════════════════════════════════════════════════════════════════
     const syncLogs = [
+      // ── TENANT 1: Fashion Logs ────────────────────────────────────────────
       {
-        tenantId,
+        tenantId: tenant1Id,
         platform: 'TIKTOK_SHOP',
         sourceOrderId: 'TTS_88921045',
         status: 'COMPLETED',
         durationMs: 198,
         message: 'Đơn TikTok #TTS_88921045 -> Khớp SKU AI (98.5%) -> Trừ kho Sapo -> Tạo vận đơn GHTK (198ms) ✅',
         aiHealed: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 2), // 2 phút trước
+        createdAt: new Date(Date.now() - 1000 * 60 * 2),
       },
       {
-        tenantId,
+        tenantId: tenant1Id,
         platform: 'SHOPEE',
         sourceOrderId: 'SP_24081899120',
         status: 'AUTO_HEALED',
@@ -335,35 +425,27 @@ async function seed() {
         healingDetails: { originalCarrier: 'GHN', fallbackCarrier: 'GHTK', reason: 'Gateway Timeout 504' },
         createdAt: new Date(Date.now() - 1000 * 60 * 5),
       },
+
+      // ── TENANT 2: Cosmetics Logs ──────────────────────────────────────────
       {
-        tenantId,
+        tenantId: tenant2Id,
         platform: 'TIKTOK_SHOP',
-        sourceOrderId: 'TTS_88920982',
+        sourceOrderId: 'TTS_GLOW_991823',
         status: 'COMPLETED',
-        durationMs: 165,
-        message: 'Đơn TikTok #TTS_88920982 -> Khớp SKU \'QJ-SLIM-BLK-32\' -> Trừ kho Sapo -> Tạo vận đơn GHTK (165ms) ✅',
+        durationMs: 172,
+        message: 'Đơn TikTok Live #TTS_GLOW_991823 -> Khớp Combo Serum B5 -> Trừ kho KiotViet -> Bàn giao GHN Hỏa Tốc (172ms) ✅',
         aiHealed: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 12),
+        createdAt: new Date(Date.now() - 1000 * 60 * 1),
       },
       {
-        tenantId,
+        tenantId: tenant2Id,
         platform: 'SHOPEE',
-        sourceOrderId: 'SP_24081898741',
+        sourceOrderId: 'SP_GLOW_551920',
         status: 'COMPLETED',
-        durationMs: 220,
-        message: 'Đơn Shopee #SP_24081898741 -> Trừ kho KiotViet -> Tạo đơn Viettel Post thành công ✅',
+        durationMs: 185,
+        message: 'Đơn Shopee Mall #SP_GLOW_551920 -> Khớp Kem Chống Nắng Centella -> Trừ tồn Sapo -> In mã vận đơn GHN ✅',
         aiHealed: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 25),
-      },
-      {
-        tenantId,
-        platform: 'LAZADA',
-        sourceOrderId: 'LZD_582910381',
-        status: 'COMPLETED',
-        durationMs: 175,
-        message: 'Đơn Lazada #LZD_582910381 -> Khớp SKU \'VI-DABO-BRN\' -> Trừ kho Sapo -> GHTK (175ms) ✅',
-        aiHealed: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 40),
+        createdAt: new Date(Date.now() - 1000 * 60 * 8),
       },
     ];
 
@@ -372,7 +454,7 @@ async function seed() {
     }
     console.log(`✅ 4. Đã nạp ${syncLogs.length} Sync Logs thực tế vào MongoDB Atlas.`);
 
-    console.log('\n🎉 NẠP TOÀN BỘ BỘ DỮ LIỆU THỰC TẾ THÀNH CÔNG VÀO DATABASE PTIT_Aka! ✅');
+    console.log('\n🎉 HOÀN TẤT NẠP DỮ LIỆU ĐA TENANT THỰC TẾ VÀO DATABASE PTIT_Aka! ✅');
   } catch (err) {
     console.error('❌ Lỗi khi nạp dữ liệu:', err.message);
   } finally {

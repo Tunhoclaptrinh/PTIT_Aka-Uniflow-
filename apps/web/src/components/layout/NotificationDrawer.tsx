@@ -1,10 +1,13 @@
-import React from 'react';
-import { Drawer, List, Space, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Drawer, List, Typography } from 'antd';
 import {
   BellFilled,
   ClearOutlined,
+  ThunderboltFilled,
+  CheckCircleFilled,
 } from '@ant-design/icons';
 import { BaseButton } from '../base/BaseButton';
+import { metricsService } from '../../services/metrics.service';
 
 const { Paragraph } = Typography;
 
@@ -17,40 +20,47 @@ export interface NotificationItem {
   read: boolean;
 }
 
-const mockNotifications: NotificationItem[] = [
-  {
-    id: 'notif_1',
-    title: '⚡ AI Auto-Healing kích hoạt',
-    description: 'GHN gặp lỗi timeout (504). AI đã tự động chuyển tuyến đơn #SP-99120 sang GHTK (Tiết kiệm 4,500đ).',
-    type: 'AI_HEALING',
-    time: '2 phút trước',
-    read: false,
-  },
-  {
-    id: 'notif_2',
-    title: '📦 12 Mã SKU khớp tự động >= 95%',
-    description: 'AI Hybrid Matcher đã hoàn tất phân tích 12 sản phẩm từ gian hàng TikTok Shop.',
-    type: 'ORDER',
-    time: '15 phút trước',
-    read: false,
-  },
-  {
-    id: 'notif_3',
-    title: '🛡️ Bảo mật PCI-DSS Kích hoạt',
-    description: 'Khóa mã hóa AES-256-GCM đã được đồng bộ an toàn với MongoDB Atlas.',
-    type: 'SYSTEM',
-    time: '1 giờ trước',
-    read: true,
-  },
-];
-
 interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
 }
 
 export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, onClose }) => {
-  const [notifications, setNotifications] = React.useState<NotificationItem[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const logs = await metricsService.getLogs(10);
+      if (logs && logs.length > 0) {
+        const mapped: NotificationItem[] = logs.map((l) => {
+          const isHealed = l.aiHealed;
+          return {
+            id: l._id,
+            title: isHealed ? '⚡ AI tự phục hồi & Chuyển tuyến' : `Đơn hàng ${l.platform} #${l.sourceOrderId}`,
+            description: l.message || 'Xử lý hoàn tất qua luồng tự động 0-chạm',
+            type: isHealed ? 'AI_HEALING' : 'ORDER',
+            time: new Date(l.createdAt).toLocaleTimeString('vi-VN'),
+            read: false,
+          };
+        });
+        setNotifications(mapped);
+      } else {
+        setNotifications([]);
+      }
+    } catch {
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      loadNotifications();
+    }
+  }, [open]);
 
   const handleMarkAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -63,54 +73,71 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
   return (
     <Drawer
       title={
-        <Space>
-          <BellFilled style={{ color: '#fcc20f' }} />
-          <span style={{ fontWeight: 700, fontSize: 16 }}>
-            Trung Tâm Thông Báo Vận Hành ({notifications.filter((n) => !n.read).length} mới)
-          </span>
-        </Space>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <BellFilled style={{ color: '#ed1c24' }} />
+          <span style={{ fontWeight: 600 }}>Thông báo hệ thống</span>
+        </div>
       }
       placement="right"
-      width={460}
+      width={400}
       open={open}
       onClose={onClose}
-      styles={{
-        body: { padding: '16px' },
-      }}
       extra={
-        <Space>
-          <BaseButton variant="ghost" size="small" onClick={handleMarkAllRead}>
-            Đã đọc hết
+        notifications.length > 0 && (
+          <BaseButton variant="ghost" size="small" icon={<ClearOutlined />} onClick={handleClearAll}>
+            Xóa hết
           </BaseButton>
-          <BaseButton variant="ghost" size="small" icon={<ClearOutlined />} onClick={handleClearAll} />
-        </Space>
+        )
+      }
+      footer={
+        notifications.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <BaseButton variant="secondary" size="small" onClick={handleMarkAllRead}>
+              Đánh dấu đã đọc tất cả
+            </BaseButton>
+          </div>
+        )
       }
     >
       <List
+        loading={loading}
+        itemLayout="vertical"
         dataSource={notifications}
-        renderItem={(item) => {
-          return (
-            <div
-              style={{
-                background: item.read ? '#FFFFFF' : 'rgba(237, 28, 36, 0.04)',
-                border: item.read ? '1px solid #E5E7EB' : '1px solid rgba(237, 28, 36, 0.25)',
-                borderRadius: 10,
-                padding: '14px',
-                marginBottom: 12,
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontWeight: 700, fontSize: 13 }}>{item.title}</span>
-                <span style={{ color: '#6B7280', fontSize: 11, fontFamily: 'JetBrains Mono' }}>{item.time}</span>
-              </div>
-
-              <Paragraph style={{ color: '#4B5563', fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                {item.description}
-              </Paragraph>
+        locale={{
+          emptyText: (
+            <div style={{ padding: '32px 0', textAlign: 'center', color: '#9CA3AF' }}>
+              Chưa có thông báo mới từ hệ thống
             </div>
-          );
+          ),
         }}
+        renderItem={(item) => (
+          <List.Item
+            key={item.id}
+            style={{
+              padding: '12px 14px',
+              marginBottom: 10,
+              borderRadius: 8,
+              background: item.read ? '#FFFFFF' : '#F9FAFB',
+              border: item.read ? '1px solid #E5E7EB' : '1px solid #D1D5DB',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div style={{ fontWeight: item.read ? 500 : 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {item.type === 'AI_HEALING' ? (
+                  <ThunderboltFilled style={{ color: '#8B5CF6' }} />
+                ) : (
+                  <CheckCircleFilled style={{ color: '#10B981' }} />
+                )}
+                {item.title}
+              </div>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{item.time}</span>
+            </div>
+            <Paragraph style={{ margin: 0, fontSize: 12, color: '#4B5563', lineHeight: 1.4 }}>
+              {item.description}
+            </Paragraph>
+          </List.Item>
+        )}
       />
     </Drawer>
   );

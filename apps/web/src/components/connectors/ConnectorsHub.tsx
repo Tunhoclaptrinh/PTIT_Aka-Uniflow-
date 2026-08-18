@@ -3,7 +3,6 @@ import { Card, Row, Col, Tag, Space, Tabs } from 'antd';
 import {
   SettingOutlined,
   PlusOutlined,
-  ApiOutlined,
 } from '@ant-design/icons';
 import { ConnectorConfigModal } from './ConnectorConfigModal';
 import { StatusTag, BaseButton, SearchInput, EmptyState, PageContainer } from '../base';
@@ -152,9 +151,8 @@ export const ConnectorsHub: React.FC = () => {
 
   return (
     <PageContainer
-      icon={<ApiOutlined style={{ color: '#ed1c24' }} />}
-      title="Trung Tâm Kết Nối Đa Kênh (Connectors Hub)"
-      subtitle="Cấu hình OAuth2, API Keys và Webhook Inbound cho các đối tác Sàn TMĐT, Kho POS và Vận chuyển"
+      title="Kênh Kết Nối"
+      tooltip="Cấu hình OAuth2, API Keys và Webhook Inbound cho các đối tác Sàn TMĐT, Kho POS và Đơn vị vận chuyển"
       extra={
         <Space size="middle">
           <SearchInput

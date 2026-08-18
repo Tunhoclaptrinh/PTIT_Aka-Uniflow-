@@ -1,0 +1,442 @@
+// ============================================================================
+// UNIFLOW AI — AUTHENTICATION STYLES (LOGIN & REGISTER)
+// ============================================================================
+
+.auth-page-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+
+  // ── LEFT HERO BRAND PANEL ──────────────────────────────────────────────────
+  .auth-hero-panel {
+    flex: 1.1;
+    position: relative;
+    background: #0B0F19;
+    color: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 56px;
+    overflow: hidden;
+
+    @media (max-width: 960px) {
+      display: none;
+    }
+
+    // Glow Orbs in background
+    .auth-bg-orb-1 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      top: -150px;
+      left: -150px;
+      background: radial-gradient(circle, rgba(237, 28, 36, 0.35) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .auth-bg-orb-2 {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      bottom: -100px;
+      right: -100px;
+      background: radial-gradient(circle, rgba(252, 194, 15, 0.25) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    // Grid matrix pattern overlay
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .auth-hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .auth-brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-decoration: none;
+
+      .auth-logo-img {
+        width: 38px;
+        height: 38px;
+        filter: drop-shadow(0 2px 8px rgba(237, 28, 36, 0.4));
+      }
+
+      .auth-brand-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: #FFFFFF;
+        letter-spacing: -0.5px;
+
+        .brand-flow {
+          color: #ed1c24;
+        }
+
+        .brand-ai {
+          color: #FCC20F;
+          font-size: 14px;
+          margin-left: 4px;
+        }
+      }
+    }
+
+    .auth-hero-main {
+      position: relative;
+      z-index: 2;
+      margin: 40px 0;
+
+      .auth-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(237, 28, 36, 0.12);
+        border: 1px solid rgba(237, 28, 36, 0.3);
+        border-radius: 30px;
+        color: #FCC20F;
+        font-size: 12.5px;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .auth-hero-title {
+        font-size: 36px;
+        font-weight: 900;
+        line-height: 1.25;
+        letter-spacing: -1px;
+        color: #FFFFFF;
+        margin-bottom: 16px;
+
+        .highlight-text {
+          background: linear-gradient(135deg, #ed1c24 0%, #FCC20F 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      }
+
+      .auth-hero-desc {
+        font-size: 15.5px;
+        color: #94A3B8;
+        line-height: 1.7;
+        max-width: 480px;
+        margin-bottom: 32px;
+      }
+
+      // Feature Glass Cards
+      .auth-feature-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        max-width: 460px;
+
+        .auth-feat-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 18px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(12px);
+          transition: all 0.25s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(237, 28, 36, 0.4);
+            transform: translateX(4px);
+          }
+
+          .feat-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            background: rgba(237, 28, 36, 0.15);
+            color: #ed1c24;
+          }
+
+          .feat-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #F8FAFC;
+          }
+
+          .feat-sub {
+            font-size: 12px;
+            color: #64748B;
+          }
+        }
+      }
+    }
+
+    .auth-hero-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      color: #64748B;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 20px;
+    }
+  }
+
+  // ── RIGHT FORM PANEL ───────────────────────────────────────────────────────
+  .auth-form-panel {
+    flex: 0.9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 24px;
+    position: relative;
+
+    .auth-top-actions {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auth-form-card {
+      width: 100%;
+      max-width: 440px;
+      padding: 36px 32px;
+      border-radius: 20px;
+      background: #FFFFFF;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
+
+      .auth-card-header {
+        margin-bottom: 28px;
+
+        .auth-card-title {
+          font-size: 26px;
+          font-weight: 800;
+          color: #0F172A;
+          margin-bottom: 6px;
+          letter-spacing: -0.5px;
+        }
+
+        .auth-card-sub {
+          font-size: 14px;
+          color: #64748B;
+        }
+      }
+
+      // Quick Demo Fill Block
+      .demo-accounts-box {
+        background: rgba(237, 28, 36, 0.04);
+        border: 1px dashed rgba(237, 28, 36, 0.3);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 22px;
+
+        .demo-title {
+          font-size: 12px;
+          font-weight: 700;
+          color: #ed1c24;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .demo-btns-row {
+          display: flex;
+          gap: 8px;
+
+          .demo-chip-btn {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+
+            &:hover {
+              border-color: #ed1c24;
+              color: #ed1c24;
+              background: rgba(237, 28, 36, 0.05);
+            }
+          }
+        }
+      }
+
+      // Form Controls
+      .ant-form-item {
+        margin-bottom: 18px;
+
+        .ant-form-item-label>label {
+          font-weight: 600;
+          font-size: 13.5px;
+          color: #334155;
+        }
+      }
+
+      .ant-input-affix-wrapper,
+      .ant-input {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        border-color: #CBD5E1;
+        transition: all 0.2s ease;
+
+        &:hover,
+        &:focus,
+        &-focused {
+          border-color: #ed1c24;
+          box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.1);
+        }
+      }
+
+      .auth-submit-btn {
+        width: 100%;
+        height: 48px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ed1c24 0%, #FCC20F 100%);
+        border: none;
+        color: #FFFFFF;
+        box-shadow: 0 6px 20px rgba(237, 28, 36, 0.35);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 6px;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 28px rgba(237, 28, 36, 0.5);
+          color: #FFFFFF !important;
+        }
+      }
+
+      .auth-switch-prompt {
+        text-align: center;
+        margin-top: 22px;
+        font-size: 13.5px;
+        color: #64748B;
+
+        a {
+          color: #ed1c24;
+          font-weight: 700;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ── DARK MODE OVERRIDES ─────────────────────────────────────────────────────
+[data-theme='dark'] {
+  .auth-page-wrapper {
+    background: #060A12;
+    color: #F8FAFC;
+
+    .auth-form-panel {
+      .auth-form-card {
+        background: #0E1626;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+        .auth-card-header {
+          .auth-card-title {
+            color: #FFFFFF;
+          }
+
+          .auth-card-sub {
+            color: #94A3B8;
+          }
+        }
+
+        .demo-accounts-box {
+          background: rgba(237, 28, 36, 0.08);
+          border-color: rgba(237, 28, 36, 0.3);
+
+          .demo-btns-row .demo-chip-btn {
+            background: #1E293B;
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #E2E8F0;
+
+            &:hover {
+              border-color: #ed1c24;
+              color: #FCC20F;
+              background: rgba(237, 28, 36, 0.15);
+            }
+          }
+        }
+
+        .ant-form-item .ant-form-item-label>label {
+          color: #E2E8F0;
+        }
+
+        .ant-input-affix-wrapper,
+        .ant-input {
+          background: #162032;
+          border-color: rgba(255, 255, 255, 0.12);
+          color: #FFFFFF;
+
+          input {
+            background: transparent;
+            color: #FFFFFF;
+          }
+
+          .ant-input-prefix,
+          .ant-input-suffix {
+            color: #64748B;
+          }
+
+          &:hover,
+          &:focus,
+          &-focused {
+            border-color: #ed1c24;
+            box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.2);
+          }
+        }
+
+        .auth-switch-prompt {
+          color: #94A3B8;
+        }
+      }
+    }
+  }
+}

@@ -1,13 +1,49 @@
 import { BaseApiService } from './base.service';
 import { baseApi } from './api';
 
+export interface ChannelStats {
+  count: number;
+  percent: number;
+}
+
+export interface SkuHealthStats {
+  total: number;
+  autoApproved: number;
+  pendingReview: number;
+  manualRequired: number;
+  matchRate: number;
+}
+
+export interface WorkflowGlance {
+  id: string;
+  name: string;
+  isActive: boolean;
+  executionCount: number;
+  sourcePlatform: string;
+  targetPlatform: string;
+}
+
 export interface DashboardMetrics {
   totalSyncedOrders: number;
   averageLatencyMs: number;
   successRate: number;
   costSavedVND: number;
+  hoursSaved?: number;
   healedOrdersCount: number;
+  failedOrdersCount?: number;
   totalLogsCount: number;
+  channelBreakdown?: {
+    tiktok: ChannelStats;
+    shopee: ChannelStats;
+    lazada: ChannelStats;
+  };
+  skuHealth?: SkuHealthStats;
+  workflows?: WorkflowGlance[];
+  systemStatus?: {
+    database: string;
+    redisCluster: string;
+    aiMatcher: string;
+  };
 }
 
 export interface SyncLogItem {

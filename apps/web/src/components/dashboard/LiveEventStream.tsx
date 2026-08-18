@@ -12,33 +12,8 @@ import { LiveFeedItem, PlatformType, WebhookProcessingStatus } from '@uniflow/sh
 import { BaseCard, BaseButton, StatusTag, BadgeStatus, EmptyState } from '../base';
 import { formatLatency } from '../../utils/formatters';
 
-const initialMockEvents: LiveFeedItem[] = [
-  {
-    id: 'evt_init_1',
-    timestamp: '08:52:14',
-    tenantId: '66c0e812a1b2c3d4e5f60001',
-    platform: PlatformType.TIKTOK_SHOP,
-    sourceOrderId: 'TTS-88231',
-    message: 'Đơn TikTok #TTS-88231 -> Khớp SKU AI (98.5%) -> Trừ kho Sapo -> Tạo vận đơn GHTK (230ms) ✅',
-    durationMs: 230,
-    status: WebhookProcessingStatus.COMPLETED,
-    aiHealed: false,
-  },
-  {
-    id: 'evt_init_2',
-    timestamp: '08:51:40',
-    tenantId: '66c0e812a1b2c3d4e5f60001',
-    platform: PlatformType.SHOPEE,
-    sourceOrderId: 'SP-99120',
-    message: 'AI Auto-Healed: GHN timeout -> Reroute sang GHTK (Tiết kiệm 4,500đ)',
-    durationMs: 410,
-    status: WebhookProcessingStatus.AUTO_HEALED,
-    aiHealed: true,
-  },
-];
-
 export const LiveEventStream: React.FC = () => {
-  const { events, isConnected, clearEvents, setEvents } = useWebSocketStream(initialMockEvents);
+  const { events, isConnected, clearEvents, setEvents } = useWebSocketStream([]);
   const [loading, setLoading] = useState(false);
 
   const loadLogsFromDB = async () => {

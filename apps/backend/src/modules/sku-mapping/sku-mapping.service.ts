@@ -3,12 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mapping.schema';
 import { BaseService } from '../../common/services/base.service';
-import axios from 'axios';
+import { performAsyncAiSkuMatch, performRealAiSkuMatch, AiMatchResult } from './sku-ai-matcher.util';
 
 @Injectable()
 export class SKUMappingService extends BaseService<SKUMappingDocument> {
-  private readonly aiEngineUrl = process.env.AI_ENGINE_URL || 'http://localhost:8000';
-
   protected searchableFields = [
     'sourceSkuCode',
     'sourceProductName',
@@ -56,23 +54,12 @@ export class SKUMappingService extends BaseService<SKUMappingDocument> {
     sourceName: string;
     targetSku: string;
     targetName: string;
-  }) {
-    try {
-      const res = await axios.post(`${this.aiEngineUrl}/api/v1/ai/match-sku`, {
-        source_sku: payload.sourceSku,
-        source_name: payload.sourceName,
-        target_sku: payload.targetSku,
-        target_name: payload.targetName,
-        simulated_vector_sim: 0.95,
-      });
-      return res.data;
-    } catch (err: any) {
-      // Fallback nếu AI engine chưa bật
-      return {
-        match_score: 0.94,
-        is_confident: true,
-        reasoning: 'Fallback Gemini Vector Matcher: Tên và thuộc tính phân loại tương đồng 94%',
-      };
-    }
+  }): Promise<AiMatchResult> {
+    return performAsyncAiSkuMatch(
+      payload.sourceSku || '',
+      payload.sourceName || '',
+      payload.targetSku || '',
+      payload.targetName || ''
+    );
   }
 }

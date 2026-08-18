@@ -38,10 +38,13 @@ import {
 import { Link } from 'react-router-dom';
 import { notify } from '../utils/notification';
 import { useAppConfig } from '../context/AppConfigContext';
+import { useAuthStore } from '../store/useAuthStore';
+import { InteractiveBackground } from '../components/common/InteractiveBackground';
 import './LandingPage.less';
 
 export const LandingPage: React.FC = () => {
   const { themeMode, toggleTheme } = useAppConfig();
+  const { isAuthenticated, user } = useAuthStore();
   const [emailSub, setEmailSub] = useState('');
   const [lang, setLang] = useState<'VN' | 'EN'>('VN');
   const [codeTab, setCodeTab] = useState<'udm' | 'curl' | 'webhook'>('udm');
@@ -279,57 +282,88 @@ export function verifyTikTokWebhook(
 
   return (
     <div className="landing-page-root">
+      {/* ── INTERACTIVE CANVAS PARTICLES & MOUSE SPOTLIGHT ─────────────────── */}
+      <InteractiveBackground />
 
-      {/* ══════════════════════════════════════════════════════════════════
-          1. FIRST FOLD: MODERN HEADER + 100VH HERO CONTAINER
-      ══════════════════════════════════════════════════════════════════ */}
-      <div className="lp-first-fold">
-        {/* Sleek Top Navbar */}
-        <header className={`lp-navbar ${scrolled ? 'scrolled' : ''}`}>
-          <div className="brand-logo" onClick={scrollToTop}>
-            <img src="/logo.svg" alt="UniFlow AI" style={{ height: 34, width: 'auto' }} />
-            <div>
-              <div className="brand-title">
-                <span>Uni</span>
-                <span style={{ color: '#ed1c24' }}>Flow</span>
-                <span style={{ color: '#FCC20F' }}> AI</span>
-              </div>
-              <div className="brand-sub">PTIT_Aka · OMNICHANNEL IPAAS</div>
+      {/* ── SLEEK FIXED TOP NAVBAR (GLOBAL TOP LAYER) ──────────────────────── */}
+      <header className={`lp-navbar ${scrolled ? 'scrolled' : ''}`}>
+        <div className="brand-logo" onClick={scrollToTop}>
+          <img src="/logo.svg" alt="UniFlow AI" style={{ height: 34, width: 'auto' }} />
+          <div>
+            <div className="brand-title">
+              <span>Uni</span>
+              <span style={{ color: '#ed1c24' }}>Flow</span>
+              <span style={{ color: '#FCC20F' }}> AI</span>
             </div>
+            <div className="brand-sub">PTIT_Aka · OMNICHANNEL IPAAS</div>
+          </div>
+        </div>
+
+        <nav className="nav-links">
+          <a href="#" className="active">Trang chủ</a>
+          <a href="#demo">Mô phỏng</a>
+          <a href="#pipeline">Quy trình</a>
+          <a href="#features">Tính năng cốt lõi</a>
+          <a href="#docs">Tài liệu API</a>
+          <Link to="/workflows">Canvas</Link>
+          <Link to="/connectors">Kết nối</Link>
+        </nav>
+
+        <div className="nav-controls">
+          {/* Language switch */}
+          <div className="lang-pill" onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}>
+            <GlobalOutlined style={{ fontSize: 13, color: '#ed1c24' }} />
+            <span>{lang === 'VN' ? 'VN' : 'EN'}</span>
           </div>
 
-          <nav className="nav-links">
-            <a href="#" className="active">Trang chủ</a>
-            <a href="#demo">Mô phỏng</a>
-            <a href="#pipeline">Quy trình</a>
-            <a href="#features">Tính năng cốt lõi</a>
-            <a href="#docs">Tài liệu API</a>
-            <Link to="/workflows">Canvas</Link>
-            <Link to="/connectors">Kết nối</Link>
-          </nav>
+          {/* Theme toggle */}
+          <button className="theme-btn" onClick={toggleTheme} title="Chuyển đổi giao diện Sáng / Tối">
+            {isDark ? <SunOutlined style={{ fontSize: 14 }} /> : <MoonOutlined style={{ fontSize: 14 }} />}
+          </button>
 
-          <div className="nav-controls">
-            {/* Language switch */}
-            <div className="lang-pill" onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}>
-              <GlobalOutlined style={{ fontSize: 13, color: '#ed1c24' }} />
-              <span>{lang === 'VN' ? 'VN' : 'EN'}</span>
-            </div>
-
-            {/* Theme toggle */}
-            <button className="theme-btn" onClick={toggleTheme} title="Chuyển đổi giao diện Sáng / Tối">
-              {isDark ? <SunOutlined style={{ fontSize: 14 }} /> : <MoonOutlined style={{ fontSize: 14 }} />}
-            </button>
-
-            {/* Dashboard action button */}
+          {/* Auth Action Buttons */}
+          {isAuthenticated ? (
             <Link to="/dashboard">
               <button className="btn-dashboard">
                 <UserOutlined style={{ marginRight: 6 }} />
-                Vào Dashboard
+                {user?.name || 'Vào Dashboard'}
               </button>
             </Link>
-          </div>
-        </header>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link to="/login">
+                <button
+                  type="button"
+                  style={{
+                    background: 'transparent',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #CBD5E1',
+                    color: isDark ? '#F8FAFC' : '#1E293B',
+                    padding: '6px 16px',
+                    borderRadius: 20,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Đăng nhập
+                </button>
+              </Link>
+              <Link to="/register">
+                <button className="btn-dashboard">
+                  <RocketFilled style={{ marginRight: 6 }} />
+                  Dùng thử 14 ngày
+                </button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </header>
 
+      {/* ══════════════════════════════════════════════════════════════════
+          1. FIRST FOLD: 100VH HERO CONTAINER
+      ══════════════════════════════════════════════════════════════════ */}
+      <div className="lp-first-fold">
         {/* Hero Content Section */}
         <section className="lp-hero">
           <div className="hero-badge">
@@ -359,9 +393,9 @@ export function verifyTikTokWebhook(
           </p>
 
           <div className="hero-actions">
-            <Link to="/dashboard">
+            <Link to={isAuthenticated ? "/dashboard" : "/register"}>
               <button className="btn-primary-hero anim-glow-btn">
-                Khám phá Live Engine <ArrowRightOutlined />
+                Bắt đầu trải nghiệm ngay <ArrowRightOutlined />
               </button>
             </Link>
             <a href="#demo">
@@ -1341,11 +1375,12 @@ export function verifyTikTokWebhook(
               </div>
               {[
                 { to: '/', label: 'Trang chủ' },
+                { to: '/login', label: 'Đăng nhập hệ thống' },
+                { to: '/register', label: 'Đăng ký tài khoản mới' },
+                { to: '/dashboard', label: 'Dashboard điều khiển' },
                 { to: '/workflows', label: 'Visual Workflow Canvas' },
                 { to: '/mapping', label: 'AI SKU Auto-Mapping' },
                 { to: '/connectors', label: 'Connectors Hub' },
-                { to: '/logs', label: 'Live Logs & Self-Healing' },
-                { to: '/docs', label: 'Tài liệu kỹ thuật & API' },
               ].map(l => (
                 <Link key={l.to} to={l.to} className="footer-link">
                   <ArrowRightOutlined className="footer-link-arrow" />

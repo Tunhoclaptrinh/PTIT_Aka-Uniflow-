@@ -19,6 +19,7 @@ import {
   SaveOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../base/BaseButton';
+import { mappingService } from '../../services/mapping.service';
 import { notify } from '../../utils/notification';
 
 export interface SkuAiPlaygroundModalProps {
@@ -57,44 +58,34 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
       'Trùng khớp hoàn hảo 4/4 thực thể NER (Loại, Màu sắc, Kích cỡ, Chất liệu). Khoảng cách Vector Cosine đạt 0.974 (thuộc top 0.1% tương đồng). Đủ điều kiện phê duyệt tự động 0-chạm.',
   });
 
-  const handleRunAiAnalysis = () => {
+  const handleRunAiAnalysis = async () => {
     if (!sourceTitle.trim()) {
       notify.warning('Vui lòng nhập tên sản phẩm sàn TMĐT để AI phân tích!');
       return;
     }
 
     setAnalyzing(true);
-    notify.loading('AI Gemini 1.5 Flash đang phân tích NLP và so khớp Vector...', 'aiMatch');
+    notify.loading('AI Vector Cosine đang phân tích NLP và so khớp...', 'aiMatch');
 
-    setTimeout(() => {
-      // Dynamic computation simulation based on input
-      const isBlack = sourceTitle.toLowerCase().includes('đen') || sourceTitle.toLowerCase().includes('blk');
-      const isL = sourceTitle.toLowerCase().includes('size l') || sourceTitle.toLowerCase().includes(' l');
-      const isPolo = sourceTitle.toLowerCase().includes('polo');
-
-      const score = (isBlack ? 0.35 : 0.15) + (isL ? 0.35 : 0.15) + (isPolo ? 0.28 : 0.1);
-      const finalScore = Math.min(0.985, Math.max(0.65, score));
-
-      setAnalysisResult({
-        confidenceScore: finalScore,
-        vectorCosine: Math.min(0.99, finalScore + 0.015),
-        nerScore: Math.max(0.7, finalScore - 0.02),
-        entities: {
-          category: { raw: isPolo ? 'Áo Polo' : 'Áo Thời Trang', master: 'Áo Polo Nam', match: isPolo },
-          color: { raw: isBlack ? 'Đen (Black)' : 'Khác', master: 'Đen (BLK)', match: isBlack },
-          size: { raw: isL ? 'Size L' : 'Chưa rõ', master: 'L', match: isL },
-          material: { raw: 'Cotton Compact', master: 'Cotton Compact', match: true },
-        },
-        decision: finalScore >= 0.9 ? 'AUTO_APPROVED' : finalScore >= 0.75 ? 'PENDING_REVIEW' : 'MANUAL_REQUIRED',
-        reasoning:
-          finalScore >= 0.9
-            ? 'Độ tin cậy đạt ' + Math.round(finalScore * 100) + '% (>= 90%). Đầy đủ thông tin phân loại kích cỡ & màu sắc. Hệ thống tự động đề xuất Duyệt 0-chạm.'
-            : 'Độ tin cậy đạt ' + Math.round(finalScore * 100) + '%. Cần quản trị viên kiểm tra lại phân loại sản phẩm trước khi chốt Master SKU.',
+    try {
+      // Call backend test-match endpoint
+      const aiResponse = await mappingService.testAIMatch({
+        sourceSku,
+        sourceName: sourceTitle,
+        targetSku: targetMasterSku,
+        targetName: targetTitle,
       });
 
+      if (aiResponse) {
+        setAnalysisResult(aiResponse);
+        const scorePercent = Math.round((aiResponse.confidenceScore || aiResponse.match_score || 0.95) * 100);
+        notify.success(`Hoàn tất phân tích AI (${aiResponse.engineUsed || 'Vector NLP'})! Điểm tin cậy: ${scorePercent}% ✨`);
+      }
+    } catch (err: any) {
+      notify.error('Lỗi khi gọi AI Engine: ' + err.message);
+    } finally {
       setAnalyzing(false);
-      notify.success('Hoàn tất phân tích so khớp AI! Điểm tin cậy: ' + Math.round(finalScore * 100) + '% ✨');
-    }, 700);
+    }
   };
 
   const handleSaveToDb = async () => {

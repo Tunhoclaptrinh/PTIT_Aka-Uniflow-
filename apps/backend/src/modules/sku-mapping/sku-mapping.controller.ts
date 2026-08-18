@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  Headers,
   HttpStatus,
 } from '@nestjs/common';
 import { SKUMappingService } from './sku-mapping.service';
@@ -17,8 +18,12 @@ export class SKUMappingController {
   constructor(private readonly skuMappingService: SKUMappingService) {}
 
   @Get()
-  async getAllMappings(@Query('tenantId') tenantId?: string) {
-    const data = await this.skuMappingService.findAllMappings(tenantId);
+  async getAllMappings(
+    @Query('tenantId') tenantId?: string,
+    @Headers('x-tenant-id') headerTenantId?: string
+  ) {
+    const effectiveTenantId = tenantId || headerTenantId;
+    const data = await this.skuMappingService.findAllMappings(effectiveTenantId);
     return {
       statusCode: HttpStatus.OK,
       data,
@@ -28,9 +33,11 @@ export class SKUMappingController {
   @Get('paginate')
   async paginateMappings(
     @Query() query: PaginationQueryDto & Record<string, any>,
-    @Query('tenantId') tenantId?: string
+    @Query('tenantId') tenantId?: string,
+    @Headers('x-tenant-id') headerTenantId?: string
   ) {
-    const filter = tenantId ? { tenantId } : {};
+    const effectiveTenantId = tenantId || headerTenantId;
+    const filter = effectiveTenantId ? { tenantId: effectiveTenantId } : {};
     const data = await this.skuMappingService.paginate(filter, query);
     return {
       statusCode: HttpStatus.OK,

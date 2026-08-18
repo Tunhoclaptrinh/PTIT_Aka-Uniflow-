@@ -18,6 +18,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NotificationDrawer } from './NotificationDrawer';
 import { ErrorBoundary } from '../base/ErrorBoundary';
 import { useAppConfig } from '../../context/AppConfigContext';
+import { useAuthStore } from '../../store/useAuthStore';
+import { Tag } from 'antd';
 
 const { Header, Sider, Content } = Layout;
 
@@ -30,44 +32,69 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, themeMode, toggleTheme } = useAppConfig();
+  const { themeMode, toggleTheme } = useAppConfig();
+  const { user: authUser, logout } = useAuthStore();
 
   const isLight = themeMode === 'light';
+  const currentUser = authUser || {
+    name: 'Admin Master',
+    email: 'admin@uniflow.vn',
+    role: 'ADMIN' as const,
+    avatar: '',
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const menuItems = [
     {
       key: '/dashboard',
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard">Dashboard Tổng Quan</Link>,
+      label: <Link to="/dashboard">Tổng quan</Link>,
     },
     {
       key: '/workflows',
       icon: <BranchesOutlined />,
-      label: <Link to="/workflows">Visual Workflow Canvas</Link>,
+      label: <Link to="/workflows">Quy trình tự động</Link>,
     },
     {
       key: '/mapping',
       icon: <ThunderboltOutlined />,
-      label: <Link to="/mapping">AI SKU Auto-Mapping</Link>,
+      label: <Link to="/mapping">Ánh xạ SKU AI</Link>,
     },
     {
       key: '/connectors',
       icon: <ApiOutlined />,
-      label: <Link to="/connectors">Connectors Hub (Đa Kênh)</Link>,
+      label: <Link to="/connectors">Kênh kết nối</Link>,
     },
     {
       key: '/logs',
       icon: <HistoryOutlined />,
-      label: <Link to="/logs">Live Logs & Self-Healing</Link>,
+      label: <Link to="/logs">Nhật ký sự kiện</Link>,
     },
     {
       key: '/settings',
       icon: <SettingOutlined />,
-      label: <Link to="/settings">Cài Đặt Hệ Thống</Link>,
+      label: <Link to="/settings">Cài đặt hệ thống</Link>,
     },
   ];
 
   const userMenuItems = [
+    {
+      key: 'user-info',
+      disabled: true,
+      label: (
+        <div style={{ padding: '4px 0', color: isLight ? '#1F2937' : '#F3F4F6' }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5 }}>{currentUser.name}</div>
+          <div style={{ fontSize: 12, color: '#9CA3AF' }}>{currentUser.email}</div>
+        </div>
+      ),
+    },
+    {
+      type: 'divider' as const,
+    },
     {
       key: 'profile',
       icon: <UserOutlined />,
@@ -88,7 +115,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       icon: <LogoutOutlined />,
       label: 'Đăng xuất',
       danger: true,
-      onClick: () => navigate('/'),
+      onClick: handleLogout,
     },
   ];
 
@@ -172,18 +199,33 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}>
               <Avatar
+                src={currentUser?.avatar}
                 style={{
-                  backgroundColor: '#ed1c24',
+                  backgroundColor: currentUser?.role === 'ADMIN' ? '#ed1c24' : '#FCC20F',
+                  color: currentUser?.role === 'ADMIN' ? '#FFFFFF' : '#000000',
                   fontWeight: 700,
-                  fontSize: 13,
-                  border: '1px solid #fcc20f',
+                  fontSize: 12,
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                 }}
               >
-                AK
+                {currentUser?.name ? currentUser.name.slice(0, 2).toUpperCase() : 'UF'}
               </Avatar>
               <span style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>
-                {user?.name || 'Tuan Nguyen'}
+                {currentUser?.name || 'Tài khoản UniFlow'}
               </span>
+              <Tag
+                color={currentUser?.role === 'ADMIN' ? 'red' : 'gold'}
+                style={{
+                  margin: 0,
+                  fontSize: 10,
+                  fontWeight: 800,
+                  borderRadius: 4,
+                  padding: '0 6px',
+                  lineHeight: '18px',
+                }}
+              >
+                {currentUser?.role || 'MERCHANT'}
+              </Tag>
             </Space>
           </Dropdown>
         </div>

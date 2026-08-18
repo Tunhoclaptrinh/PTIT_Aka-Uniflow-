@@ -1,12 +1,18 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Workflow, WorkflowSchema } from '../../database/schemas/workflow.schema';
+import { SyncEventLog, SyncEventLogSchema } from '../../database/schemas/sync-event-log.schema';
+import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping.schema';
 import { WorkflowsService } from './workflows.service';
 import { WorkflowsController } from './workflows.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Workflow.name, schema: WorkflowSchema }]),
+    MongooseModule.forFeature([
+      { name: Workflow.name, schema: WorkflowSchema },
+      { name: SyncEventLog.name, schema: SyncEventLogSchema },
+      { name: SKUMapping.name, schema: SKUMappingSchema },
+    ]),
   ],
   controllers: [WorkflowsController],
   providers: [WorkflowsService],

@@ -3,7 +3,7 @@ import { Tag, Space, Tooltip } from 'antd';
 import {
   CodeOutlined,
   RedoOutlined,
-  HistoryOutlined,
+  CopyOutlined,
 } from '@ant-design/icons';
 import { loggingService, SyncLogItem } from '../services/logging.service';
 import { formatTimeAgo, formatLatency } from '../utils/formatters';
@@ -11,6 +11,7 @@ import {
   DataTable,
   StatusTag,
   BaseButton,
+  IconButton,
   ActionDrawer,
   PageContainer,
 } from '../components/base';
@@ -27,11 +28,9 @@ export const LiveLogsPage: React.FC = () => {
     setLoading(true);
     try {
       const data = await loggingService.getLogs();
-      if (data && data.length > 0) {
-        setLogs(data);
-      }
+      setLogs(data || []);
     } catch (err: any) {
-      console.warn('Lỗi khi tải Logs từ API, dùng mock:', err.message);
+      notify.error('Lỗi khi tải nhật ký sự kiện: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -66,13 +65,15 @@ export const LiveLogsPage: React.FC = () => {
 
   const columns = [
     {
-      title: 'Thời Gian',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
+      title: 'Thời gian',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 140,
-      render: (ts: string) => (
+      sorter: (a: SyncLogItem, b: SyncLogItem) =>
+        new Date(a.createdAt || a.timestamp || 0).getTime() - new Date(b.createdAt || b.timestamp || 0).getTime(),
+      render: (_: any, record: SyncLogItem) => (
         <span style={{ color: '#4B5563', fontSize: 12, fontFamily: 'JetBrains Mono' }}>
-          {formatTimeAgo(ts)}
+          {formatTimeAgo(record.createdAt || record.timestamp || new Date().toISOString())}
         </span>
       ),
     },
@@ -80,7 +81,14 @@ export const LiveLogsPage: React.FC = () => {
       title: 'Nền Tảng',
       dataIndex: 'platform',
       key: 'platform',
-      width: 120,
+      width: 125,
+      sorter: (a: SyncLogItem, b: SyncLogItem) => a.platform.localeCompare(b.platform),
+      filters: [
+        { text: 'TikTok Shop', value: 'TIKTOK' },
+        { text: 'Shopee', value: 'SHOPEE' },
+        { text: 'Lazada', value: 'LAZADA' },
+      ],
+      onFilter: (value: any, record: SyncLogItem) => record.platform.includes(value),
       render: (plat: string) => {
         let color = '#000000';
         let text = 'TikTok Shop';
@@ -103,8 +111,12 @@ export const LiveLogsPage: React.FC = () => {
       dataIndex: 'sourceOrderId',
       key: 'sourceOrderId',
       width: 160,
-      render: (id: string) => (
-        <span style={{ color: '#ed1c24', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 13 }}>
+      sorter: (a: SyncLogItem, b: SyncLogItem) => a.sourceOrderId.localeCompare(b.sourceOrderId),
+      render: (id: string, record: SyncLogItem) => (
+        <span
+          style={{ color: '#ed1c24', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 13, cursor: 'pointer' }}
+          onClick={() => openDrawer(record)}
+        >
           #{id}
         </span>
       ),
@@ -129,6 +141,7 @@ export const LiveLogsPage: React.FC = () => {
       dataIndex: 'durationMs',
       key: 'durationMs',
       width: 95,
+      sorter: (a: SyncLogItem, b: SyncLogItem) => (a.durationMs || 0) - (b.durationMs || 0),
       render: (ms: number) => (
         <span style={{ color: '#10B981', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 12 }}>
           {formatLatency(ms || 180)}
@@ -138,54 +151,48 @@ export const LiveLogsPage: React.FC = () => {
     {
       title: 'Thao Tác',
       key: 'actions',
-      width: 110,
+      width: 120,
       align: 'center' as const,
       fixed: 'right' as const,
-      render: (_: any, record: SyncLogItem) => (
-        <Space size={6}>
-          <Tooltip title="Xem chi tiết chuẩn hóa UDM Payload">
-            <button
-              className="action-btn-standard"
+      render: (_: any, record: SyncLogItem) => {
+        const isSuccess = record.status === 'SUCCESS' || record.aiHealed;
+        return (
+          <Space size={2}>
+            {/* 1. Fixed Action: View UDM JSON Payload */}
+            <IconButton
+              icon={<CodeOutlined />}
+              tooltip="Xem chi tiết chuẩn hóa UDM Payload"
               onClick={() => openDrawer(record)}
-              title="Xem payload UDM JSON"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 16,
-                color: '#8B0000',
-              }}
-            >
-              <CodeOutlined />
-            </button>
-          </Tooltip>
+            />
 
-          <Tooltip title="Re-sync đơn hàng này">
-            <button
-              className="action-btn-standard"
+            {/* 2. Fixed Action: Re-sync (Active if error/failed, Disabled if already synced) */}
+            <IconButton
+              icon={<RedoOutlined />}
+              tooltip={isSuccess ? 'Đơn hàng đã đồng bộ chuẩn xác' : 'Kích hoạt tự chữa lành & Thử lại'}
+              success={!isSuccess}
+              disabled={isSuccess}
               onClick={() => handleResync(record.sourceOrderId)}
-              title="Re-sync đơn hàng"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 16,
-                color: '#8B0000',
+            />
+
+            {/* 3. Fixed Action: Copy Order ID */}
+            <IconButton
+              icon={<CopyOutlined />}
+              tooltip="Sao chép mã đơn hàng"
+              onClick={() => {
+                navigator.clipboard.writeText(record.sourceOrderId);
+                notify.success(`Đã sao chép mã đơn #${record.sourceOrderId}`);
               }}
-            >
-              <RedoOutlined />
-            </button>
-          </Tooltip>
-        </Space>
-      ),
+            />
+          </Space>
+        );
+      },
     },
   ];
 
   return (
     <PageContainer
-      icon={<HistoryOutlined style={{ color: '#10B981' }} />}
-      title="Nhật Ký Sự Kiện & Tự Chữa Lành (Live Logs & Self-Healing)"
-      subtitle="Giám sát toàn bộ lưu lượng đơn hàng TMĐT, phân tích UDM Schema và phục hồi lỗi tự động"
+      title="Nhật Ký Sự Kiện"
+      tooltip="Giám sát toàn bộ lưu lượng đơn hàng TMĐT, phân tích UDM Schema và tự phục hồi lỗi chuyển tuyến"
     >
       <DataTable
         dataSource={tabFilteredLogs}
@@ -279,11 +286,10 @@ export const LiveLogsPage: React.FC = () => {
                   maxHeight: 380,
                 }}
               >
-                {JSON.stringify(selectedLog.payload || {
+                {JSON.stringify(selectedLog.rawPayload || selectedLog.payload || {
                   orderId: selectedLog.sourceOrderId,
-                  tenantId: 'tenant-aka-01',
                   platform: selectedLog.platform,
-                  standardizedAt: selectedLog.timestamp,
+                  processedAt: selectedLog.createdAt || selectedLog.timestamp,
                   canonicalLineItems: [
                     { sku: 'TTS-TSHIRT-01', masterSku: 'SAPO_POLO_01', quantity: 1, unitPrice: 250000 },
                   ],

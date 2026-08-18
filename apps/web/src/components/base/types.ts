@@ -8,7 +8,7 @@ export * from './DataTable/types';
 // ==============================================================================
 // 1. BUTTON TYPES
 // ==============================================================================
-export type ButtonVariant = 'brand' | 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
+export type ButtonVariant = 'brand' | 'primary' | 'secondary' | 'gold' | 'danger' | 'ghost' | 'success';
 
 export interface BaseButtonProps extends Omit<AntButtonProps, 'type' | 'variant'> {
   variant?: ButtonVariant;
@@ -118,6 +118,7 @@ export interface PageContainerTab {
 export interface PageContainerProps {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
+  tooltip?: string | React.ReactNode;
   icon?: React.ReactNode;
   avatarBg?: string;
   breadcrumbs?: BreadcrumbItem[];
