@@ -1129,7 +1129,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           7. FAQ & RELIABILITY — PREMIUM SECTION
       ══════════════════════════════════════════════════════════════════ */}
-      <section 
+      <section
         className="lp-faq-section"
         onMouseEnter={() => setIsFaqHovered(true)}
         onMouseLeave={() => setIsFaqHovered(false)}
@@ -1315,7 +1315,7 @@ export function verifyTikTokWebhook(
                 Địa chỉ trụ sở
               </div>
               <div className="footer-address">
-                <div className="footer-address-name">Học viện Công nghệ PTIT</div>
+                <div className="footer-address-name">Học viện Công nghệ Bưu chính Viễn thông</div>
                 <div className="footer-address-line">Km10, Nguyễn Trãi, Hà Đông, Hà Nội</div>
                 <div className="footer-address-tag">
                   <DatabaseFilled style={{ fontSize: 11, marginRight: 5 }} />
