@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer, Card, Button, Typography } from 'antd';
+import { Drawer, Card, Typography } from 'antd';
 import {
   ThunderboltFilled,
   PlusOutlined,
@@ -7,6 +7,7 @@ import {
   DatabaseFilled,
   CarFilled,
 } from '@ant-design/icons';
+import { BaseButton } from '../../base/BaseButton';
 
 const { Paragraph } = Typography;
 
@@ -67,7 +68,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
   return (
     <Drawer
       title={
-        <span style={{ color: '#F9FAFB', fontWeight: 700, fontSize: 16 }}>
+        <span style={{ fontWeight: 700, fontSize: 16 }}>
           📦 Thư Viện Node Quy Trình (Node Palette)
         </span>
       }
@@ -76,11 +77,10 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
       open={open}
       onClose={onClose}
       styles={{
-        body: { background: '#0B0F19', padding: '16px' },
-        header: { background: '#111827', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' },
+        body: { padding: '16px' },
       }}
     >
-      <Paragraph style={{ color: '#9CA3AF', fontSize: 13, marginBottom: 20 }}>
+      <Paragraph style={{ color: '#6B7280', fontSize: 13, marginBottom: 20 }}>
         Bấm nút <strong>(+) Thêm</strong> để chèn khối chức năng mới vào Canvas quy trình của bạn.
       </Paragraph>
 
@@ -96,33 +96,27 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                 size="small"
                 bordered={false}
                 style={{
-                  background: '#111827',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
                   borderRadius: 8,
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ color: '#F9FAFB', fontWeight: 600, fontSize: 13 }}>{item.label}</div>
-                    <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 2 }}>{item.desc}</div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{item.label}</div>
+                    <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>{item.desc}</div>
                   </div>
-                  <Button
-                    type="primary"
+                  <BaseButton
+                    variant="brand"
                     size="small"
                     icon={<PlusOutlined />}
                     onClick={() => {
                       onAddNode(item.type, item.label, item.cat);
                       onClose();
                     }}
-                    style={{
-                      background: catGroup.color === '#ed1c24' ? '#ed1c24' : catGroup.color,
-                      borderColor: catGroup.color,
-                      borderRadius: 6,
-                      fontWeight: 600,
-                    }}
                   >
                     Thêm
-                  </Button>
+                  </BaseButton>
                 </div>
               </Card>
             ))}

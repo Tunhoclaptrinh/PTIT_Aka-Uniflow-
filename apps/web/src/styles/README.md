@@ -1,11 +1,11 @@
 # 🎨 `src/styles/` — HỆ THỐNG STYLES & DESIGN TOKENS (ANT DESIGN + LESS)
 
-Thư mục quản lý toàn bộ định nghĩa giao diện, hệ màu nhận diện thương hiệu PTIT Aka và cấu hình Theme của Ant Design.
+Thư mục quản lý toàn bộ định nghĩa giao diện, hệ màu nhận diện thương hiệu PTIT_Aka và cấu hình Theme của Ant Design.
 
 ---
 
 ## 🎨 **Hệ màu chủ đạo**
-* **`@primary-aka-red: #ed1c24`:** Màu đỏ nhiệt huyết PTIT Aka.
+* **`@primary-aka-red: #ed1c24`:** Màu đỏ nhiệt huyết PTIT_Aka.
 * **`@secondary-solar-gold: #fcc20f`:** Màu vàng Solar Gold.
 * **`@brand-gradient:`** Dải màu chuyển tiếp `linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)`.
 

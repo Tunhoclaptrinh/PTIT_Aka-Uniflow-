@@ -6,7 +6,7 @@ Thư viện kiểu dữ liệu, hằng số và Enums dùng chung cho toàn bộ
 
 ## 🎨 **Hệ thống Mã màu Nhận diện Thương hiệu (Brand Colors)**
 Được định nghĩa tập trung trong `BRAND_COLORS`:
-* **Aka Crimson Red (`#ed1c24`):** Màu nhận diện cốt lõi PTIT Aka, Primary Color trong Ant Design `ConfigProvider`.
+* **Aka Crimson Red (`#ed1c24`):** Màu nhận diện cốt lõi PTIT_Aka, Primary Color trong Ant Design `ConfigProvider`.
 * **Solar Gold Yellow (`#fcc20f`):** Màu phụ trợ (Secondary Color), điểm nhấn ánh vàng Solar, Gradient thương hiệu và trạng thái Cảnh báo/Review.
 * **Brand Gradient:** `linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)`.
 

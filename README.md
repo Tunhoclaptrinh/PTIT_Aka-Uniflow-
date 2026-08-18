@@ -1,7 +1,7 @@
 # **⚡ UNIFLOW AI — OMNICHANNEL IPAAS & AI MIDDLEWARE**
 
 > **Nền tảng Tích hợp Dữ liệu Đa kênh Tự động hóa với Trí tuệ Nhân tạo Dành cho Thương mại Điện tử Việt Nam.**  
-> *Phát triển bởi Đội ngũ PTIT Aka.*
+> *Phát triển bởi Đội ngũ PTIT_Aka.*
 
 ---
 

@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
-import { Drawer, Form, Input, Select, Switch, Button, Space, message } from 'antd';
-import { SettingFilled, SaveOutlined, DeleteOutlined } from '@ant-design/icons';
+import React from 'react';
+import { Form, Input, Select, Switch, Space } from 'antd';
+import { SettingFilled, DeleteOutlined } from '@ant-design/icons';
+import { FormDrawer, BaseButton } from '../../base';
+import { notify } from '../../../utils/notification';
 
 interface NodeSettingsDrawerProps {
   open: boolean;
@@ -17,20 +19,16 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
   onUpdateNode,
   onDeleteNode,
 }) => {
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    if (selectedNode) {
-      form.setFieldsValue({
+  const initialValues = selectedNode
+    ? {
         label: selectedNode.data?.label || '',
         description: selectedNode.data?.description || '',
         eventType: selectedNode.data?.eventType || 'ORDER_PAID',
         threshold: selectedNode.data?.threshold || 95,
         warehouseId: selectedNode.data?.warehouseId || 'WH_MAIN_HN',
         autoPrint: selectedNode.data?.autoPrint ?? true,
-      });
-    }
-  }, [selectedNode, form]);
+      }
+    : {};
 
   const handleSave = (values: any) => {
     if (selectedNode) {
@@ -38,42 +36,38 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         ...selectedNode.data,
         ...values,
       });
-      message.success('Đã cập nhật tham số cấu hình Node!');
+      notify.success('Đã cập nhật tham số cấu hình Node!');
       onClose();
     }
   };
 
   return (
-    <Drawer
+    <FormDrawer
+      open={open}
+      onClose={onClose}
+      onSubmit={handleSave}
+      initialValues={initialValues}
+      width={420}
       title={
         <Space>
           <SettingFilled style={{ color: '#fcc20f' }} />
-          <span style={{ color: '#F9FAFB', fontWeight: 700 }}>
-            Cấu Hình Tham Số Node ({selectedNode?.data?.label || selectedNode?.id})
-          </span>
+          <span>Cấu Hình Node ({selectedNode?.data?.label || selectedNode?.id})</span>
         </Space>
       }
-      placement="right"
-      width={400}
-      open={open}
-      onClose={onClose}
-      styles={{
-        body: { background: '#0B0F19', padding: '20px' },
-        header: { background: '#111827', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' },
-      }}
+      submitText="Lưu Cấu Hình"
     >
       {selectedNode && (
-        <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Form.Item label={<span style={{ color: '#D1D5DB' }}>Tên Khối Node</span>} name="label">
-            <Input style={{ background: '#111827', borderColor: '#374151', color: '#F9FAFB' }} />
+        <>
+          <Form.Item label="Tên Khối Node" name="label">
+            <Input />
           </Form.Item>
 
-          <Form.Item label={<span style={{ color: '#D1D5DB' }}>Mô Tả Chức Năng</span>} name="description">
-            <Input style={{ background: '#111827', borderColor: '#374151', color: '#F9FAFB' }} />
+          <Form.Item label="Mô Tả Chức Năng" name="description">
+            <Input />
           </Form.Item>
 
           {selectedNode.type === 'trigger' && (
-            <Form.Item label={<span style={{ color: '#D1D5DB' }}>Sự Kiện Webhook Inbound</span>} name="eventType">
+            <Form.Item label="Sự Kiện Webhook Inbound" name="eventType">
               <Select
                 style={{ width: '100%' }}
                 options={[
@@ -86,7 +80,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
           )}
 
           {selectedNode.type === 'ai' && (
-            <Form.Item label={<span style={{ color: '#D1D5DB' }}>Ngưỡng Tự Động Phê Duyệt (%)</span>} name="threshold">
+            <Form.Item label="Ngưỡng Tự Động Phê Duyệt (%)" name="threshold">
               <Select
                 style={{ width: '100%' }}
                 options={[
@@ -100,7 +94,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
           {selectedNode.type === 'action' && (
             <>
-              <Form.Item label={<span style={{ color: '#D1D5DB' }}>Mã Kho POS Đích</span>} name="warehouseId">
+              <Form.Item label="Mã Kho POS Đích" name="warehouseId">
                 <Select
                   style={{ width: '100%' }}
                   options={[
@@ -111,39 +105,27 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 />
               </Form.Item>
 
-              <Form.Item label={<span style={{ color: '#D1D5DB' }}>Tự Động In Vận Đơn Ngay</span>} name="autoPrint" valuePropName="checked">
+              <Form.Item label="Tự Động In Vận Đơn Ngay" name="autoPrint" valuePropName="checked">
                 <Switch />
               </Form.Item>
             </>
           )}
 
-          <div style={{ marginTop: 32, display: 'flex', gap: 12 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SaveOutlined />}
-              block
-              style={{
-                background: 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
-                border: 'none',
-                fontWeight: 700,
-              }}
-            >
-              Lưu Cấu Hình
-            </Button>
-            <Button
-              danger
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
+            <BaseButton
+              variant="danger"
               icon={<DeleteOutlined />}
+              block
               onClick={() => {
                 onDeleteNode(selectedNode.id);
                 onClose();
               }}
             >
-              Xóa Node
-            </Button>
+              Xóa Khối Node Này Khỏi Canvas
+            </BaseButton>
           </div>
-        </Form>
+        </>
       )}
-    </Drawer>
+    </FormDrawer>
   );
 };

@@ -1,4 +1,43 @@
-// Global Styles for UniFlow AI Web Dashboard
+// ==============================================================================
+// GLOBAL STYLES & DESIGN SYSTEM FOR UNIFLOW AI (LIGHT MODE DEFAULT)
+// ==============================================================================
+
+@import './variables.less';
+@import '../components/base/DataTable/styles.less';
+
+:root {
+  --color-primary: #ed1c24;
+  --color-primary-hover: #d6141b;
+  --color-secondary: #fcc20f;
+  --color-accent-purple: #8B5CF6;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+
+  --bg-root: #F8FAFC;
+  --bg-surface-card: #FFFFFF;
+  --bg-surface-elevated: #FFFFFF;
+  --border-subtle: #E5E7EB;
+
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+
+  --font-family-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+}
+
+[data-theme="dark"] {
+  --bg-root: #0B0F19;
+  --bg-surface-card: #111827;
+  --bg-surface-elevated: #1F2937;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,84 +47,79 @@
 html, body, #root {
   width: 100%;
   height: 100%;
-  background-color: @bg-dark-900;
-  color: @text-dark-primary;
+  background-color: var(--bg-root);
+  color: var(--text-primary);
   font-family: @font-sans;
   overflow-x: hidden;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Light & Clean */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: @bg-dark-900;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: @surface-dark-600;
+  background: #D1D5DB;
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: @primary-aka-red;
+  background: #9CA3AF;
 }
 
-/* Brand Glow & Gradient Utilities */
-.brand-gradient-text {
-  background: @brand-gradient;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-  font-weight: 800;
-}
-
-.brand-gradient-bg {
-  background: @brand-gradient;
-  color: #ffffff;
-}
-
-.brand-gradient-btn {
-  background: @brand-gradient !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-weight: 600;
-  transition: all 0.3s ease;
-
-  &:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px @primary-glow-red;
+// ==============================================================================
+// SCOPED ONLY FOR LANDING PAGE (KHÔNG ẢNH HƯỞNG TỚI CÁC TRANG KHÁC)
+// ==============================================================================
+.landing-page-root {
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 12px rgba(237, 28, 36, 0.3), 0 0 24px rgba(252, 194, 15, 0.15);
+    }
+    50% {
+      box-shadow: 0 0 22px rgba(237, 28, 36, 0.6), 0 0 40px rgba(252, 194, 15, 0.3);
+    }
   }
-}
 
-.code-font {
-  font-family: @font-mono;
-}
-
-.live-pulse-dot {
-  width: 8px;
-  height: 8px;
-  background-color: @color-success;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  animation: livePulse 1.8s infinite;
-}
-
-@keyframes livePulse {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
   }
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+
+  @keyframes pulseScale {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.04);
+    }
   }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+
+  @keyframes flowDash {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+
+  .anim-float {
+    animation: floatSlow 4s ease-in-out infinite;
+  }
+
+  .anim-pulse-glow {
+    animation: pulseGlow 2.5s infinite;
+  }
+
+  .anim-pulse-scale {
+    animation: pulseScale 3s ease-in-out infinite;
+  }
+
+  .flow-edge-animated {
+    stroke-dasharray: 6 3;
+    animation: flowDash 0.8s linear infinite;
   }
 }

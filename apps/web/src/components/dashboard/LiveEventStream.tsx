@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Timeline, Tag, Space, Button } from 'antd';
+import { Timeline, Tag, Space } from 'antd';
 import {
   ThunderboltOutlined,
   CheckCircleFilled,
-  WarningFilled,
   ClearOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import { useWebSocketStream } from '../../hooks/useWebSocketStream';
 import { metricsService } from '../../services/metrics.service';
 import { LiveFeedItem, PlatformType, WebhookProcessingStatus } from '@uniflow/shared-types';
+import { BaseCard, BaseButton, StatusTag, BadgeStatus, EmptyState } from '../base';
+import { formatLatency } from '../../utils/formatters';
 
 const initialMockEvents: LiveFeedItem[] = [
   {
@@ -59,7 +60,7 @@ export const LiveEventStream: React.FC = () => {
         setEvents(mapped);
       }
     } catch (err: any) {
-      console.warn('Lỗi tải logs từ MongoDB, sử dụng realtime buffer:', err.message);
+      console.warn('Lỗi lấy logs từ DB, dùng WebSocket:', err.message);
     } finally {
       setLoading(false);
     }
@@ -70,134 +71,104 @@ export const LiveEventStream: React.FC = () => {
   }, []);
 
   return (
-    <Card
+    <BaseCard
       title={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Space>
-            <span
-              className="live-pulse-dot"
-              style={{
-                backgroundColor: isConnected ? '#10B981' : '#fcc20f',
-              }}
-            />
-            <span style={{ color: '#F9FAFB', fontWeight: 700, fontSize: 16 }}>
-              Live Event Pulse Tracker (Dòng sự kiện thời gian thực)
-            </span>
-            <Tag color={isConnected ? '#10B981' : '#fcc20f'} style={{ borderRadius: 4, fontWeight: 600 }}>
-              {isConnected ? 'Socket.io Live' : 'Đang kết nối lại'}
-            </Tag>
-          </Space>
-          <Space>
-            <Button
-              type="text"
-              size="small"
-              icon={<ReloadOutlined style={{ color: '#9CA3AF' }} />}
-              onClick={loadLogsFromDB}
-              loading={loading}
-              style={{ color: '#9CA3AF' }}
-            >
-              Làm mới DB
-            </Button>
-            <Button
-              type="text"
-              size="small"
-              icon={<ClearOutlined style={{ color: '#9CA3AF' }} />}
-              onClick={clearEvents}
-              style={{ color: '#9CA3AF' }}
-            >
-              Xóa log màn hình
-            </Button>
-          </Space>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ThunderboltOutlined style={{ color: '#ed1c24', fontSize: 18 }} />
+          <span>Luồng Xử Lý Đơn Thời Gian Thực (Live WebSocket Event Stream)</span>
+          <BadgeStatus
+            status={isConnected ? 'success' : 'warning'}
+            text={isConnected ? 'Socket.io Đang Kết Nối' : 'Chế Độ Offline'}
+          />
         </div>
       }
-      bordered={false}
-      style={{
-        background: '#111827',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 12,
-        marginTop: 16,
-      }}
+      subtitle="Bắt sự kiện Webhook đơn hàng, chuẩn hóa UDM và cập nhật tức thì"
+      extra={
+        <Space>
+          <BaseButton
+            variant="secondary"
+            size="small"
+            icon={<ReloadOutlined />}
+            loading={loading}
+            onClick={loadLogsFromDB}
+          >
+            Làm mới
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
+            size="small"
+            icon={<ClearOutlined />}
+            onClick={clearEvents}
+          >
+            Xóa Luồng
+          </BaseButton>
+        </Space>
+      }
     >
-      {events.length === 0 ? (
-        <div style={{ padding: '30px 0', textAlign: 'center', color: '#9CA3AF' }}>
-          Chưa có sự kiện mới. Hãy thử chạy script: <code style={{ color: '#fcc20f' }}>node scripts/simulate_webhook.js tiktok</code>
-        </div>
-      ) : (
-        <Timeline
-          mode="left"
-          items={events.map((event: LiveFeedItem) => {
-            const isHealed = event.aiHealed || event.message?.includes('Auto-Healed');
-            const isWarning = event.status === WebhookProcessingStatus.FAILED;
+      <div style={{ maxHeight: 380, overflowY: 'auto', paddingRight: 8 }}>
+        {events.length === 0 ? (
+          <EmptyState
+            title="Chưa có sự kiện đơn hàng nào"
+            description="Đang chờ luồng webhook đẩy đơn từ TikTok Shop, Shopee hoặc Lazada..."
+          />
+        ) : (
+          <Timeline
+            items={events.map((event) => {
+              const isTikTok = event.platform === PlatformType.TIKTOK_SHOP;
+              const isShopee = event.platform === PlatformType.SHOPEE;
+              const isLazada = event.platform === PlatformType.LAZADA;
 
-            let dotIcon = <CheckCircleFilled style={{ fontSize: 14, color: '#10B981' }} />;
+              return {
+                color: event.aiHealed ? '#fcc20f' : '#10B981',
+                dot: event.aiHealed ? (
+                  <ThunderboltOutlined style={{ color: '#fcc20f', fontSize: 14 }} />
+                ) : (
+                  <CheckCircleFilled style={{ color: '#10B981', fontSize: 14 }} />
+                ),
+                children: (
+                  <div
+                    style={{
+                      background: '#F8FAFC',
+                      padding: '10px 14px',
+                      borderRadius: 8,
+                      border: '1px solid #E5E7EB',
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <Space size="small">
+                        <Tag
+                          color={isTikTok ? '#000000' : isShopee ? '#EE4D2D' : isLazada ? '#0F146D' : '#374151'}
+                          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}
+                        >
+                          {event.platform}
+                        </Tag>
+                        <span style={{ color: '#ed1c24', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 12 }}>
+                          #{event.sourceOrderId}
+                        </span>
+                        {event.aiHealed && <StatusTag status="HEALED" />}
+                      </Space>
+                      <span style={{ color: '#6B7280', fontSize: 11, fontFamily: 'JetBrains Mono' }}>
+                        {event.timestamp}
+                      </span>
+                    </div>
 
-            if (isHealed) {
-              dotIcon = <ThunderboltOutlined style={{ fontSize: 14, color: '#fcc20f' }} />;
-            } else if (isWarning) {
-              dotIcon = <WarningFilled style={{ fontSize: 14, color: '#EF4444' }} />;
-            }
+                    <div style={{ color: '#374151', fontSize: 13, lineHeight: 1.4 }}>
+                      {event.message}
+                    </div>
 
-            const platformStr = String(event.platform || 'TIKTOK_SHOP').toUpperCase();
-            const isTikTok = platformStr.includes('TIKTOK');
-
-            return {
-              dot: dotIcon,
-              children: (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    borderRadius: 8,
-                    marginBottom: 6,
-                    border: '1px solid rgba(255, 255, 255, 0.04)',
-                  }}
-                >
-                  <Space>
-                    <Tag
-                      color={isTikTok ? '#000000' : '#EE4D2D'}
-                      style={{
-                        borderRadius: 4,
-                        fontWeight: 700,
-                        border: isTikTok ? '1px solid #374151' : 'none',
-                      }}
-                    >
-                      {isTikTok ? 'TikTok Shop' : 'Shopee'}
-                    </Tag>
-                    <span style={{ color: '#fcc20f', fontWeight: 600, fontFamily: 'JetBrains Mono' }}>
-                      #{event.sourceOrderId}
-                    </span>
-                    <span style={{ color: '#F9FAFB', fontSize: 13 }}>{event.message}</span>
-                  </Space>
-
-                  <Space>
-                    {isHealed && (
-                      <Tag color="#fcc20f" style={{ color: '#0B0F19', fontWeight: 700, borderRadius: 4 }}>
-                        ⚡ AI Self-Healed
-                      </Tag>
-                    )}
-                    <span
-                      style={{
-                        color: '#10B981',
-                        fontSize: 12,
-                        fontFamily: 'JetBrains Mono',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {event.durationMs ? `${event.durationMs}ms` : '180ms'}
-                    </span>
-                    <span style={{ color: '#6B7280', fontSize: 11 }}>
-                      {event.timestamp || 'Vừa xong'}
-                    </span>
-                  </Space>
-                </div>
-              ),
-            };
-          })}
-        />
-      )}
-    </Card>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: '#10B981', fontFamily: 'JetBrains Mono', fontWeight: 600 }}>
+                        {formatLatency(event.durationMs || 180)}
+                      </span>
+                    </div>
+                  </div>
+                ),
+              };
+            })}
+          />
+        )}
+      </div>
+    </BaseCard>
   );
 };

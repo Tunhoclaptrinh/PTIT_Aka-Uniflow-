@@ -1,6 +1,6 @@
 /**
  * @uniflow/shared-types
- * Các hằng số, Kiểu dữ liệu, Enums và Bộ định nghĩa Brand Theme dùng chung cho toàn bộ dự án UniFlow AI.
+ * Các hằng số, Kiểu dữ liệu chuẩn Base, Enums và Bộ định nghĩa Brand Theme dùng chung cho Monorepo UniFlow AI.
  */
 
 // ============================================================================
@@ -16,7 +16,7 @@ export const BRAND_COLORS = {
   SECONDARY_SOLAR_GOLD: '#fcc20f',
   /** Màu Vàng Gold trầm / viền (#e5ad08) */
   SECONDARY_DARK: '#e5ad08',
-  
+
   /** Gradient Thương hiệu đặc trưng (Aka Red -> Solar Gold) */
   BRAND_GRADIENT: 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
   BRAND_GRADIENT_HOVER: 'linear-gradient(135deg, #d6141b 0%, #e5ad08 100%)',
@@ -27,7 +27,7 @@ export const BRAND_COLORS = {
 
   /** AI & Magic Accent (Tím Neon trí tuệ nhân tạo) */
   ACCENT_AI_PURPLE: '#8B5CF6',
-  
+
   /** Status Colors */
   SUCCESS: '#10B981',
   WARNING: '#F59E0B',
@@ -38,13 +38,94 @@ export const BRAND_COLORS = {
   BG_DARK_900: '#0B0F19',
   SURFACE_DARK_800: '#111827',
   SURFACE_DARK_700: '#1F2937',
+  SURFACE_DARK_600: '#374151',
   BORDER_DARK: '#374151',
   TEXT_DARK_PRIMARY: '#F9FAFB',
   TEXT_DARK_SECONDARY: '#9CA3AF',
+  TEXT_DARK_MUTED: '#6B7280',
 } as const;
 
 // ============================================================================
-// 2. PLATFORM & CONNECTOR ENUMS
+// 2. BASE GENERIC & UTILITY TYPES
+// ============================================================================
+
+export type Nullable<T> = T | null;
+export type Optional<T> = T | undefined;
+export type Dictionary<T = any> = Record<string, T>;
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+export interface BaseEntity {
+  _id: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  isDeleted?: boolean;
+}
+
+export interface AuditableEntity extends BaseEntity {
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  [key: string]: any;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  statusCode: number;
+  message?: string;
+  data: T;
+  timestamp?: string;
+  path?: string;
+}
+
+// ============================================================================
+// 3. AUTH & RBAC TYPES
+// ============================================================================
+
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  STORE_ADMIN = 'STORE_ADMIN',
+  OPERATOR = 'OPERATOR',
+  VIEWER = 'VIEWER',
+}
+
+export interface UserProfile extends BaseEntity {
+  email: string;
+  fullName: string;
+  role: UserRole;
+  tenantId: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  lastLoginAt?: string | Date;
+}
+
+export interface JWTPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+  tenantId: string;
+  iat?: number;
+  exp?: number;
+}
+
+// ============================================================================
+// 4. PLATFORM & CONNECTOR ENUMS
 // ============================================================================
 
 export enum PlatformType {
@@ -71,7 +152,7 @@ export enum PlatformCategory {
 }
 
 // ============================================================================
-// 3. ORDER & WORKFLOW STATUS ENUMS
+// 5. ORDER & WORKFLOW STATUS ENUMS
 // ============================================================================
 
 export enum OrderStatus {
@@ -108,7 +189,7 @@ export enum WorkflowNodeType {
 }
 
 // ============================================================================
-// 4. WEBSOCKET REAL-TIME EVENT TYPES
+// 6. WEBSOCKET REAL-TIME EVENT TYPES
 // ============================================================================
 
 export enum WSEventType {

@@ -5,7 +5,7 @@
 ---
 
 ## 🎨 **Hệ màu Nhận diện Thương hiệu**
-* **Primary Color (`#ed1c24`):** Màu đỏ Crimson Red PTIT Aka.
+* **Primary Color (`#ed1c24`):** Màu đỏ Crimson Red PTIT_Aka.
 * **Secondary Color (`#fcc20f`):** Màu vàng Solar Gold.
 * **Dark Slate Theme:** Nền Dark Mode `#0B0F19` kết hợp `theme.darkAlgorithm` từ Ant Design.
 

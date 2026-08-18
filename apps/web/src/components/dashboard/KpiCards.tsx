@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Tag } from 'antd';
+import { Row, Col } from 'antd';
 import {
   SyncOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
   DollarOutlined,
-  ArrowUpOutlined,
 } from '@ant-design/icons';
 import { metricsService, DashboardMetrics } from '../../services/metrics.service';
+import { StatisticCard } from '../base';
+import { formatVND, formatLatency } from '../../utils/formatters';
 
 export const KpiCards: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -37,121 +38,49 @@ export const KpiCards: React.FC = () => {
     <Row gutter={[16, 16]}>
       {/* KPI 1: Đơn hàng đã đồng bộ */}
       <Col xs={24} sm={12} lg={6}>
-        <Card
-          bordered={false}
-          style={{
-            background: '#111827',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#9CA3AF', fontSize: 13, fontWeight: 500 }}>
-              Tổng đơn đã đồng bộ
-            </span>
-            <Tag color="#ed1c24" style={{ borderRadius: 6, fontWeight: 600 }}>
-              <ArrowUpOutlined /> +18.4%
-            </Tag>
-          </div>
-          <Statistic
-            value={metrics.totalSyncedOrders}
-            valueStyle={{ color: '#F9FAFB', fontWeight: 800, fontSize: 28, marginTop: 8 }}
-            prefix={<SyncOutlined spin style={{ color: '#ed1c24', marginRight: 8 }} />}
-          />
-          <div style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>
-            Tự động 100% trong 24h qua
-          </div>
-        </Card>
+        <StatisticCard
+          title="Tổng đơn đã đồng bộ"
+          value={metrics.totalSyncedOrders}
+          icon={<SyncOutlined spin style={{ color: '#ed1c24' }} />}
+          trend={{ value: '+18.4%', isIncrease: true, label: 'Mega Sale 24h' }}
+          subText="Tự động 100% qua UDM Pipeline"
+        />
       </Col>
 
       {/* KPI 2: Độ trễ phản hồi (End-to-End Latency) */}
       <Col xs={24} sm={12} lg={6}>
-        <Card
-          bordered={false}
-          style={{
-            background: '#111827',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#9CA3AF', fontSize: 13, fontWeight: 500 }}>
-              Độ trễ trung bình E2E
-            </span>
-            <Tag color="#10B981" style={{ borderRadius: 6, fontWeight: 600 }}>
-              Siêu tốc
-            </Tag>
-          </div>
-          <Statistic
-            value={metrics.averageLatencyMs}
-            suffix="ms"
-            valueStyle={{ color: '#10B981', fontWeight: 800, fontSize: 28, marginTop: 8 }}
-            prefix={<ThunderboltOutlined style={{ color: '#10B981', marginRight: 8 }} />}
-          />
-          <div style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>
-            Chuẩn SLA &lt; 500ms đối tác
-          </div>
-        </Card>
+        <StatisticCard
+          title="Độ trễ trung bình (E2E SLA)"
+          value={formatLatency(metrics.averageLatencyMs)}
+          icon={<ThunderboltOutlined style={{ color: '#fcc20f' }} />}
+          tag={{ text: 'SLA < 0.5s', color: '#10B981' }}
+          valueColor="#fcc20f"
+          subText="Inbound Webhook ➔ POS ➔ Vận đơn"
+        />
       </Col>
 
-      {/* KPI 3: Tỷ lệ thành công */}
+      {/* KPI 3: Tỷ lệ xử lý thành công */}
       <Col xs={24} sm={12} lg={6}>
-        <Card
-          bordered={false}
-          style={{
-            background: '#111827',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#9CA3AF', fontSize: 13, fontWeight: 500 }}>
-              Tỷ lệ đồng bộ thành công
-            </span>
-            <Tag color="#3B82F6" style={{ borderRadius: 6, fontWeight: 600 }}>
-              SLA Enterprise
-            </Tag>
-          </div>
-          <Statistic
-            value={metrics.successRate}
-            suffix="%"
-            valueStyle={{ color: '#F9FAFB', fontWeight: 800, fontSize: 28, marginTop: 8 }}
-            prefix={<CheckCircleOutlined style={{ color: '#10B981', marginRight: 8 }} />}
-          />
-          <div style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>
-            Tự chữa lành: {metrics.healedOrdersCount} sự cố
-          </div>
-        </Card>
+        <StatisticCard
+          title="Tỷ lệ thành công (Success Rate)"
+          value={`${metrics.successRate}%`}
+          icon={<CheckCircleOutlined style={{ color: '#10B981' }} />}
+          tag={{ text: '99.98% High SLA', color: '#10B981' }}
+          valueColor="#10B981"
+          subText={metrics.healedOrdersCount > 0 ? `Đã tự chữa lành ${metrics.healedOrdersCount} đơn chuyển tuyến` : '0 đơn nghẽn hàng'}
+        />
       </Col>
 
-      {/* KPI 4: Chi phí & Thời gian tiết kiệm */}
+      {/* KPI 4: Chi phí & thời gian tiết kiệm */}
       <Col xs={24} sm={12} lg={6}>
-        <Card
-          bordered={false}
-          style={{
-            background: '#111827',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#9CA3AF', fontSize: 13, fontWeight: 500 }}>
-              Chi phí tiết kiệm tháng này
-            </span>
-            <Tag color="#fcc20f" style={{ borderRadius: 6, fontWeight: 600, color: '#0B0F19' }}>
-              ~142 Giờ Công
-            </Tag>
-          </div>
-          <Statistic
-            value={metrics.costSavedVND}
-            formatter={(val) => `${(Number(val) / 1000000).toFixed(1)} Tr VNĐ`}
-            valueStyle={{ color: '#fcc20f', fontWeight: 800, fontSize: 28, marginTop: 8 }}
-            prefix={<DollarOutlined style={{ color: '#fcc20f', marginRight: 8 }} />}
-          />
-          <div style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>
-            Giảm 90% thao tác tay nhân sự
-          </div>
-        </Card>
+        <StatisticCard
+          title="Chi phí nhân sự tiết kiệm"
+          value={formatVND(metrics.costSavedVND, true)}
+          icon={<DollarOutlined style={{ color: '#8B5CF6' }} />}
+          trend={{ value: '142 Giờ', isIncrease: true, label: 'Giảm 90% thao tác' }}
+          valueColor="#8B5CF6"
+          subText="Quy đổi chi phí nhân lực tháng"
+        />
       </Col>
     </Row>
   );

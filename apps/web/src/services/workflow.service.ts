@@ -1,4 +1,5 @@
-import { apiClient } from './api';
+import { BaseApiService } from './base.service';
+import { baseApi } from './api';
 
 export interface WorkflowData {
   _id?: string;
@@ -11,24 +12,24 @@ export interface WorkflowData {
   executionCount?: number;
 }
 
-export const workflowService = {
-  getActiveWorkflow: async (): Promise<WorkflowData> => {
-    const res: any = await apiClient.get('/workflows/active');
-    return res.data;
-  },
+class WorkflowApiService extends BaseApiService<WorkflowData> {
+  protected endpoint = '/workflows';
 
-  getAllWorkflows: async (): Promise<WorkflowData[]> => {
-    const res: any = await apiClient.get('/workflows');
-    return res.data;
-  },
+  async getActiveWorkflow(): Promise<WorkflowData> {
+    return baseApi.get<WorkflowData>(`${this.endpoint}/active`);
+  }
 
-  getWorkflowById: async (id: string): Promise<WorkflowData> => {
-    const res: any = await apiClient.get(`/workflows/${id}`);
-    return res.data;
-  },
+  async getAllWorkflows(tenantId?: string): Promise<WorkflowData[]> {
+    return this.getAll(tenantId ? { tenantId } : undefined);
+  }
 
-  updateWorkflow: async (id: string, data: Partial<WorkflowData>): Promise<WorkflowData> => {
-    const res: any = await apiClient.put(`/workflows/${id}`, data);
-    return res.data;
-  },
-};
+  async getWorkflowById(id: string): Promise<WorkflowData> {
+    return this.getById(id);
+  }
+
+  async updateWorkflow(id: string, data: Partial<WorkflowData>): Promise<WorkflowData> {
+    return this.update(id, data);
+  }
+}
+
+export const workflowService = new WorkflowApiService();

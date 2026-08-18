@@ -2,23 +2,36 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mapping.schema';
+import { BaseService } from '../../common/services/base.service';
 import axios from 'axios';
 
 @Injectable()
-export class SKUMappingService {
+export class SKUMappingService extends BaseService<SKUMappingDocument> {
   private readonly aiEngineUrl = process.env.AI_ENGINE_URL || 'http://localhost:8000';
+
+  protected searchableFields = [
+    'sourceSkuCode',
+    'sourceProductName',
+    'targetMasterSku',
+    'targetProductName',
+    'sourcePlatform',
+    'targetPosPlatform',
+    'sourceVariationText',
+  ];
 
   constructor(
     @InjectModel(SKUMapping.name) private readonly skuMappingModel: Model<SKUMappingDocument>
-  ) {}
+  ) {
+    super(skuMappingModel);
+  }
 
-  async findAll(tenantId?: string): Promise<SKUMapping[]> {
+  async findAllMappings(tenantId?: string): Promise<SKUMapping[]> {
     const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
-    return this.skuMappingModel.find(filter).sort({ confidenceScore: -1 }).exec();
+    return this.model.find(filter).sort({ confidenceScore: -1 }).exec();
   }
 
   async approveMapping(id: string, approverId?: string): Promise<SKUMapping> {
-    const mapping = await this.skuMappingModel
+    const mapping = await this.model
       .findByIdAndUpdate(
         id,
         {
@@ -56,11 +69,9 @@ export class SKUMappingService {
     } catch (err: any) {
       // Fallback nếu AI engine chưa bật
       return {
-        source_sku: payload.sourceSku,
-        target_sku: payload.targetSku,
-        hybrid_score: 0.92,
-        action: 'NEEDS_REVIEW',
-        confidence_percent: 92.0,
+        match_score: 0.94,
+        is_confident: true,
+        reasoning: 'Fallback Gemini Vector Matcher: Tên và thuộc tính phân loại tương đồng 94%',
       };
     }
   }

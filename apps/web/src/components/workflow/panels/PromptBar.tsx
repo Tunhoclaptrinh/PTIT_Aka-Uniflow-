@@ -1,106 +1,132 @@
 import React, { useState } from 'react';
-import { Input, Button, message, Tag } from 'antd';
-import { ThunderboltFilled, ArrowRightOutlined, RobotFilled } from '@ant-design/icons';
+import { Input, Tag } from 'antd';
+import { ArrowRightOutlined, RobotFilled } from '@ant-design/icons';
+import { BaseButton } from '../../base/BaseButton';
+import { notify } from '../../../utils/notification';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 interface PromptBarProps {
   onGenerate: (promptText: string) => void;
+  loading?: boolean;
 }
 
-export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate }) => {
+export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = false }) => {
   const [prompt, setPrompt] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
 
-  const handleGenerate = () => {
-    if (!prompt.trim()) {
-      message.warning('Vui lòng nhập mô tả luồng tự động bạn muốn AI tạo dựng!');
+  const handleGenerate = (textToUse?: string) => {
+    const query = textToUse || prompt;
+    if (!query.trim()) {
+      notify.warning('Vui lòng nhập mô tả luồng tự động bạn muốn AI tạo dựng!');
       return;
     }
 
-    setLoading(true);
-    message.loading({ content: 'AI Gemini đang phân tích yêu cầu và sinh luồng Canvas...', key: 'aiPrompt' });
+    setLocalLoading(true);
+    notify.loading('AI Gemini đang phân tích yêu cầu và sinh luồng Canvas...', 'aiPrompt');
 
     setTimeout(() => {
-      onGenerate(prompt);
-      setLoading(false);
-      message.success({
-        content: 'AI đã tự động sinh quy trình 0-chạm thành công trên Canvas! ✨',
-        key: 'aiPrompt',
-        duration: 3,
-      });
-      setPrompt('');
-    }, 1000);
+      onGenerate(query);
+      setLocalLoading(false);
+      notify.success('AI đã tự động sinh quy trình 0-chạm thành công trên Canvas! ✨');
+      if (!textToUse) setPrompt('');
+    }, 600);
   };
 
   const samplePrompts = [
-    'Đồng bộ đơn TikTok sang Sapo và đẩy GHTK khi đã thanh toán',
-    'Bắt sự kiện Shopee READY_TO_SHIP, trừ kho KiotViet và tạo đơn GHN',
-    'Tự động định tuyến cước rẻ nhất giữa GHTK và Viettel Post',
+    { label: 'TikTok -> Sapo -> GHTK', full: 'Đồng bộ đơn TikTok sang Sapo và đẩy GHTK khi đã thanh toán' },
+    { label: 'Shopee -> KiotViet -> GHN', full: 'Bắt sự kiện Shopee READY_TO_SHIP, trừ kho KiotViet và tạo đơn GHN' },
+    { label: 'Lazada -> Sapo -> Viettel Post', full: 'Đồng bộ đơn Lazada sang Sapo và đẩy đơn Viettel Post tự động' },
   ];
 
   return (
     <div
       style={{
-        padding: '12px 20px',
-        background: 'linear-gradient(90deg, rgba(237, 28, 36, 0.08) 0%, rgba(252, 194, 15, 0.08) 100%)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        position: 'absolute',
+        bottom: 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 20,
+        width: '92%',
+        maxWidth: 780,
+        background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(17, 24, 39, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: 16,
+        border: '1px solid var(--border-subtle, #E5E7EB)',
+        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+        padding: '12px 16px',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
+        transition: 'all 0.3s ease',
       }}
     >
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      {/* 1. Quick Prompt Suggestion Tags */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#8B5CF6', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <RobotFilled /> Gợi ý prompt AI:
+        </span>
+        {samplePrompts.map((item, idx) => (
+          <Tag
+            key={idx}
+            onClick={() => handleGenerate(item.full)}
+            style={{
+              cursor: 'pointer',
+              borderRadius: 6,
+              fontSize: 11,
+              padding: '2px 8px',
+              background: isLight ? '#F3F4F6' : '#1F2937',
+              borderColor: isLight ? '#E5E7EB' : '#374151',
+              color: isLight ? '#374151' : '#D1D5DB',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {item.label} →
+          </Tag>
+        ))}
+      </div>
+
+      {/* 2. Main Prompt Input Bar */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         <Input
-          prefix={<RobotFilled style={{ color: '#8B5CF6', fontSize: 16 }} />}
+          prefix={<RobotFilled style={{ color: '#8B5CF6', fontSize: 16, marginRight: 4 }} />}
           placeholder="Nhập mô tả luồng tự động bằng tiếng Việt (Ví dụ: Đồng bộ đơn Shopee sang Sapo và tạo đơn GHN...)"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          onPressEnter={handleGenerate}
+          onPressEnter={() => handleGenerate()}
           style={{
             flex: 1,
-            background: '#0B0F19',
-            borderColor: '#374151',
-            color: '#F9FAFB',
+            borderRadius: 10,
             height: 40,
-            borderRadius: 8,
+            fontSize: 13,
+            background: isLight ? '#FFFFFF' : '#111827',
+            borderColor: isLight ? '#E5E7EB' : '#374151',
           }}
+          allowClear
         />
-        <Button
-          type="primary"
-          icon={<ThunderboltFilled />}
-          loading={loading}
-          onClick={handleGenerate}
+
+        <BaseButton
+          variant="primary"
+          size="small"
+          onClick={() => handleGenerate()}
+          loading={loading || localLoading}
+          icon={<ArrowRightOutlined />}
+          glow
           style={{
-            background: 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
-            border: 'none',
-            fontWeight: 700,
             height: 40,
-            borderRadius: 8,
-            padding: '0 20px',
+            padding: '0 16px',
+            fontSize: 13,
+            borderRadius: 10,
+            flexShrink: 0,
           }}
         >
-          AI Magic Generate <ArrowRightOutlined />
-        </Button>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11, color: '#9CA3AF' }}>💡 Gợi ý mẫu:</span>
-        {samplePrompts.map((p) => (
-          <Tag
-            key={p}
-            onClick={() => setPrompt(p)}
-            style={{
-              cursor: 'pointer',
-              background: 'rgba(255, 255, 255, 0.04)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-              color: '#D1D5DB',
-              fontSize: 11,
-              borderRadius: 4,
-            }}
-          >
-            {p}
-          </Tag>
-        ))}
+          AI Tạo Luồng 0-Chạm
+        </BaseButton>
       </div>
     </div>
   );
 };
+
+export default PromptBar;

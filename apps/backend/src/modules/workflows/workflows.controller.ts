@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   Query,
@@ -11,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { WorkflowsService } from './workflows.service';
 import { Workflow } from '../../database/schemas/workflow.schema';
+import { PaginationQueryDto } from '../../common/dto/pagination.dto';
 
 @Controller('api/v1/workflows')
 export class WorkflowsController {
@@ -18,7 +20,20 @@ export class WorkflowsController {
 
   @Get()
   async getAllWorkflows(@Query('tenantId') tenantId?: string) {
-    const data = await this.workflowsService.findAll(tenantId);
+    const data = await this.workflowsService.findAllWorkflows(tenantId);
+    return {
+      statusCode: HttpStatus.OK,
+      data,
+    };
+  }
+
+  @Get('paginate')
+  async paginateWorkflows(
+    @Query() query: PaginationQueryDto,
+    @Query('tenantId') tenantId?: string
+  ) {
+    const filter = tenantId ? { tenantId } : {};
+    const data = await this.workflowsService.paginate(filter, query);
     return {
       statusCode: HttpStatus.OK,
       data,
@@ -36,7 +51,7 @@ export class WorkflowsController {
 
   @Get(':id')
   async getWorkflowById(@Param('id') id: string) {
-    const data = await this.workflowsService.findOne(id);
+    const data = await this.workflowsService.findById(id);
     return {
       statusCode: HttpStatus.OK,
       data,
@@ -62,5 +77,10 @@ export class WorkflowsController {
       message: 'Khởi tạo quy trình mới thành công!',
       data,
     };
+  }
+
+  @Delete(':id')
+  async deleteWorkflow(@Param('id') id: string) {
+    return this.workflowsService.delete(id);
   }
 }

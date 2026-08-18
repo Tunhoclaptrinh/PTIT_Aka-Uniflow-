@@ -8,6 +8,7 @@ import { WebSocketModule } from './modules/websocket/websocket.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { SKUMappingModule } from './modules/sku-mapping/sku-mapping.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { LogsModule } from './modules/logs/logs.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
     WorkflowsModule,
     SKUMappingModule,
     MetricsModule,
+    LogsModule,
   ],
 })
 export class AppModule {}

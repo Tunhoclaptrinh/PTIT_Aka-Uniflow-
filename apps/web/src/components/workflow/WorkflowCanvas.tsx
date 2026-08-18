@@ -10,12 +10,13 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, Button, Space, Tag, message, Spin, Select } from 'antd';
+import { Card, Space, Spin, Select } from 'antd';
 import {
   PlayCircleOutlined,
   SaveOutlined,
   ReloadOutlined,
   PlusOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 import { TriggerNode } from './nodes/TriggerNode';
 import { AINode } from './nodes/AINode';
@@ -24,6 +25,8 @@ import { workflowService, WorkflowData } from '../../services/workflow.service';
 import { PromptBar } from './panels/PromptBar';
 import { NodeLibraryDrawer } from './panels/NodeLibraryDrawer';
 import { NodeSettingsDrawer } from './panels/NodeSettingsDrawer';
+import { BaseButton, StatusTag, PageContainer } from '../base';
+import { notify } from '../../utils/notification';
 
 const defaultNodes = [
   {
@@ -71,7 +74,7 @@ const FlowContent: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
-  const { getViewport, setViewport } = useReactFlow();
+  const { getViewport, setViewport, fitView } = useReactFlow();
 
   const nodeTypes = useMemo(
     () => ({
@@ -147,7 +150,7 @@ const FlowContent: React.FC = () => {
       data: { label, description: 'Cấu hình mới thêm', category: category || 'GENERAL' },
     };
     setNodes((nds) => [...nds, newNode]);
-    message.success(`Đã thêm khối "${label}" vào Canvas!`);
+    notify.success(`Đã thêm khối "${label}" vào Canvas!`);
   };
 
   const handleUpdateNode = (nodeId: string, updatedData: any) => {
@@ -159,7 +162,7 @@ const FlowContent: React.FC = () => {
   const handleDeleteNode = (nodeId: string) => {
     setNodes((nds) => nds.filter((n) => n.id !== nodeId));
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-    message.info('Đã xóa khối Node khỏi Canvas');
+    notify.info('Đã xóa khối Node khỏi Canvas');
   };
 
   const handleGeneratePrompt = (promptText: string) => {
@@ -167,10 +170,11 @@ const FlowContent: React.FC = () => {
     const isLazada = promptText.toLowerCase().includes('lazada');
     const isKiotViet = promptText.toLowerCase().includes('kiotviet');
     const isGHN = promptText.toLowerCase().includes('ghn');
+    const isViettel = promptText.toLowerCase().includes('viettel');
 
     const triggerLabel = isShopee ? 'Shopee Push Webhook' : isLazada ? 'Lazada Inbound Webhook' : 'TikTok Shop Inbound';
     const posLabel = isKiotViet ? 'Trừ kho KiotViet' : 'Trừ tồn kho Sapo POS';
-    const carrierLabel = isGHN ? 'Tạo đơn GHN Nhanh' : 'Tạo vận đơn GHTK';
+    const carrierLabel = isGHN ? 'Tạo đơn GHN Nhanh' : isViettel ? 'Tạo vận đơn Viettel Post' : 'Tạo vận đơn GHTK';
 
     const generatedNodes = [
       { id: 'node_gen_1', type: 'trigger', position: { x: 80, y: 160 }, data: { label: triggerLabel, description: 'Đơn mới thanh toán' } },
@@ -187,11 +191,12 @@ const FlowContent: React.FC = () => {
 
     setNodes(generatedNodes);
     setEdges(generatedEdges);
+    setTimeout(() => fitView({ duration: 400 }), 100);
   };
 
   const handleSave = async () => {
     if (!currentWorkflow?._id) {
-      message.success('Đã lưu quy trình vào bộ nhớ tạm!');
+      notify.success('Đã lưu quy trình vào bộ nhớ tạm!');
       return;
     }
 
@@ -203,165 +208,166 @@ const FlowContent: React.FC = () => {
         edges,
         viewport: currentViewport,
       });
-      message.success('Đã lưu quy trình thành công vào MongoDB Atlas!');
+      notify.success('Đã lưu quy trình thành công vào MongoDB Atlas!');
     } catch (err: any) {
-      message.error('Lỗi khi lưu quy trình: ' + err.message);
+      notify.error('Lỗi khi lưu quy trình: ' + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleTestRun = () => {
-    message.loading({ content: 'Đang chạy mô phỏng luồng 0-chạm qua Backend & AI Engine...', key: 'testRun' });
+    notify.loading('Đang chạy mô phỏng luồng 0-chạm qua Backend & AI Engine...', 'testRun');
     setTimeout(() => {
-      message.success({
-        content: 'Chạy thử nghiệm thành công! Đơn hàng mô phỏng đã trừ kho POS và tạo vận đơn (198ms).',
-        key: 'testRun',
-        duration: 4,
-      });
-    }, 800);
+      notify.success('Chạy thử nghiệm thành công! Đơn hàng mô phỏng đã trừ kho POS và tạo vận đơn (198ms).');
+    }, 700);
   };
 
   return (
-    <Card
-      bordered={false}
-      style={{
-        background: '#111827',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 12,
-        height: 'calc(100vh - 140px)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-      bodyStyle={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column' }}
-    >
-      {/* 1. Prompt Bar AI */}
-      <PromptBar onGenerate={handleGeneratePrompt} />
-
-      {/* 2. Canvas Control Bar */}
-      <div
-        style={{
-          padding: '10px 20px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#0B0F19',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <Space>
-          <span style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600 }}>Chọn Quy Trình:</span>
-          <Select
-            value={currentWorkflow?._id}
-            onChange={(val) => {
-              const wf = workflowsList.find((w) => w._id === val);
-              if (wf) selectWorkflow(wf);
-            }}
-            style={{ width: 340 }}
-            options={workflowsList.map((w) => ({
-              label: `${w.name} ${w.isActive ? '(Active)' : '(Draft)'}`,
-              value: w._id,
-            }))}
-          />
-          <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 600 }}>
-            {currentWorkflow?.isActive ? 'Active 0-Chạm' : 'Bản Nháp'}
-          </Tag>
-          <span style={{ color: '#9CA3AF', fontSize: 12 }}>
-            Đã chạy: <strong style={{ color: '#fcc20f' }}>{currentWorkflow?.executionCount || 28450}</strong> đơn
-          </span>
-        </Space>
-
-        <Space>
-          <Button
+    <PageContainer
+      icon={<BranchesOutlined style={{ color: '#ed1c24' }} />}
+      title="Thiết Kế Quy Trình 0-Chạm (Visual Workflow Canvas)"
+      subtitle="Kéo thả trực quan các khối Trigger, AI Matcher, POS ERP và Đơn vị vận chuyển"
+      extra={
+        <Space size="small">
+          <BaseButton
+            variant="ghost"
+            size="small"
             icon={<PlusOutlined />}
             onClick={() => setLibraryOpen(true)}
-            style={{ background: 'rgba(255, 255, 255, 0.06)', borderColor: '#374151', color: '#F9FAFB', fontWeight: 600 }}
           >
-            Thêm Khối Node
-          </Button>
-          <Button
+            + Thêm Khối Node
+          </BaseButton>
+
+          <BaseButton
+            variant="ghost"
+            size="small"
             icon={<ReloadOutlined />}
-            size="middle"
             onClick={loadAllWorkflows}
-            style={{ color: '#9CA3AF', borderColor: '#374151' }}
           >
             Làm mới DB
-          </Button>
-          <Button
-            icon={<PlayCircleOutlined />}
+          </BaseButton>
+
+          <BaseButton
+            variant="ghost"
+            size="small"
+            icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
             onClick={handleTestRun}
-            style={{
-              borderColor: '#fcc20f',
-              color: '#fcc20f',
-              background: 'rgba(252, 194, 15, 0.08)',
-              fontWeight: 600,
-            }}
           >
             Chạy Thử Nghiệm
-          </Button>
-          <Button
-            type="primary"
+          </BaseButton>
+
+          <BaseButton
+            variant="primary"
+            size="small"
             icon={<SaveOutlined />}
             loading={saving}
+            glow
             onClick={handleSave}
-            style={{
-              background: '#ed1c24',
-              borderColor: '#ed1c24',
-              fontWeight: 600,
-            }}
           >
             Lưu Quy Trình
-          </Button>
+          </BaseButton>
         </Space>
-      </div>
-
-      {/* 3. Canvas Workspace */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-            <Spin tip="Đang tải danh sách quy trình từ MongoDB Atlas..." size="large" />
-          </div>
-        ) : (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={handleNodeClick}
-            fitView
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={16}
-              size={1.5}
-              color="rgba(255, 255, 255, 0.1)"
-            />
-            <Controls style={{ background: '#111827', border: '1px solid #374151' }} />
-          </ReactFlow>
-        )}
-      </div>
-
-      {/* 4. Drawers */}
-      <NodeLibraryDrawer
-        open={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
-        onAddNode={handleAddNode}
-      />
-
-      <NodeSettingsDrawer
-        open={settingsOpen}
-        selectedNode={selectedNode}
-        onClose={() => {
-          setSettingsOpen(false);
-          setSelectedNode(null);
+      }
+    >
+      <Card
+        bordered={false}
+        style={{
+          borderRadius: 12,
+          border: '1px solid var(--border-subtle, #E5E7EB)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+          height: 'calc(100vh - 200px)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          overflow: 'hidden',
         }}
-        onUpdateNode={handleUpdateNode}
-        onDeleteNode={handleDeleteNode}
-      />
-    </Card>
+        bodyStyle={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}
+      >
+        {/* 1. Canvas Control Bar */}
+        <div
+          style={{
+            padding: '10px 20px',
+            borderBottom: '1px solid #E5E7EB',
+            background: '#FFFFFF',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 12,
+            zIndex: 5,
+          }}
+        >
+          <Space size="middle">
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Chọn Quy Trình:</span>
+            <Select
+              value={currentWorkflow?._id}
+              onChange={(val) => {
+                const wf = workflowsList.find((w) => w._id === val);
+                if (wf) selectWorkflow(wf);
+              }}
+              style={{ width: 340 }}
+              options={workflowsList.map((w) => ({
+                label: `${w.name} ${w.isActive ? '(Active)' : '(Draft)'}`,
+                value: w._id,
+              }))}
+            />
+            <StatusTag status={currentWorkflow?.isActive ? 'ACTIVE' : 'INACTIVE'} customLabel={currentWorkflow?.isActive ? 'Active 0-Chạm' : 'Bản Nháp'} />
+          </Space>
+
+          <div style={{ fontSize: 12, color: '#6B7280' }}>
+            Đã chạy tự động: <strong style={{ color: '#ed1c24', fontSize: 13 }}>{currentWorkflow?.executionCount || 28450}</strong> đơn hàng
+          </div>
+        </div>
+
+        {/* 2. Canvas Workspace with Floating Copilot Prompt Bar */}
+        <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <Spin tip="Đang tải danh sách quy trình từ MongoDB Atlas..." size="large" />
+            </div>
+          ) : (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onNodeClick={handleNodeClick}
+              fitView
+            >
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={16}
+                size={1.5}
+              />
+              <Controls style={{ left: 16, bottom: 16 }} />
+            </ReactFlow>
+          )}
+
+          {/* 3. Floating Copilot AI Prompt Dock (Cửa sổ chat nổi ở giữa đáy canvas) */}
+          <PromptBar onGenerate={handleGeneratePrompt} />
+        </div>
+
+        {/* 4. Drawers */}
+        <NodeLibraryDrawer
+          open={libraryOpen}
+          onClose={() => setLibraryOpen(false)}
+          onAddNode={handleAddNode}
+        />
+
+        <NodeSettingsDrawer
+          open={settingsOpen}
+          selectedNode={selectedNode}
+          onClose={() => {
+            setSettingsOpen(false);
+            setSelectedNode(null);
+          }}
+          onUpdateNode={handleUpdateNode}
+          onDeleteNode={handleDeleteNode}
+        />
+      </Card>
+    </PageContainer>
   );
 };
 
@@ -372,3 +378,5 @@ export const WorkflowCanvas: React.FC = () => {
     </ReactFlowProvider>
   );
 };
+
+export default WorkflowCanvas;

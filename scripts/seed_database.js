@@ -29,7 +29,7 @@ async function seed() {
       { _id: tenantId },
       {
         $set: {
-          name: 'Thời Trang An Khang (PTIT Aka Store)',
+          name: 'Thời Trang An Khang (PTIT_Aka Store)',
           subdomain: 'ankhang-ptit',
           planTier: 'GROWTH',
           brandTheme: {
@@ -188,7 +188,7 @@ async function seed() {
         tenantId,
         sourcePlatform: 'TIKTOK_SHOP',
         sourceSkuCode: 'TTS-AT-COT-BLK-L',
-        sourceProductName: 'Áo thun Cotton Nam Màu Đen Size L Cao Cấp PTIT Aka',
+        sourceProductName: 'Áo thun Cotton Nam Màu Đen Size L Cao Cấp PTIT_Aka',
         sourceVariationText: 'Màu: Đen | Size: L',
         targetPosPlatform: 'SAPO',
         targetMasterSku: 'AT-COT-BLK-L',

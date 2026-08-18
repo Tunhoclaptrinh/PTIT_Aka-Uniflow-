@@ -4,14 +4,17 @@ import { Model, Types } from 'mongoose';
 import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
 import { Workflow, WorkflowDocument } from '../../database/schemas/workflow.schema';
 import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mapping.schema';
+import { BaseService } from '../../common/services/base.service';
 
 @Injectable()
-export class MetricsService {
+export class MetricsService extends BaseService<SyncEventLogDocument> {
   constructor(
     @InjectModel(SyncEventLog.name) private readonly logModel: Model<SyncEventLogDocument>,
     @InjectModel(Workflow.name) private readonly workflowModel: Model<WorkflowDocument>,
     @InjectModel(SKUMapping.name) private readonly skuModel: Model<SKUMappingDocument>
-  ) {}
+  ) {
+    super(logModel);
+  }
 
   async getDashboardMetrics(tenantId?: string) {
     const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
@@ -21,11 +24,11 @@ export class MetricsService {
     const totalExecutions = workflows.reduce((acc, curr) => acc + (curr.executionCount || 0), 0);
 
     // 2. Tính số lượng log và tỷ lệ thành công
-    const totalLogs = await this.logModel.countDocuments(filter).exec();
-    const healedLogs = await this.logModel.countDocuments({ ...filter, aiHealed: true }).exec();
+    const totalLogs = await this.model.countDocuments(filter).exec();
+    const healedLogs = await this.model.countDocuments({ ...filter, aiHealed: true }).exec();
 
     // 3. Tính độ trễ E2E trung bình
-    const recentLogs = await this.logModel.find(filter).sort({ createdAt: -1 }).limit(50).exec();
+    const recentLogs = await this.model.find(filter).sort({ createdAt: -1 }).limit(50).exec();
     const avgLatency = recentLogs.length > 0
       ? Math.round(recentLogs.reduce((sum, l) => sum + (l.durationMs || 180), 0) / recentLogs.length)
       : 180;
@@ -42,6 +45,6 @@ export class MetricsService {
 
   async getRecentLogs(limit = 20, tenantId?: string): Promise<SyncEventLog[]> {
     const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
-    return this.logModel.find(filter).sort({ createdAt: -1 }).limit(limit).exec();
+    return this.model.find(filter).sort({ createdAt: -1 }).limit(limit).exec();
   }
 }

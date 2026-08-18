@@ -1,34 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Tag, Space, Input, Select, Button, Drawer, message } from 'antd';
+import { Tag, Space, Tooltip } from 'antd';
 import {
-  SearchOutlined,
-  ReloadOutlined,
-  ThunderboltFilled,
   CodeOutlined,
   RedoOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons';
-import { metricsService, SyncLogItem } from '../services/metrics.service';
+import { loggingService, SyncLogItem } from '../services/logging.service';
+import { formatTimeAgo, formatLatency } from '../utils/formatters';
+import {
+  DataTable,
+  StatusTag,
+  BaseButton,
+  ActionDrawer,
+  PageContainer,
+} from '../components/base';
+import { notify } from '../utils/notification';
 
 export const LiveLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<SyncLogItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const [platformFilter, setPlatformFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-
-  // Payload Drawer
-  const [selectedLog, setSelectedLog] = useState<SyncLogItem | null>(null);
+  const [activeTab, setActiveTab] = useState('ALL');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<SyncLogItem | null>(null);
 
   const loadLogs = async () => {
     setLoading(true);
     try {
-      const data = await metricsService.getLogs(50);
+      const data = await loggingService.getLogs();
       if (data && data.length > 0) {
         setLogs(data);
       }
     } catch (err: any) {
-      console.warn('Lỗi tải logs:', err.message);
+      console.warn('Lỗi khi tải Logs từ API, dùng mock:', err.message);
     } finally {
       setLoading(false);
     }
@@ -38,40 +41,38 @@ export const LiveLogsPage: React.FC = () => {
     loadLogs();
   }, []);
 
+  const handleResync = async (orderId: string) => {
+    try {
+      await loggingService.retrySync(orderId);
+      notify.success(`Đã phát lệnh Re-sync đơn #${orderId} thành công qua Inbound Webhook!`);
+      loadLogs();
+    } catch (err: any) {
+      notify.error(`Lỗi khi Re-sync đơn #${orderId}: ${err.message}`);
+    }
+  };
+
   const openDrawer = (log: SyncLogItem) => {
     setSelectedLog(log);
     setDrawerOpen(true);
   };
 
-  const handleResync = (orderId: string) => {
-    message.loading({ content: `Đang gửi lại lệnh đồng bộ cho đơn #${orderId}...`, key: 'resync' });
-    setTimeout(() => {
-      message.success({
-        content: `Đơn hàng #${orderId} đã được đồng bộ lại thành công qua UDM Pipeline! ✅`,
-        key: 'resync',
-        duration: 3,
-      });
-    }, 800);
-  };
-
-  const filteredLogs = logs
-    .filter((l) => (platformFilter === 'ALL' ? true : l.platform === platformFilter))
-    .filter((l) => (statusFilter === 'ALL' ? true : statusFilter === 'HEALED' ? l.aiHealed : l.status === statusFilter))
-    .filter(
-      (l) =>
-        l.sourceOrderId?.toLowerCase().includes(searchText.toLowerCase()) ||
-        l.message?.toLowerCase().includes(searchText.toLowerCase())
-    );
+  const tabFilteredLogs = logs.filter((log) => {
+    if (activeTab === 'TIKTOK') return log.platform.includes('TIKTOK');
+    if (activeTab === 'SHOPEE') return log.platform.includes('SHOPEE');
+    if (activeTab === 'LAZADA') return log.platform.includes('LAZADA');
+    if (activeTab === 'HEALED') return log.aiHealed;
+    return true;
+  });
 
   const columns = [
     {
       title: 'Thời Gian',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      dataIndex: 'timestamp',
+      key: 'timestamp',
       width: 140,
-      render: (dateStr: string) => (
-        <span style={{ color: '#9CA3AF', fontFamily: 'JetBrains Mono', fontSize: 12 }}>
-          {new Date(dateStr).toLocaleTimeString('vi-VN')}
+      render: (ts: string) => (
+        <span style={{ color: '#4B5563', fontSize: 12, fontFamily: 'JetBrains Mono' }}>
+          {formatTimeAgo(ts)}
         </span>
       ),
     },
@@ -79,16 +80,20 @@ export const LiveLogsPage: React.FC = () => {
       title: 'Nền Tảng',
       dataIndex: 'platform',
       key: 'platform',
-      width: 130,
+      width: 120,
       render: (plat: string) => {
-        const isTikTok = plat.includes('TIKTOK');
-        const isShopee = plat.includes('SHOPEE');
+        let color = '#000000';
+        let text = 'TikTok Shop';
+        if (plat.includes('SHOPEE')) {
+          color = '#EE4D2D';
+          text = 'Shopee';
+        } else if (plat.includes('LAZADA')) {
+          color = '#0F146D';
+          text = 'Lazada';
+        }
         return (
-          <Tag
-            color={isTikTok ? '#000000' : isShopee ? '#EE4D2D' : '#0F146D'}
-            style={{ fontWeight: 700, borderRadius: 4 }}
-          >
-            {isTikTok ? 'TikTok Shop' : isShopee ? 'Shopee' : 'Lazada'}
+          <Tag color={color} style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}>
+            {text}
           </Tag>
         );
       },
@@ -97,25 +102,25 @@ export const LiveLogsPage: React.FC = () => {
       title: 'Mã Đơn Hàng',
       dataIndex: 'sourceOrderId',
       key: 'sourceOrderId',
-      width: 170,
+      width: 160,
       render: (id: string) => (
-        <span style={{ color: '#fcc20f', fontWeight: 600, fontFamily: 'JetBrains Mono' }}>
+        <span style={{ color: '#ed1c24', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 13 }}>
           #{id}
         </span>
       ),
     },
     {
-      title: 'Nội Dung & Sự Cố Tự Chữa Lành',
+      title: 'Trạng Thái & Sự Cố Tự Chữa Lành',
       dataIndex: 'message',
       key: 'message',
       render: (msg: string, record: SyncLogItem) => (
-        <div>
-          <span style={{ color: '#F9FAFB', fontSize: 13 }}>{msg}</span>
-          {record.aiHealed && (
-            <Tag color="#fcc20f" style={{ marginLeft: 8, color: '#0B0F19', fontWeight: 700, borderRadius: 4 }}>
-              ⚡ AI Auto-Healed
-            </Tag>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <StatusTag status={record.aiHealed ? 'HEALED' : 'SUCCESS'} />
+          <Tooltip title={msg}>
+            <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
+              {msg}
+            </span>
+          </Tooltip>
         </div>
       ),
     },
@@ -123,175 +128,174 @@ export const LiveLogsPage: React.FC = () => {
       title: 'Độ Trễ',
       dataIndex: 'durationMs',
       key: 'durationMs',
-      width: 100,
+      width: 95,
       render: (ms: number) => (
-        <span style={{ color: '#10B981', fontWeight: 600, fontFamily: 'JetBrains Mono' }}>
-          {ms || 180}ms
+        <span style={{ color: '#10B981', fontWeight: 700, fontFamily: 'JetBrains Mono', fontSize: 12 }}>
+          {formatLatency(ms || 180)}
         </span>
       ),
     },
     {
       title: 'Thao Tác',
       key: 'actions',
-      width: 180,
+      width: 110,
+      align: 'center' as const,
+      fixed: 'right' as const,
       render: (_: any, record: SyncLogItem) => (
-        <Space>
-          <Button
-            size="small"
-            icon={<CodeOutlined />}
-            onClick={() => openDrawer(record)}
-            style={{ background: 'rgba(255, 255, 255, 0.04)', borderColor: '#374151', color: '#D1D5DB' }}
-          >
-            UDM JSON
-          </Button>
-          <Button
-            size="small"
-            icon={<RedoOutlined />}
-            onClick={() => handleResync(record.sourceOrderId)}
-            style={{ background: 'rgba(255, 255, 255, 0.04)', borderColor: '#374151', color: '#fcc20f' }}
-          >
-            Re-sync
-          </Button>
+        <Space size={6}>
+          <Tooltip title="Xem chi tiết chuẩn hóa UDM Payload">
+            <button
+              className="action-btn-standard"
+              onClick={() => openDrawer(record)}
+              title="Xem payload UDM JSON"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: 16,
+                color: '#8B0000',
+              }}
+            >
+              <CodeOutlined />
+            </button>
+          </Tooltip>
+
+          <Tooltip title="Re-sync đơn hàng này">
+            <button
+              className="action-btn-standard"
+              onClick={() => handleResync(record.sourceOrderId)}
+              title="Re-sync đơn hàng"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: 16,
+                color: '#8B0000',
+              }}
+            >
+              <RedoOutlined />
+            </button>
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
   return (
-    <Card
-      title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <Space>
-            <ThunderboltFilled style={{ color: '#10B981', fontSize: 20 }} />
-            <span style={{ color: '#F9FAFB', fontWeight: 800, fontSize: 18 }}>
-              Nhật Ký Sự Kiện & Tự Chữa Lành (Live Logs & Self-Healing Hub)
-            </span>
-          </Space>
-
-          <Space>
-            <Select
-              value={platformFilter}
-              onChange={setPlatformFilter}
-              style={{ width: 140 }}
-              options={[
-                { label: 'Tất cả Sàn', value: 'ALL' },
-                { label: 'TikTok Shop', value: 'TIKTOK_SHOP' },
-                { label: 'Shopee', value: 'SHOPEE' },
-                { label: 'Lazada', value: 'LAZADA' },
-              ]}
-            />
-            <Select
-              value={statusFilter}
-              onChange={setStatusFilter}
-              style={{ width: 150 }}
-              options={[
-                { label: 'Tất cả trạng thái', value: 'ALL' },
-                { label: 'Thành công (200)', value: 'COMPLETED' },
-                { label: 'AI Auto-Healed', value: 'HEALED' },
-              ]}
-            />
-            <Input
-              prefix={<SearchOutlined style={{ color: '#6B7280' }} />}
-              placeholder="Tìm mã đơn hoặc nội dung..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 220, background: '#0B0F19', borderColor: '#374151', color: '#F9FAFB' }}
-            />
-            <Button icon={<ReloadOutlined />} onClick={loadLogs} style={{ borderColor: '#374151', color: '#9CA3AF' }}>
-              Làm mới
-            </Button>
-          </Space>
-        </div>
-      }
-      bordered={false}
-      style={{
-        background: '#111827',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 12,
-      }}
+    <PageContainer
+      icon={<HistoryOutlined style={{ color: '#10B981' }} />}
+      title="Nhật Ký Sự Kiện & Tự Chữa Lành (Live Logs & Self-Healing)"
+      subtitle="Giám sát toàn bộ lưu lượng đơn hàng TMĐT, phân tích UDM Schema và phục hồi lỗi tự động"
     >
-      <Table
-        dataSource={filteredLogs}
+      <DataTable
+        dataSource={tabFilteredLogs}
         columns={columns}
         rowKey="_id"
         loading={loading}
-        pagination={{ pageSize: 10 }}
-        style={{ background: 'transparent' }}
+        onRefresh={loadLogs}
+        exportable={true}
+        exportFilename="uniflow-sync-logs"
+        searchFields={['sourceOrderId', 'message', 'platform']}
+        tabs={[
+          { key: 'ALL', label: 'Tất Cả' },
+          { key: 'TIKTOK', label: 'TikTok Shop' },
+          { key: 'SHOPEE', label: 'Shopee' },
+          { key: 'LAZADA', label: 'Lazada' },
+          { key: 'HEALED', label: 'AI Auto-Healed' },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      {/* UDM JSON Payload Drawer */}
-      <Drawer
+      {/* UDM JSON Payload Drawer chuẩn Base ActionDrawer */}
+      <ActionDrawer
         title={
-          <span style={{ color: '#F9FAFB', fontWeight: 700 }}>
-            Chi Tiết Chuẩn Hóa Universal Data Model (UDM) - Đơn #{selectedLog?.sourceOrderId}
-          </span>
+          <Space>
+            <CodeOutlined style={{ color: '#10B981' }} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>
+              Chi Tiết Chuẩn Hóa UDM Schema (Payload Viewer)
+            </span>
+          </Space>
         }
-        placement="right"
-        width={550}
+        width={560}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        styles={{
-          body: { background: '#0B0F19', padding: '16px' },
-          header: { background: '#111827', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' },
-        }}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <BaseButton variant="ghost" size="small" onClick={() => setDrawerOpen(false)}>
+              Đóng
+            </BaseButton>
+            <BaseButton
+              variant="primary"
+              size="small"
+              icon={<RedoOutlined />}
+              glow
+              onClick={() => {
+                if (selectedLog) handleResync(selectedLog.sourceOrderId);
+                setDrawerOpen(false);
+              }}
+            >
+              Re-sync Đơn Hàng Này
+            </BaseButton>
+          </div>
+        }
       >
         {selectedLog && (
           <div>
-            <div style={{ marginBottom: 12 }}>
-              <Tag color="#10B981" style={{ fontWeight: 700 }}>Schema: uniflow.order.v1</Tag>
-              <Tag color="#ed1c24">HMAC Verified</Tag>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>
+                  Mã đơn sàn: #{selectedLog.sourceOrderId}
+                </div>
+                <div style={{ color: '#6B7280', fontSize: 12 }}>
+                  Nền tảng: {selectedLog.platform}
+                </div>
+              </div>
+              <StatusTag status={selectedLog.aiHealed ? 'HEALED' : 'SUCCESS'} />
             </div>
-            <pre
-              style={{
-                background: '#111827',
-                padding: 16,
-                borderRadius: 8,
-                color: '#10B981',
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
-                overflowX: 'auto',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              {JSON.stringify(
-                {
-                  udm_version: '1.0.0',
-                  tenant_id: selectedLog.tenantId || '66c0e812a1b2c3d4e5f60001',
-                  source_platform: selectedLog.platform,
-                  source_order_id: selectedLog.sourceOrderId,
-                  order: {
-                    status: 'PAID',
-                    currency: 'VND',
-                    created_at: selectedLog.createdAt,
-                    customer: {
-                      name: 'Nguyễn Văn A (Mã hóa SHA-256)',
-                      phone: '098****321',
-                      shipping_address: 'Hà Đông, Hà Nội',
-                    },
-                    items: [
-                      {
-                        source_sku: 'TTS-AT-COT-BLK-L',
-                        master_sku: 'AT-COT-BLK-L',
-                        quantity: 1,
-                        unit_price: 185000,
-                        confidence_score: 0.985,
-                      },
-                    ],
-                  },
-                  routing: {
-                    pos_platform: 'SAPO',
-                    target_warehouse: 'WH_MAIN_HN',
-                    carrier: selectedLog.aiHealed ? 'GHTK (Rerouted from GHN)' : 'GHTK',
-                    latency_ms: selectedLog.durationMs || 180,
-                  },
-                },
-                null,
-                2
-              )}
-            </pre>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                Thông điệp xử lý:
+              </div>
+              <div style={{ background: '#F9FAFB', padding: '10px 14px', borderRadius: 8, fontSize: 13, border: '1px solid #E5E7EB' }}>
+                {selectedLog.message}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                Universal Data Model (UDM) JSON:
+              </div>
+              <pre
+                style={{
+                  background: '#1E293B',
+                  color: '#38BDF8',
+                  padding: 16,
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  overflowX: 'auto',
+                  maxHeight: 380,
+                }}
+              >
+                {JSON.stringify(selectedLog.payload || {
+                  orderId: selectedLog.sourceOrderId,
+                  tenantId: 'tenant-aka-01',
+                  platform: selectedLog.platform,
+                  standardizedAt: selectedLog.timestamp,
+                  canonicalLineItems: [
+                    { sku: 'TTS-TSHIRT-01', masterSku: 'SAPO_POLO_01', quantity: 1, unitPrice: 250000 },
+                  ],
+                  shippingAddress: { city: 'Hà Nội', district: 'Hà Đông', country: 'VN' },
+                }, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
-      </Drawer>
-    </Card>
+      </ActionDrawer>
+    </PageContainer>
   );
 };
+
+export default LiveLogsPage;

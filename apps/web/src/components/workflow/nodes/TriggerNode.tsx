@@ -26,13 +26,12 @@ export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
         onClick={() => setExpanded(!expanded)}
         style={{
           padding: expanded ? '14px 18px' : '10px 14px',
-          background: 'rgba(17, 24, 39, 0.95)',
-          backdropFilter: 'blur(12px)',
+          background: '#FFFFFF',
           borderRadius: expanded ? 14 : 28,
           border: `2px solid ${nodeColor}`,
-          boxShadow: isHovered || expanded ? `0 0 24px rgba(237, 28, 36, 0.45)` : `0 0 12px rgba(237, 28, 36, 0.25)`,
+          boxShadow: isHovered || expanded ? `0 6px 20px rgba(237, 28, 36, 0.25)` : `0 2px 10px rgba(0, 0, 0, 0.08)`,
           minWidth: expanded ? 220 : 160,
-          color: '#F9FAFB',
+          color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
         }}
@@ -48,7 +47,7 @@ export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: `0 0 10px rgba(237, 28, 36, 0.5)`,
+              boxShadow: `0 2px 8px rgba(237, 28, 36, 0.3)`,
               flexShrink: 0,
             }}
           >
@@ -56,47 +55,50 @@ export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
           </div>
 
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#F9FAFB', lineHeight: 1.2 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.2 }}>
               {data.label || 'Inbound Trigger'}
             </div>
             {!expanded && (
-              <div style={{ fontSize: 10, color: '#fcc20f', fontWeight: 600, marginTop: 2 }}>
-                ● Real-time Webhook
+              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+                Webhook Inbound
               </div>
             )}
           </div>
 
-          <div style={{ color: '#9CA3AF', fontSize: 11 }}>
+          {/* Toggle Expand Icon */}
+          <div style={{ color: '#9CA3AF', fontSize: 12 }}>
             {expanded ? <UpOutlined /> : <DownOutlined />}
           </div>
         </div>
 
-        {/* Expanded Details */}
+        {/* Expanded Details Body */}
         {expanded && (
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <div style={{ fontSize: 12, color: '#D1D5DB', marginBottom: 6 }}>
-              {data.description || 'Tiếp nhận đơn hàng thời gian thực'}
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #F3F4F6' }}>
+            <div style={{ color: '#4B5563', fontSize: 12, marginBottom: 8, lineHeight: 1.4 }}>
+              {data.description || 'Lắng nghe đơn hàng thanh toán thành công (SLA < 100ms)'}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Tag color={nodeColor} style={{ borderRadius: 4, fontSize: 10, fontWeight: 700 }}>
-                {isTikTok ? 'TIKTOK SHOP' : isShopee ? 'SHOPEE PUSH' : 'INBOUND'}
+
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <Tag color="#ed1c24" style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
+                HMAC-SHA256
               </Tag>
-              <span style={{ fontSize: 11, color: '#10B981', fontFamily: 'JetBrains Mono', fontWeight: 600 }}>
-                SLA &lt; 0.5s
-              </span>
+              <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
+                Real-time Push
+              </Tag>
             </div>
           </div>
         )}
       </div>
 
+      {/* Output Handle */}
       <Handle
         type="source"
         position={Position.Right}
         style={{
           background: nodeColor,
-          width: 12,
-          height: 12,
-          border: '2px solid #ffffff',
+          width: 10,
+          height: 10,
+          border: '2px solid #FFFFFF',
           boxShadow: `0 0 8px ${nodeColor}`,
         }}
       />

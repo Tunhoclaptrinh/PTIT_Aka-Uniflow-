@@ -1,4 +1,5 @@
-import { apiClient } from './api';
+import { BaseApiService } from './base.service';
+import { baseApi } from './api';
 
 export interface SKUMappingItem {
   _id: string;
@@ -13,14 +14,25 @@ export interface SKUMappingItem {
   mappingStatus: 'AUTO_APPROVED' | 'PENDING_REVIEW' | 'MANUAL_REQUIRED';
 }
 
-export const mappingService = {
-  getMappings: async (): Promise<SKUMappingItem[]> => {
-    const res: any = await apiClient.get('/mappings');
-    return res.data;
-  },
+class SKUMappingApiService extends BaseApiService<SKUMappingItem> {
+  protected endpoint = '/mappings';
 
-  approveMapping: async (id: string): Promise<SKUMappingItem> => {
-    const res: any = await apiClient.patch(`/mappings/${id}/approve`);
-    return res.data;
-  },
-};
+  async getMappings(tenantId?: string): Promise<SKUMappingItem[]> {
+    return this.getAll(tenantId ? { tenantId } : undefined);
+  }
+
+  async approveMapping(id: string, approverId?: string): Promise<SKUMappingItem> {
+    return baseApi.patch<SKUMappingItem>(`${this.endpoint}/${id}/approve`, { approverId });
+  }
+
+  async testAIMatch(payload: {
+    sourceSku: string;
+    sourceName: string;
+    targetSku: string;
+    targetName: string;
+  }) {
+    return baseApi.post(`${this.endpoint}/test-match`, payload);
+  }
+}
+
+export const mappingService = new SKUMappingApiService();
