@@ -19,6 +19,7 @@ import { UDMNormalizerService } from '../normalizer/udm-normalizer.service';
 import { PlatformType, WebhookProcessingStatus } from '@uniflow/shared-types';
 import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
 import { Workflow, WorkflowDocument } from '../../database/schemas/workflow.schema';
+import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
 
 @Controller('api/v1/webhooks')
 export class TikTokWebhookController {
@@ -29,7 +30,8 @@ export class TikTokWebhookController {
     private readonly wsGateway: EventsGateway,
     private readonly normalizer: UDMNormalizerService,
     @InjectModel(SyncEventLog.name) private readonly logModel: Model<SyncEventLogDocument>,
-    @InjectModel(Workflow.name) private readonly workflowModel: Model<WorkflowDocument>
+    @InjectModel(Workflow.name) private readonly workflowModel: Model<WorkflowDocument>,
+    @InjectModel(Connector.name) private readonly connectorModel: Model<ConnectorDocument>,
   ) {}
 
   @Post('tiktok/:tenantId')
@@ -82,6 +84,18 @@ export class TikTokWebhookController {
       await this.workflowModel.updateOne(
         { tenantId: tenantObjId, isActive: true },
         { $inc: { executionCount: 1 } }
+      );
+
+      // Cập nhật thống kê kênh kết nối trong MongoDB (TikTok, Sapo, GHTK)
+      await this.connectorModel.updateMany(
+        {
+          tenantId: tenantObjId.toString(),
+          connectorId: { $in: ['tiktok', 'sapo', 'ghtk'] },
+        },
+        {
+          $inc: { ordersSynced: 1 },
+          $set: { lastSyncedAt: new Date(), latencyMs: durationMs, latency: `${durationMs}ms` },
+        }
       );
     } catch (err: any) {
       this.logger.error('Lỗi khi ghi nhận sync log:', err.message);

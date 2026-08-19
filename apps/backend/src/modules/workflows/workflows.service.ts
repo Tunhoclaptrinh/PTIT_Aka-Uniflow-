@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Workflow, WorkflowDocument } from '../../database/schemas/workflow.schema';
 import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
 import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mapping.schema';
+import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
 import { BaseService } from '../../common/services/base.service';
 import { performRealAiSkuMatch } from '../sku-mapping/sku-ai-matcher.util';
 
@@ -15,7 +16,8 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
   constructor(
     @InjectModel(Workflow.name) private readonly workflowModel: Model<WorkflowDocument>,
     @InjectModel(SyncEventLog.name) private readonly logModel: Model<SyncEventLogDocument>,
-    @InjectModel(SKUMapping.name) private readonly skuMappingModel: Model<SKUMappingDocument>
+    @InjectModel(SKUMapping.name) private readonly skuMappingModel: Model<SKUMappingDocument>,
+    @InjectModel(Connector.name) private readonly connectorModel: Model<ConnectorDocument>,
   ) {
     super(workflowModel);
   }
@@ -426,11 +428,29 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       },
     });
 
-    // 5. Tăng executionCount của workflow
+    // 5. Tăng executionCount của workflow & cập nhật số liệu Connector
     await this.model.findByIdAndUpdate(workflow._id, {
       $inc: { executionCount: 1 },
       $set: { updatedAt: new Date() },
     });
+
+    const usedConnectorIds: string[] = [];
+    const lowerPlatform = platform.toLowerCase();
+    if (lowerPlatform.includes('tiktok')) usedConnectorIds.push('tiktok');
+    if (lowerPlatform.includes('shopee')) usedConnectorIds.push('shopee');
+    if (lowerPlatform.includes('lazada')) usedConnectorIds.push('lazada');
+    usedConnectorIds.push('sapo', 'ghtk');
+
+    await this.connectorModel.updateMany(
+      {
+        tenantId: effectiveTenantId.toString(),
+        connectorId: { $in: usedConnectorIds },
+      },
+      {
+        $inc: { ordersSynced: 1 },
+        $set: { lastSyncedAt: new Date(), latencyMs: durationMs, latency: `${durationMs}ms` },
+      }
+    );
 
     return {
       success: true,

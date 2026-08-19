@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
+import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
 import { BaseService } from '../../common/services/base.service';
 
 @Injectable()
@@ -9,91 +10,116 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
   constructor(
     @InjectModel(SyncEventLog.name) private readonly logModel: Model<SyncEventLogDocument>,
     @InjectModel('Workflow') private readonly workflowModel: Model<any>,
-    @InjectModel('SKUMapping') private readonly skuMappingModel: Model<any>
+    @InjectModel('SKUMapping') private readonly skuMappingModel: Model<any>,
+    @InjectModel(Connector.name) private readonly connectorModel: Model<ConnectorDocument>,
   ) {
     super(logModel);
   }
 
   async getDashboardMetrics(tenantId?: string) {
+    const effectiveTenantId = tenantId || '66c0e812a1b2c3d4e5f60001';
     const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
+    const stringFilter = { tenantId: effectiveTenantId };
 
     // 1. Đếm tổng số sự kiện đồng bộ từ MongoDB Atlas
-    const totalSyncedOrders = await this.model.countDocuments(filter).exec();
+    const totalLogsCount = await this.model.countDocuments(filter).exec();
 
-    // 2. Tính số lượng thành công & thất bại
+    // 2. Lấy dữ liệu connectors thực tế từ MongoDB
+    const connectors = await this.connectorModel.find(stringFilter).exec();
+    const connectorMap = new Map<string, ConnectorDocument>();
+    connectors.forEach((c) => connectorMap.set(c.connectorId.toLowerCase(), c));
+
+    // 3. Tính số lượng thành công & thất bại
     const successCount = await this.model.countDocuments({ ...filter, status: 'COMPLETED' }).exec();
     const failedCount = await this.model.countDocuments({ ...filter, status: 'FAILED' }).exec();
     const totalProcessed = successCount + failedCount;
     const successRate = totalProcessed > 0 ? ((successCount / totalProcessed) * 100).toFixed(1) : '99.8';
 
-    // 3. Tính độ trễ trung bình E2E từ 100 logs gần nhất
+    // 4. Tính độ trễ trung bình E2E từ 100 logs gần nhất hoặc từ connectors
     const recentLogs = await this.model.find(filter).sort({ createdAt: -1 }).limit(100).lean().exec();
     let avgLatency = 142;
     if (recentLogs.length > 0) {
       const sumDuration = recentLogs.reduce((acc, cur) => acc + (cur.durationMs || 150), 0);
       avgLatency = Math.round(sumDuration / recentLogs.length);
+    } else if (connectors.length > 0) {
+      const sumConnLatency = connectors.reduce((acc, cur) => acc + (cur.latencyMs || 150), 0);
+      avgLatency = Math.round(sumConnLatency / connectors.length);
     }
 
-    // 4. Tính toán phân bổ kênh sàn thực tế
+    // 5. Thống kê phân bổ kênh sàn TMĐT thực tế
+    const tikTokConn = connectorMap.get('tiktok');
+    const shopeeConn = connectorMap.get('shopee');
+    const lazadaConn = connectorMap.get('lazada');
+
+    let tikTokOrders = tikTokConn?.ordersSynced || 0;
+    let shopeeOrders = shopeeConn?.ordersSynced || 0;
+    let lazadaOrders = lazadaConn?.ordersSynced || 0;
+
+    // Nếu có logs trong DB, cộng gộp với aggregate
     const channelAgg = await this.model.aggregate([
       { $match: filter },
       { $group: { _id: '$platform', count: { $sum: 1 } } }
     ]).exec();
 
-    let tikTokOrders = 0;
-    let shopeeOrders = 0;
-    let lazadaOrders = 0;
-
     channelAgg.forEach((c) => {
-      if (c._id === 'TIKTOK_SHOP' || c._id === 'TIKTOK') tikTokOrders = c.count;
-      else if (c._id === 'SHOPEE') shopeeOrders = c.count;
-      else if (c._id === 'LAZADA') lazadaOrders = c.count;
+      if (c._id === 'TIKTOK_SHOP' || c._id === 'TIKTOK') tikTokOrders = Math.max(tikTokOrders, c.count);
+      else if (c._id === 'SHOPEE') shopeeOrders = Math.max(shopeeOrders, c.count);
+      else if (c._id === 'LAZADA') lazadaOrders = Math.max(lazadaOrders, c.count);
     });
 
     const sumChannels = tikTokOrders + shopeeOrders + lazadaOrders || 1;
     const channels = {
       tiktok: {
-        orderCount: tikTokOrders || Math.round(totalSyncedOrders * 0.45) || 12840,
-        percentage: Math.round(((tikTokOrders || Math.round(totalSyncedOrders * 0.45)) / sumChannels) * 100) || 45,
-        status: 'CONNECTED',
+        orderCount: tikTokOrders,
+        percentage: Math.round((tikTokOrders / sumChannels) * 100) || 0,
+        status: tikTokConn?.status || 'CONNECTED',
+        latency: tikTokConn?.latency || '185ms',
       },
       shopee: {
-        orderCount: shopeeOrders || Math.round(totalSyncedOrders * 0.35) || 9980,
-        percentage: Math.round(((shopeeOrders || Math.round(totalSyncedOrders * 0.35)) / sumChannels) * 100) || 35,
-        status: 'CONNECTED',
+        orderCount: shopeeOrders,
+        percentage: Math.round((shopeeOrders / sumChannels) * 100) || 0,
+        status: shopeeConn?.status || 'CONNECTED',
+        latency: shopeeConn?.latency || '210ms',
       },
       lazada: {
-        orderCount: lazadaOrders || Math.round(totalSyncedOrders * 0.20) || 5700,
-        percentage: Math.round(((lazadaOrders || Math.round(totalSyncedOrders * 0.20)) / sumChannels) * 100) || 20,
-        status: 'CONNECTED',
+        orderCount: lazadaOrders,
+        percentage: Math.round((lazadaOrders / sumChannels) * 100) || 0,
+        status: lazadaConn?.status || 'DISCONNECTED',
+        latency: lazadaConn?.latency || '230ms',
       },
     };
 
-    // 5. Thống kê trạng thái AI SKU Mappings
+    // 6. Thống kê trạng thái AI SKU Mappings
     const autoApprovedCount = await this.skuMappingModel.countDocuments({ ...filter, mappingStatus: 'AUTO_APPROVED' }).exec();
     const pendingCount = await this.skuMappingModel.countDocuments({ ...filter, mappingStatus: 'PENDING_REVIEW' }).exec();
     const manualCount = await this.skuMappingModel.countDocuments({ ...filter, mappingStatus: 'MANUAL_REQUIRED' }).exec();
+    const totalSkus = autoApprovedCount + pendingCount + manualCount;
+    const autoRate = totalSkus > 0 ? `${((autoApprovedCount / totalSkus) * 100).toFixed(1)}%` : '98.5%';
 
     const skuHealth = {
-      autoApproved: autoApprovedCount || 4120,
-      pendingReview: pendingCount || 86,
-      manualRequired: manualCount || 14,
-      autoRate: '98.5%',
+      autoApproved: autoApprovedCount,
+      pendingReview: pendingCount,
+      manualRequired: manualCount,
+      autoRate,
     };
 
-    // 6. Thống kê quy trình đang chạy
+    // 7. Thống kê quy trình đang chạy
     const activeWorkflowsCount = await this.workflowModel.countDocuments({ ...filter, isActive: true }).exec();
 
-    // 7. Ước tính chi phí tiết kiệm được (mỗi đơn 0-chạm tiết kiệm ~ 1,450 VNĐ chi phí nhân sự xử lý tay)
+    // 8. Tính tổng số đơn thực tế (tổng từ connectors hoặc logs)
+    const totalConnectorOrders = connectors.reduce((acc, cur) => acc + (cur.ordersSynced || 0), 0);
+    const totalSyncedOrders = Math.max(totalLogsCount, totalConnectorOrders);
+
+    // 9. Ước tính chi phí tiết kiệm được (mỗi đơn 0-chạm tiết kiệm ~ 1,450 VNĐ chi phí nhân sự xử lý tay)
     const costSavedMillionVnd = ((totalSyncedOrders * 1450) / 1000000).toFixed(1);
 
     return {
-      totalSyncedOrders: totalSyncedOrders || 28520,
+      totalSyncedOrders,
       p99LatencyMs: avgLatency,
       averageLatencyMs: avgLatency,
       successRate: `${successRate}%`,
       costSavedVnd: `${costSavedMillionVnd}M`,
-      activeWorkflows: activeWorkflowsCount || 4,
+      activeWorkflows: activeWorkflowsCount,
       channels,
       skuHealth,
       systemStatus: {
@@ -118,21 +144,8 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     if (log) {
       log.status = 'COMPLETED';
       log.aiHealed = true;
-      log.durationMs = Math.floor(130 + Math.random() * 40);
-      log.message = `[Đã tự phục hồi] Đơn #${orderId} -> Tự động chuyển tuyến & Đồng bộ kho POS thành công ✅`;
       await log.save();
-      return log;
     }
-
-    // Nếu chưa có, tạo log hoàn tất mới
-    return this.model.create({
-      tenantId: tenantId ? new Types.ObjectId(tenantId) : new Types.ObjectId('66c0e812a1b2c3d4e5f60001'),
-      platform: 'TIKTOK_SHOP',
-      sourceOrderId: orderId,
-      status: 'COMPLETED',
-      durationMs: 145,
-      message: `Đơn #${orderId} -> Tự phục hồi thành công qua AI Router ✅`,
-      aiHealed: true,
-    });
+    return log;
   }
 }

@@ -7,6 +7,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
 import { NormalizerModule } from '../normalizer/normalizer.module';
 import { SyncEventLog, SyncEventLogSchema } from '../../database/schemas/sync-event-log.schema';
 import { Workflow, WorkflowSchema } from '../../database/schemas/workflow.schema';
+import { Connector, ConnectorSchema } from '../../database/schemas/connector.schema';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { Workflow, WorkflowSchema } from '../../database/schemas/workflow.schema
     MongooseModule.forFeature([
       { name: SyncEventLog.name, schema: SyncEventLogSchema },
       { name: Workflow.name, schema: WorkflowSchema },
+      { name: Connector.name, schema: ConnectorSchema },
     ]),
   ],
   controllers: [TikTokWebhookController, ShopeeWebhookController],
   providers: [SecurityService],
 })
-export class WebhooksModule {}
+export class WebhooksModule { }
