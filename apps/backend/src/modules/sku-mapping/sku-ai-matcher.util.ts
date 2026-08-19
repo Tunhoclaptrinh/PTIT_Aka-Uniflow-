@@ -109,12 +109,40 @@ function computeCosineSimilarity(tokensA: string[], tokensB: string[]): number {
 import { AiGatewayService } from '../../common/services/ai-gateway.service';
 
 /**
- * Thử gọi AI Engine / LLM (Gemini / OpenAI / Ollama / Python AI Engine)
+ * Thử gọi AI Engine / LLM (Python AI Engine / Gemini / OpenAI / Ollama)
  */
 async function tryAiLlmMatch(
+  sourceSku: string,
   sourceTitle: string,
+  targetSku: string,
   targetTitle: string
 ): Promise<Partial<AiMatchResult> | null> {
+  // 1. Thử gọi Python AI Engine Microservice (FastAPI Port 8000 + Qdrant)
+  const aiEngineUrl = process.env.AI_ENGINE_URL || 'http://localhost:8000';
+  try {
+    const aiEngineRes = await axios.post(
+      `${aiEngineUrl}/api/v1/ai/match-sku`,
+      {
+        source_sku: sourceSku,
+        source_name: sourceTitle,
+        target_sku: targetSku,
+        target_name: targetTitle,
+      },
+      { timeout: 1500 }
+    );
+    if (aiEngineRes.data && aiEngineRes.data.hybrid_score) {
+      return {
+        confidenceScore: aiEngineRes.data.hybrid_score,
+        decision: aiEngineRes.data.action,
+        reasoning: `[Python AI Engine Qdrant] So khớp lai đạt ${aiEngineRes.data.confidence_percent}% (Vector: ${aiEngineRes.data.vector_sim}, Thuộc tính: ${aiEngineRes.data.attribute_sim})`,
+        engineUsed: 'PYTHON_AI_ENGINE',
+      };
+    }
+  } catch {
+    // Python AI service fallback
+  }
+
+  // 2. Thử gọi Gemini / LLM qua AiGatewayService
   const prompt = `So khớp 2 tên sản phẩm TMĐT sau:
 Sản phẩm A (Sàn TMĐT): "${sourceTitle}"
 Sản phẩm B (Kho Master POS): "${targetTitle}"
@@ -244,8 +272,8 @@ export async function performAsyncAiSkuMatch(
 ): Promise<AiMatchResult> {
   const localResult = performRealAiSkuMatch(sourceSku, sourceTitle, targetSku, targetTitle);
 
-  // Thử gọi AI Engine / LLM (Gemini / OpenAI / Ollama)
-  const aiLlmResult = await tryAiLlmMatch(sourceTitle, targetTitle);
+  // Thử gọi AI Engine / LLM (Python AI Engine / Gemini / OpenAI / Ollama)
+  const aiLlmResult = await tryAiLlmMatch(sourceSku, sourceTitle, targetSku, targetTitle);
   if (aiLlmResult && aiLlmResult.confidenceScore) {
     return {
       ...localResult,

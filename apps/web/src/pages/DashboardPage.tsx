@@ -670,7 +670,7 @@ export const DashboardPage: React.FC = () => {
                             }}
                             title={evt.message}
                           >
-                            {evt.message}
+                            {(evt.message || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '').trim()}
                           </span>
                         </div>
 

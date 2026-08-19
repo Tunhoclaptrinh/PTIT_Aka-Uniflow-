@@ -464,7 +464,7 @@ export function verifyTikTokWebhook(
               onClick={() => { setDemoScenario('HEALING'); setDemoStep(1); }}
               className={`chip-btn ${demoScenario === 'HEALING' ? 'active-red' : ''}`}
             >
-              AI tự chữa lành (Reroute 504)
+              AI tự phục hồi (Reroute 504)
             </button>
             <button
               onClick={() => setDemoRunning(!demoRunning)}
@@ -1010,7 +1010,7 @@ export function verifyTikTokWebhook(
             { icon: <ThunderboltFilled />, title: 'Inbound Webhook 0-chạm', desc: 'Xác thực HMAC-SHA256 chuẩn SLA TikTok Shop, Shopee & Lazada. Chống trùng lặp Idempotency Key 24h qua Redis Cluster.' },
             { icon: <CodeFilled />, title: 'Universal Data Model', desc: 'Rút gọn N×N kết nối thành N+N. Chuẩn hóa mọi payload về uniflow.order.v1 dùng chung cho toàn bộ hệ sinh thái.' },
             { icon: <RocketFilled />, title: 'AI Hybrid SKU Mapper', desc: 'Kết hợp Vector Embedding Qdrant 1536 chiều và Gemini 1.5 Flash NER trích xuất màu sắc, size, chất liệu đạt >98.5%.' },
-            { icon: <SafetyCertificateFilled />, title: 'AI tự chữa lành & đổi tuyến', desc: 'Tự phát hiện lỗi timeout ĐVVC, chẩn đoán nguyên nhân gốc và tự đổi sang hãng dự phòng tối ưu chi phí.' },
+            { icon: <SafetyCertificateFilled />, title: 'AI tự phục hồi & đổi tuyến', desc: 'Tự phát hiện lỗi timeout ĐVVC, chẩn đoán nguyên nhân gốc và tự đổi sang hãng dự phòng tối ưu chi phí.' },
           ].map((item, idx) => (
             <div key={item.title} className={`bento-card ${spotlightPillar === idx ? 'auto-spotlight' : ''}`}>
               <div className="card-icon-badge">

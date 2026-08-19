@@ -18,12 +18,12 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
 
   const carriersComparison = Array.isArray(data.carriers)
     ? data.carriers.map((c: any) => ({
-        name: c.name || c.carrier || 'ĐVVC',
-        price: c.price || (c.fee ? `${c.fee.toLocaleString('vi-VN')}đ` : ''),
-        logo: getPartnerLogo(c.name || c.carrier || ''),
-        isCheapest: Boolean(c.isCheapest || c.selected),
-        note: c.note || (c.isCheapest ? 'Rẻ nhất 🏆' : ''),
-      }))
+      name: c.name || c.carrier || 'ĐVVC',
+      price: c.price || (c.fee ? `${c.fee.toLocaleString('vi-VN')}đ` : ''),
+      logo: getPartnerLogo(c.name || c.carrier || ''),
+      isCheapest: Boolean(c.isCheapest || c.selected),
+      note: c.note || (c.isCheapest ? 'Rẻ nhất 🏆' : ''),
+    }))
     : [];
 
   const hasCarriers = carriersComparison.length > 0;
@@ -31,7 +31,7 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
   // Carrier được AI chọn (rẻ nhất) — hiển thị động trong description
   const selectedCarrier = carriersComparison.find((c: { isCheapest: boolean; name: string; price: string }) => c.isCheapest);
   const dynamicDescription = isRateCompare && selectedCarrier
-    ? `✅ Chốt: ${selectedCarrier.name} (${selectedCarrier.price}) — rẻ nhất trong ${carriersComparison.length} hãng`
+    ? `Chốt: ${selectedCarrier.name} (${selectedCarrier.price}) — rẻ nhất trong ${carriersComparison.length} hãng`
     : data.description || 'Xử lý tự động hóa thông minh';
 
   return (
@@ -113,8 +113,8 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
           boxShadow: selected
             ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.08)`
             : isHovered
-            ? `0 4px 14px ${nodeColor}25`
-            : `0 1px 4px rgba(0, 0, 0, 0.04)`,
+              ? `0 4px 14px ${nodeColor}25`
+              : `0 1px 4px rgba(0, 0, 0, 0.04)`,
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',

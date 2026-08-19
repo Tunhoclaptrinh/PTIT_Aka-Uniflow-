@@ -175,7 +175,7 @@ Nhằm cân bằng giữa **tốc độ ra mắt sản phẩm (Speed-to-Market)*
 
 ---
 
-### **5. Collection: `sync_event_logs` (Nhật ký Sự kiện & AI Tự chữa lành)**
+### **5. Collection: `sync_event_logs` (Nhật ký Sự kiện & AI tự phục hồi)**
 
 ```javascript
 // Collection: sync_event_logs

@@ -12,9 +12,11 @@ import { LogsModule } from './modules/logs/logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { ConnectorsModule } from './modules/connectors/connectors.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
+    RedisModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [

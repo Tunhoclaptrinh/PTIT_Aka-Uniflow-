@@ -13,7 +13,7 @@ export interface SkuDetailModalProps {
   open: boolean;
   item: SKUMappingItem | null;
   onClose: () => void;
-  onApprove: (id: string) => void;
+  onApprove: (id?: string) => void;
 }
 
 export const SkuDetailModal: React.FC<SkuDetailModalProps> = ({

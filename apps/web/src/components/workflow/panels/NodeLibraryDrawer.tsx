@@ -197,7 +197,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
         { type: 'ai', label: 'AI Hybrid SKU Mapper', desc: 'So khớp mã hàng tự động bằng Vector Cosine và Gemini NER', cat: 'AI' },
         { type: 'ai', label: 'AI So sánh cước & Chọn hãng tối ưu', desc: 'Truy vấn cước realtime: Viettel Post, GHTK, GHN để chọn cước tối ưu', cat: 'AI' },
         { type: 'ai', label: 'AI NER Trích xuất thông tin', desc: 'Tự động bóc tách Màu sắc, Kích cỡ, Tên người nhận, SĐT và Địa chỉ', cat: 'AI' },
-        { type: 'ai', label: 'AI Tự chữa lành sự cố & Định tuyến', desc: 'Tự chẩn đoán lỗi đối tác ĐVVC và chuyển tuyến thông minh dự phòng', cat: 'AI' },
+        { type: 'ai', label: 'AI tự phục hồi sự cố & Định tuyến', desc: 'Tự chẩn đoán lỗi đối tác ĐVVC và chuyển tuyến thông minh dự phòng', cat: 'AI' },
       ],
     },
     {

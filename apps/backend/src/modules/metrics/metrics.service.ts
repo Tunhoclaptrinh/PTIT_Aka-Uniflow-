@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { SyncEventLog, SyncEventLogDocument } from '../../database/schemas/sync-event-log.schema';
 import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
+import { RedisService } from '../redis/redis.service';
 import { BaseService } from '../../common/services/base.service';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     @InjectModel('Workflow') private readonly workflowModel: Model<any>,
     @InjectModel('SKUMapping') private readonly skuMappingModel: Model<any>,
     @InjectModel(Connector.name) private readonly connectorModel: Model<ConnectorDocument>,
+    private readonly redisService: RedisService,
   ) {
     super(logModel);
   }
@@ -113,6 +115,8 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     // 9. Ước tính chi phí tiết kiệm được (mỗi đơn 0-chạm tiết kiệm ~ 1,450 VNĐ chi phí nhân sự xử lý tay)
     const costSavedMillionVnd = ((totalSyncedOrders * 1450) / 1000000).toFixed(1);
 
+    const isRedisLive = await this.redisService.isHealthy();
+
     return {
       totalSyncedOrders,
       p99LatencyMs: avgLatency,
@@ -125,7 +129,7 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
       systemStatus: {
         gateway: 'ONLINE',
         database: 'ONLINE',
-        redisCluster: 'ONLINE',
+        redisCluster: isRedisLive ? 'ONLINE' : 'STANDBY_FALLBACK',
         aiMatcher: 'READY',
       },
     };

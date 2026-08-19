@@ -63,7 +63,7 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
           color="#fcc20f"
           style={{ borderRadius: 4, fontWeight: 700, fontSize: 11, color: '#000000' }}
         >
-          {label || 'AI Tự Chữa Lành'}
+          {label || 'AI tự phục hồi'}
         </Tag>
       );
 

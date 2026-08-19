@@ -127,7 +127,7 @@ function sendRequest(options, body, label) {
       const elapsed = Date.now() - startTime;
       console.log(`\n========================================`);
       console.log(`[${label}] Status Code: ${res.statusCode}`);
-      console.log(`Thời gian phản hồi: ${elapsed} ms ${elapsed < 500 ? '✅ (< 0.5s Đạt SLA)' : '⚠️'}`);
+      console.log(`Thời gian phản hồi: ${elapsed} ms ${elapsed < 500 ? '(< 0.5s Đạt SLA)' : '⚠️'}`);
       console.log(`Response Body: ${responseData}`);
       console.log(`========================================\n`);
     });

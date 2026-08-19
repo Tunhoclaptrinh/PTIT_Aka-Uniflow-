@@ -126,16 +126,19 @@ export const LiveLogsPage: React.FC = () => {
       title: 'Trạng Thái & Sự Cố Tự Chữa Lành',
       dataIndex: 'message',
       key: 'message',
-      render: (msg: string, record: SyncLogItem) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <StatusTag status={record.aiHealed ? 'HEALED' : 'SUCCESS'} />
-          <Tooltip title={msg}>
-            <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
-              {msg}
-            </span>
-          </Tooltip>
-        </div>
-      ),
+      render: (msg: string, record: SyncLogItem) => {
+        const cleanMsg = (msg || '').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '').trim();
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <StatusTag status={record.aiHealed ? 'HEALED' : 'SUCCESS'} />
+            <Tooltip title={cleanMsg}>
+              <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
+                {cleanMsg}
+              </span>
+            </Tooltip>
+          </div>
+        );
+      },
     },
     {
       title: 'Độ Trễ',
@@ -263,7 +266,7 @@ export const LiveLogsPage: React.FC = () => {
             </span>
           </Space>
         }
-        width={560}
+        width={600}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         footer={

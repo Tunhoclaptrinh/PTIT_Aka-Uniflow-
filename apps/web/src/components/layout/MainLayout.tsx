@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Space, Button, Badge, Tooltip } from 'antd';
 import {
   DashboardOutlined,
   BranchesOutlined,
@@ -171,75 +171,92 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
 
         {/* Right: Guide Button, Theme Toggle, Notifications & Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Nút Hướng Dẫn đặt trên Header cạnh nút Theme */}
-          <Button
-            type="text"
-            icon={<QuestionCircleOutlined style={{ fontSize: 15, color: '#4B5563' }} />}
-            onClick={() => window.open('https://github.com/PTIT-Aka/UniFlow-AI#readme', '_blank')}
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: isLight ? '#4B5563' : '#D1D5DB',
-              borderRadius: 6,
-              height: 32,
-              padding: '0 10px',
-            }}
-          >
-            Hướng dẫn
-          </Button>
-
-          {/* Theme Toggle Button */}
-          <Button
-            type="text"
-            shape="circle"
-            icon={isLight ? <MoonOutlined style={{ fontSize: 15, color: '#4B5563' }} /> : <SunOutlined style={{ fontSize: 15, color: '#fcc20f' }} />}
-            onClick={toggleTheme}
-            title="Đổi giao diện Sáng / Tối"
-            style={{ width: 32, height: 32 }}
-          />
-
-          <Badge count={2} offset={[-3, 3]}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Nút Hướng Dẫn dạng Icon tròn có Tooltip chỉn chu */}
+          <Tooltip title="Tài liệu & Hướng dẫn sử dụng">
             <Button
               type="text"
               shape="circle"
-              icon={<BellOutlined style={{ fontSize: 17, color: isLight ? '#4B5563' : '#D1D5DB' }} />}
-              onClick={() => setNotificationOpen(true)}
+              icon={<QuestionCircleOutlined style={{ fontSize: 16, color: isLight ? '#4B5563' : '#D1D5DB' }} />}
+              onClick={() => window.open('https://github.com/PTIT-Aka/UniFlow-AI#readme', '_blank')}
               style={{ width: 32, height: 32 }}
             />
-          </Badge>
+          </Tooltip>
 
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}>
-              <Avatar
-                src={currentUser?.avatar}
-                style={{
-                  backgroundColor: currentUser?.role === 'ADMIN' ? '#ed1c24' : '#FCC20F',
-                  color: currentUser?.role === 'ADMIN' ? '#FFFFFF' : '#000000',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                }}
-              >
-                {currentUser?.name ? currentUser.name.slice(0, 2).toUpperCase() : 'UF'}
-              </Avatar>
-              <span style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>
-                {currentUser?.name || 'Tài khoản UniFlow'}
-              </span>
-              <Tag
-                color={currentUser?.role === 'ADMIN' ? 'red' : 'gold'}
-                style={{
-                  margin: 0,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  borderRadius: 4,
-                  padding: '0 6px',
-                  lineHeight: '18px',
-                }}
-              >
-                {currentUser?.role || 'MERCHANT'}
-              </Tag>
-            </Space>
+          {/* Theme Toggle Button */}
+          <Tooltip title={isLight ? 'Chuyển sang giao diện Tối' : 'Chuyển sang giao diện Sáng'}>
+            <Button
+              type="text"
+              shape="circle"
+              icon={isLight ? <MoonOutlined style={{ fontSize: 15, color: '#4B5563' }} /> : <SunOutlined style={{ fontSize: 15, color: '#fcc20f' }} />}
+              onClick={toggleTheme}
+              style={{ width: 32, height: 32 }}
+            />
+          </Tooltip>
+
+          {/* Notification Button */}
+          <Tooltip title="Thông báo hệ thống">
+            <Badge count={2} offset={[-3, 3]}>
+              <Button
+                type="text"
+                shape="circle"
+                icon={<BellOutlined style={{ fontSize: 17, color: isLight ? '#4B5563' : '#D1D5DB' }} />}
+                onClick={() => setNotificationOpen(true)}
+                style={{ width: 32, height: 32 }}
+              />
+            </Badge>
+          </Tooltip>
+
+          {/* Thẻ Tài Khoản: Kéo sát lên trên mép viền Header */}
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+            align={{ offset: [0, -8] }}
+            overlayStyle={{ marginTop: -8 }}
+          >
+            <div
+              style={{
+                height: 56,
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: '0 8px',
+                borderRadius: 6,
+                marginLeft: 4,
+                transition: 'background 0.15s ease',
+              }}
+            >
+              <Space size={8}>
+                <Avatar
+                  src={currentUser?.avatar}
+                  style={{
+                    backgroundColor: currentUser?.role === 'ADMIN' ? '#ed1c24' : '#FCC20F',
+                    color: currentUser?.role === 'ADMIN' ? '#FFFFFF' : '#000000',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  {currentUser?.name ? currentUser.name.slice(0, 2).toUpperCase() : 'UF'}
+                </Avatar>
+                <span style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>
+                  {currentUser?.name || 'Tài khoản UniFlow'}
+                </span>
+                <Tag
+                  color={currentUser?.role === 'ADMIN' ? 'red' : 'gold'}
+                  style={{
+                    margin: 0,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    borderRadius: 4,
+                    padding: '0 6px',
+                    lineHeight: '18px',
+                  }}
+                >
+                  {currentUser?.role || 'MERCHANT'}
+                </Tag>
+              </Space>
+            </div>
           </Dropdown>
         </div>
       </Header>

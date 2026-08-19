@@ -8,13 +8,17 @@ import {
   Logger,
 } from '@nestjs/common';
 import { EventsGateway } from '../websocket/events.gateway';
+import { RedisService } from '../redis/redis.service';
 import { PlatformType, WebhookProcessingStatus } from '@uniflow/shared-types';
 
 @Controller('api/v1/webhooks')
 export class ShopeeWebhookController {
   private readonly logger = new Logger(ShopeeWebhookController.name);
 
-  constructor(private readonly wsGateway: EventsGateway) {}
+  constructor(
+    private readonly wsGateway: EventsGateway,
+    private readonly redisService: RedisService,
+  ) {}
 
   @Post('shopee/:tenantId')
   @HttpCode(HttpStatus.OK)
@@ -27,6 +31,17 @@ export class ShopeeWebhookController {
 
     this.logger.log(`[Shopee Push Inbound] Nhận thông báo đơn ${ordersn} từ Tenant ${tenantId}`);
 
+    // Redis 24h Idempotency Check chống trùng lặp
+    const idempKey = `shopee:${tenantId}:${ordersn}`;
+    const { isDuplicate } = await this.redisService.checkAndSetIdempotency(idempKey, 86400);
+    if (isDuplicate) {
+      this.logger.warn(`⚠️ [Redis Idempotency] Phát hiện sự kiện trùng lặp thông báo Shopee #${ordersn}. Bỏ qua.`);
+      return {
+        code: 0,
+        message: 'SHOPEE_EVENT_ALREADY_PROCESSED_IDEMPOTENT',
+      };
+    }
+
     // Bắn sự kiện thời gian thực lên Dashboard
     const durationMs = Date.now() - startTime;
     this.wsGateway.emitLiveFeed({
@@ -37,7 +52,7 @@ export class ShopeeWebhookController {
       sourceOrderId: ordersn,
       status: WebhookProcessingStatus.RECEIVED,
       durationMs,
-      message: `Nhận tín hiệu Push Shopee #${ordersn} -> Kích hoạt Worker lấy chi tiết đơn hàng`,
+      message: `Nhận tín hiệu Push Shopee #${ordersn} -> Kích hoạt Worker lấy chi tiết đơn hàng (${durationMs}ms)`,
     });
 
     return {

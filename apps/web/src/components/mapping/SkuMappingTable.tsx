@@ -68,23 +68,56 @@ export const SkuMappingTable: React.FC = () => {
   // AI Matching Playground Modal state
   const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false);
 
-  const handleApprove = async (id: string) => {
+  // Phân loại logic các mục được chọn:
+  // 1. Chỉ mục CHỜ DUYỆT (PENDING_REVIEW) mới có thể duyệt 1-click hoặc duyệt hàng loạt
+  const pendingSelectedIds = selectedRowKeys.filter((id) => {
+    const item = data.find((d) => d._id === id);
+    return item?.mappingStatus === 'PENDING_REVIEW';
+  });
+  const pendingSelectedCount = pendingSelectedIds.length;
+
+  // 2. Các mục CẦN GHÉP TAY (MANUAL_REQUIRED) - Phải mở modal ghép Master SKU trước
+  const manualSelectedCount = selectedRowKeys.filter((id) => {
+    const item = data.find((d) => d._id === id);
+    return item?.mappingStatus === 'MANUAL_REQUIRED';
+  }).length;
+
+  const handleApprove = async (record: SKUMappingItem) => {
+    if (record.mappingStatus === 'MANUAL_REQUIRED') {
+      notify.info('Mã SKU này có độ tin cậy thấp, vui lòng kiểm tra và ghép Master SKU thủ công.');
+      openEditModal(record);
+      return;
+    }
+    if (record.mappingStatus === 'AUTO_APPROVED') {
+      notify.info('Mã SKU này đã được phê duyệt trước đó.');
+      return;
+    }
+
     try {
-      await mappingService.approveMapping(id);
-      notify.success('Đã xác nhận liên kết SKU thành công vào MongoDB Atlas!');
+      await mappingService.approveMapping(record._id);
+      notify.success(`Đã phê duyệt liên kết SKU "${record.sourceSkuCode}" thành công vào MongoDB!`);
       refresh();
     } catch (err: any) {
       notify.error('Lỗi khi phê duyệt SKU: ' + err.message);
     }
   };
 
-  // Phê duyệt các hàng đã được chọn (tích chọn)
+  // Phê duyệt chuẩn xác chỉ các hàng ở trạng thái CHỜ DUYỆT (PENDING_REVIEW)
   const handleBatchApproveSelected = async () => {
-    if (selectedRowKeys.length === 0) return;
+    if (pendingSelectedCount === 0) {
+      if (manualSelectedCount > 0) {
+        notify.warning('Các mục được chọn đang ở trạng thái Cần ghép tay, vui lòng chọn Master SKU thủ công trước khi duyệt.');
+      } else {
+        notify.info('Tất cả các mục được chọn đều đã được phê duyệt từ trước.');
+      }
+      setBatchApproveModalOpen(false);
+      return;
+    }
+
     setBatchLoading(true);
     try {
-      await mappingService.bulkApprove(selectedRowKeys);
-      notify.success(`Đã phê duyệt thành công ${selectedRowKeys.length} mã SKU đã chọn vào Database!`);
+      await mappingService.bulkApprove(pendingSelectedIds);
+      notify.success(`Đã phê duyệt thành công ${pendingSelectedCount} mã SKU chờ duyệt vào Database!`);
       setSelectedRowKeys([]);
       setBatchApproveModalOpen(false);
       refresh();
@@ -106,7 +139,7 @@ export const SkuMappingTable: React.FC = () => {
       if (pendingIds.length > 0) {
         await mappingService.bulkApprove(pendingIds);
       }
-      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingIds.length} mã SKU thành công.`);
+      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingIds.length} mã SKU chờ duyệt thành công.`);
       setBatchModalOpen(false);
       refresh();
     } catch (err: any) {
@@ -371,11 +404,16 @@ export const SkuMappingTable: React.FC = () => {
     },
     {
       title: 'Điểm tin cậy AI',
+      dataIndex: 'confidenceScore',
       key: 'confidenceScore',
       width: 180,
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => (a.confidenceScore || 0) - (b.confidenceScore || 0),
-      render: (confidence: number) => {
-        const percent = Math.round((confidence || 0.9) * 100);
+      render: (_val: any, record: SKUMappingItem) => {
+        const rawScore = typeof record?.confidenceScore === 'number'
+          ? record.confidenceScore
+          : (typeof _val === 'number' ? _val : 0.95);
+        const normalized = rawScore > 1 ? rawScore / 100 : rawScore;
+        const percent = Math.min(100, Math.max(0, Math.round(normalized * 100)));
         let strokeColor = '#10B981';
         if (percent < 95) strokeColor = '#F59E0B';
         if (percent < 70) strokeColor = '#EF4444';
@@ -480,15 +518,24 @@ export const SkuMappingTable: React.FC = () => {
       fixed: 'right' as const,
       render: (_: any, record: SKUMappingItem) => {
         const isApproved = record.mappingStatus === 'AUTO_APPROVED';
+        const isManual = record.mappingStatus === 'MANUAL_REQUIRED';
+        const isPending = record.mappingStatus === 'PENDING_REVIEW';
+
         return (
           <Space size={4}>
-            {/* 1. Nút Duyệt 1-Click icon duy nhất */}
+            {/* 1. Nút Duyệt 1-Click (Chỉ sáng khi Chờ duyệt, nếu Cần ghép tay sẽ mở modal ghép) */}
             <IconButton
-              icon={<CheckOutlined />}
-              tooltip={isApproved ? 'Đã được duyệt tự động' : 'Phê duyệt nhanh 1-Click'}
-              success={!isApproved}
+              icon={isManual ? <EditOutlined /> : <CheckOutlined />}
+              tooltip={
+                isApproved
+                  ? 'Đã được duyệt tự động'
+                  : isPending
+                    ? 'Phê duyệt nhanh 1-Click'
+                    : 'Cần ghép nối Master SKU thủ công'
+              }
+              success={isPending}
               disabled={isApproved}
-              onClick={() => handleApprove(record._id)}
+              onClick={() => handleApprove(record)}
             />
 
             {/* 2. Menu gom gọn toàn bộ các thao tác còn lại (Chi tiết, Sửa, Xóa) */}
@@ -541,7 +588,7 @@ export const SkuMappingTable: React.FC = () => {
               Thêm mới
             </BaseButton>
 
-            {/* Nút Phê duyệt: Outline xanh lá, icon dấu tích, tự đổi số theo mục chọn */}
+            {/* Nút Phê duyệt: Outline xanh lá, icon dấu tích, tự tính đúng số lượng mục CHỜ DUYỆT */}
             {hasItemsToApprove && (
               <BaseButton
                 variant="secondary"
@@ -552,18 +599,30 @@ export const SkuMappingTable: React.FC = () => {
                   color: '#10B981',
                   background: '#F0FDF4',
                   fontWeight: 600,
+                  opacity: selectedRowKeys.length > 0 && pendingSelectedCount === 0 ? 0.6 : 1,
                 }}
+                disabled={selectedRowKeys.length > 0 && pendingSelectedCount === 0}
                 loading={batchLoading}
                 onClick={() => {
                   if (selectedRowKeys.length > 0) {
-                    setBatchApproveModalOpen(true);
+                    if (pendingSelectedCount > 0) {
+                      setBatchApproveModalOpen(true);
+                    } else if (manualSelectedCount > 0) {
+                      notify.warning('Các mục được chọn đang ở trạng thái Cần ghép tay, vui lòng chọn Master SKU trước khi duyệt.');
+                    } else {
+                      notify.info('Tất cả các mục được chọn đều đã được phê duyệt từ trước.');
+                    }
                   } else {
                     setBatchModalOpen(true);
                   }
                 }}
               >
                 {selectedRowKeys.length > 0
-                  ? `Phê duyệt đã chọn (${selectedRowKeys.length})`
+                  ? pendingSelectedCount > 0
+                    ? `Phê duyệt đã chọn (${pendingSelectedCount})`
+                    : manualSelectedCount > 0
+                      ? `Cần ghép tay (${manualSelectedCount})`
+                      : `Đã duyệt tất cả (${selectedRowKeys.length})`
                   : `Phê duyệt tất cả (${pendingCount})`}
               </BaseButton>
             )}
@@ -582,8 +641,18 @@ export const SkuMappingTable: React.FC = () => {
           {
             key: 'batch-approve',
             icon: <CheckCircleFilled style={{ color: '#10B981' }} />,
-            label: `Phê duyệt ${selectedRowKeys.length} mục đã chọn`,
-            onClick: () => setBatchApproveModalOpen(true),
+            label: pendingSelectedCount > 0
+              ? `Phê duyệt ${pendingSelectedCount} mục chờ duyệt`
+              : `Không có mục chờ duyệt (${selectedRowKeys.length} đã chọn)`,
+            onClick: () => {
+              if (pendingSelectedCount > 0) {
+                setBatchApproveModalOpen(true);
+              } else if (manualSelectedCount > 0) {
+                notify.warning('Mục cần ghép tay phải được gán Master SKU thủ công trước khi duyệt.');
+              } else {
+                notify.info('Tất cả các mục được chọn đều đã được phê duyệt từ trước.');
+              }
+            },
           },
           {
             key: 'batch-delete',
@@ -621,8 +690,8 @@ export const SkuMappingTable: React.FC = () => {
         open={detailModalOpen}
         item={selectedItem}
         onClose={() => setDetailModalOpen(false)}
-        onApprove={(id) => {
-          handleApprove(id);
+        onApprove={() => {
+          if (selectedItem) handleApprove(selectedItem);
           setDetailModalOpen(false);
         }}
       />
@@ -646,9 +715,15 @@ export const SkuMappingTable: React.FC = () => {
       {/* Batch Approve Selected Rows Modal */}
       <ConfirmModal
         open={batchApproveModalOpen}
-        title="Xác nhận phê duyệt hàng loạt"
-        content={`Bạn có chắc chắn muốn phê duyệt liên kết cho ${selectedRowKeys.length} mã SKU đã được chọn vào MongoDB Atlas không?`}
-        confirmText={`Phê duyệt ${selectedRowKeys.length} mục`}
+        title="Xác nhận phê duyệt các mục chờ duyệt"
+        content={
+          pendingSelectedCount === selectedRowKeys.length
+            ? `Bạn có chắc chắn muốn phê duyệt liên kết cho ${pendingSelectedCount} mã SKU chờ duyệt đã chọn vào MongoDB Atlas không?`
+            : `Bạn đã chọn ${selectedRowKeys.length} mục. Hệ thống sẽ tiến hành phê duyệt ${pendingSelectedCount} mục đang ở trạng thái Chờ duyệt. ${
+                manualSelectedCount > 0 ? `(${manualSelectedCount} mục Cần ghép tay sẽ được giữ nguyên để gán thủ công).` : ''
+              }`
+        }
+        confirmText={`Phê duyệt ${pendingSelectedCount} mục`}
         cancelText="Hủy bỏ"
         loading={batchLoading}
         onConfirm={handleBatchApproveSelected}

@@ -2,14 +2,32 @@ import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { LiveFeedItem, WSEventType } from '@uniflow/shared-types';
 
-const SOCKET_URL = 'http://localhost:3000';
+const getSocketUrl = (): string => {
+  const envWs = import.meta.env.VITE_WS_URL || import.meta.env.VITE_SOCKET_URL;
+  if (envWs) return envWs;
+
+  const envApi = import.meta.env.VITE_API_URL;
+  if (envApi) {
+    return envApi.replace('/api/v1', '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const hostname = window.location.hostname || 'localhost';
+    const port = window.location.port === '5173' || window.location.port === '3001' ? ':3000' : (window.location.port ? `:${window.location.port}` : '');
+    return `${protocol}//${hostname}${port}`;
+  }
+
+  return 'http://localhost:3000';
+};
 
 export const useWebSocketStream = (initialLogs: any[] = []) => {
   const [events, setEvents] = useState<LiveFeedItem[]>(initialLogs);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socket: Socket = io(SOCKET_URL, {
+    const socketUrl = getSocketUrl();
+    const socket: Socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
     });

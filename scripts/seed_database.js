@@ -76,7 +76,7 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log('✅ 1. Đã cập nhật 2 Tenants đa kênh: Thời Trang An Khang & Mỹ Phẩm GlowTech.');
+    console.log('1. Đã cập nhật 2 Tenants đa kênh: Thời Trang An Khang & Mỹ Phẩm GlowTech.');
 
     // ══════════════════════════════════════════════════════════════════════════
     // 1.1 SEED USERS (ADMIN & MERCHANT)
@@ -118,7 +118,7 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 1.1. Đã nạp ${users.length} Tài khoản mẫu thực tế (admin@uniflow.vn / demo@uniflow.vn).`);
+    console.log(`1.1. Đã nạp ${users.length} Tài khoản mẫu thực tế (admin@uniflow.vn / demo@uniflow.vn).`);
 
     // ══════════════════════════════════════════════════════════════════════════
     // 2. SEED WORKFLOWS FOR BOTH TENANTS
@@ -410,17 +410,17 @@ async function seed() {
           },
         ],
         edges: [
-          { id: 'e_pan_1-2',         source: 'node_pan_trig',    target: 'node_pan_ai',       animated: true, style: { stroke: '#2563EB', strokeWidth: 2 }, data: { label: 'Hội thoại chốt đơn' } },
-          { id: 'e_pan_2-sapo',       source: 'node_pan_ai',      target: 'node_sub_sapo',     animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
-          { id: 'e_pan_2-kiot',       source: 'node_pan_ai',      target: 'node_sub_kiotviet', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
-          { id: 'e_pan_2-nhanh',      source: 'node_pan_ai',      target: 'node_sub_nhanh',    animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
-          { id: 'e_pan_2-misa',       source: 'node_pan_ai',      target: 'node_sub_misa',     animated: true, style: { stroke: '#0070C0', strokeWidth: 2 }, data: { label: 'Hạch toán hóa đơn' } },
+          { id: 'e_pan_1-2', source: 'node_pan_trig', target: 'node_pan_ai', animated: true, style: { stroke: '#2563EB', strokeWidth: 2 }, data: { label: 'Hội thoại chốt đơn' } },
+          { id: 'e_pan_2-sapo', source: 'node_pan_ai', target: 'node_sub_sapo', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
+          { id: 'e_pan_2-kiot', source: 'node_pan_ai', target: 'node_sub_kiotviet', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
+          { id: 'e_pan_2-nhanh', source: 'node_pan_ai', target: 'node_sub_nhanh', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
+          { id: 'e_pan_2-misa', source: 'node_pan_ai', target: 'node_sub_misa', animated: true, style: { stroke: '#0070C0', strokeWidth: 2 }, data: { label: 'Hạch toán hóa đơn' } },
           // Edge nội bộ trong group
-          { id: 'e_pan_sapo-nhanh',   source: 'node_sub_sapo',    target: 'node_sub_nhanh',    animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Đồng bộ kho' } },
-          { id: 'e_pan_kiot-nhanh',   source: 'node_sub_kiotviet',target: 'node_sub_nhanh',    animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Đồng bộ kho' } },
-          { id: 'e_pan_misa-nhanh',   source: 'node_sub_misa',    target: 'node_sub_nhanh',    animated: true, style: { stroke: '#0070C0', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Hạch toán VAT' } },
-          { id: 'e_pan_nhanh-ship',   source: 'node_sub_nhanh',   target: 'node_pan_ship',     animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'GHTK Express' } },
-          { id: 'e_pan_ship-zalo',    source: 'node_pan_ship',    target: 'node_pan_zalo',     animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo Zalo ZNS' } },
+          { id: 'e_pan_sapo-nhanh', source: 'node_sub_sapo', target: 'node_sub_nhanh', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Đồng bộ kho' } },
+          { id: 'e_pan_kiot-nhanh', source: 'node_sub_kiotviet', target: 'node_sub_nhanh', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Đồng bộ kho' } },
+          { id: 'e_pan_misa-nhanh', source: 'node_sub_misa', target: 'node_sub_nhanh', animated: true, style: { stroke: '#0070C0', strokeWidth: 2 }, zIndex: 20, data: { isInternal: true, label: 'Hạch toán VAT' } },
+          { id: 'e_pan_nhanh-ship', source: 'node_sub_nhanh', target: 'node_pan_ship', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'GHTK Express' } },
+          { id: 'e_pan_ship-zalo', source: 'node_pan_ship', target: 'node_pan_zalo', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo Zalo ZNS' } },
         ],
         viewport: { x: 0, y: 0, zoom: 0.85 },
         executionCount: 18450,
@@ -499,13 +499,13 @@ async function seed() {
           },
         ],
         edges: [
-          { id: 'e_ret_1-ocr',    source: 'node_ret_trig',   target: 'node_sub_ocr',   animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 }, data: { label: 'Hình ảnh kiện hoàn' } },
-          { id: 'e_ret_1-cause',  source: 'node_ret_trig',   target: 'node_sub_cause', animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 }, data: { label: 'Ghi chú bưu tá' } },
+          { id: 'e_ret_1-ocr', source: 'node_ret_trig', target: 'node_sub_ocr', animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 }, data: { label: 'Hình ảnh kiện hoàn' } },
+          { id: 'e_ret_1-cause', source: 'node_ret_trig', target: 'node_sub_cause', animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 }, data: { label: 'Ghi chú bưu tá' } },
           // Edge nội bộ trong group — zIndex cao để hiện rõ
-          { id: 'e_ret_ocr-aud',   source: 'node_sub_ocr',   target: 'node_sub_audit', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2.5 }, zIndex: 20, data: { isInternal: true, label: 'Mã vận đơn OCR' } },
+          { id: 'e_ret_ocr-aud', source: 'node_sub_ocr', target: 'node_sub_audit', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2.5 }, zIndex: 20, data: { isInternal: true, label: 'Mã vận đơn OCR' } },
           { id: 'e_ret_cause-aud', source: 'node_sub_cause', target: 'node_sub_audit', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2.5 }, zIndex: 20, data: { isInternal: true, label: 'Lý do hoàn' } },
-          { id: 'e_ret_aud-pos',  source: 'node_sub_audit',  target: 'node_ret_pos',   animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 }, data: { label: 'Lệnh nhập lại kho' } },
-          { id: 'e_ret_pos-not',  source: 'node_ret_pos',    target: 'node_ret_notify',animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo hoàn tất' } },
+          { id: 'e_ret_aud-pos', source: 'node_sub_audit', target: 'node_ret_pos', animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 }, data: { label: 'Lệnh nhập lại kho' } },
+          { id: 'e_ret_pos-not', source: 'node_ret_pos', target: 'node_ret_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo hoàn tất' } },
         ],
         viewport: { x: 0, y: 0, zoom: 0.85 },
         executionCount: 4230,
@@ -612,23 +612,23 @@ async function seed() {
           { id: 'e_par_1-2', source: 'node_par_trig', target: 'node_par_ai_sku', animated: true, style: { stroke: '#EE4D2D', strokeWidth: 2 }, data: { label: 'Dữ liệu đơn hàng' } },
           // SKU Mapper rẽ 3 nhánh đồng thời gọi API báo giá
           { id: 'e_par_2-ghtk', source: 'node_par_ai_sku', target: 'node_par_ghtk', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Tra cước GHTK' } },
-          { id: 'e_par_2-ghn',  source: 'node_par_ai_sku', target: 'node_par_ghn',  animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Tra cước GHN' } },
-          { id: 'e_par_2-vtp',  source: 'node_par_ai_sku', target: 'node_par_vtp',  animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Tra cước Viettel Post' } },
+          { id: 'e_par_2-ghn', source: 'node_par_ai_sku', target: 'node_par_ghn', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Tra cước GHN' } },
+          { id: 'e_par_2-vtp', source: 'node_par_ai_sku', target: 'node_par_vtp', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Tra cước Viettel Post' } },
           // Cả 3 báo giá hội tụ vào AI Quyết định
           { id: 'e_par_ghtk-pick', source: 'node_par_ghtk', target: 'node_par_ai_pick', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Báo giá GHTK' } },
-          { id: 'e_par_ghn-pick',  source: 'node_par_ghn',  target: 'node_par_ai_pick', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Báo giá GHN' } },
-          { id: 'e_par_vtp-pick',  source: 'node_par_vtp',  target: 'node_par_ai_pick', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Báo giá Viettel Post' } },
+          { id: 'e_par_ghn-pick', source: 'node_par_ghn', target: 'node_par_ai_pick', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Báo giá GHN' } },
+          { id: 'e_par_vtp-pick', source: 'node_par_vtp', target: 'node_par_ai_pick', animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Báo giá Viettel Post' } },
           // AI Quyết định → Node Rẽ nhánh điều kiện
           { id: 'e_par_pick-branch', source: 'node_par_ai_pick', target: 'node_par_branch', animated: true, style: { stroke: '#EC4899', strokeWidth: 2.5 }, data: { label: 'Quyết định chọn hãng' } },
           // Rẽ nhánh → Trừ kho + Tạo đơn đúng hãng (3 nhánh độc lập)
-          { id: 'e_par_br-pos',      source: 'node_par_branch', target: 'node_par_pos',     animated: true, style: { stroke: '#D97706', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
+          { id: 'e_par_br-pos', source: 'node_par_branch', target: 'node_par_pos', animated: true, style: { stroke: '#D97706', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } },
           { id: 'e_par_br-mk-ghtk', source: 'node_par_branch', target: 'node_par_mk_ghtk', animated: true, style: { stroke: '#059669', strokeWidth: 2 }, data: { label: 'Nếu GHTK rẻ nhất', conditionExpr: '{{ $json.selectedCarrier == "GHTK" }}' } },
-          { id: 'e_par_br-mk-ghn',  source: 'node_par_branch', target: 'node_par_mk_ghn',  animated: true, style: { stroke: '#059669', strokeWidth: 2 }, data: { label: 'Nếu GHN rẻ nhất', conditionExpr: '{{ $json.selectedCarrier == "GHN" }}' } },
-          { id: 'e_par_br-mk-vtp',  source: 'node_par_branch', target: 'node_par_mk_vtp',  animated: true, style: { stroke: '#059669', strokeWidth: 2 }, data: { label: 'Nếu VTP rẻ nhất', conditionExpr: '{{ $json.selectedCarrier == "VIETTEL_POST" }}' } },
+          { id: 'e_par_br-mk-ghn', source: 'node_par_branch', target: 'node_par_mk_ghn', animated: true, style: { stroke: '#059669', strokeWidth: 2 }, data: { label: 'Nếu GHN rẻ nhất', conditionExpr: '{{ $json.selectedCarrier == "GHN" }}' } },
+          { id: 'e_par_br-mk-vtp', source: 'node_par_branch', target: 'node_par_mk_vtp', animated: true, style: { stroke: '#059669', strokeWidth: 2 }, data: { label: 'Nếu VTP rẻ nhất', conditionExpr: '{{ $json.selectedCarrier == "VIETTEL_POST" }}' } },
           // Cả 3 nhánh tạo đơn đều tổng hợp về Telegram thông báo
           { id: 'e_par_ghtk-not', source: 'node_par_mk_ghtk', target: 'node_par_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo kết quả' } },
-          { id: 'e_par_ghn-not',  source: 'node_par_mk_ghn',  target: 'node_par_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo kết quả' } },
-          { id: 'e_par_vtp-not',  source: 'node_par_mk_vtp',  target: 'node_par_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo kết quả' } },
+          { id: 'e_par_ghn-not', source: 'node_par_mk_ghn', target: 'node_par_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo kết quả' } },
+          { id: 'e_par_vtp-not', source: 'node_par_mk_vtp', target: 'node_par_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 }, data: { label: 'Thông báo kết quả' } },
         ],
         viewport: { x: 0, y: 0, zoom: 0.75 },
         executionCount: 12400,
@@ -832,11 +832,11 @@ async function seed() {
         updatedAt: new Date(),
       },
 
-      // ── TRƯỜNG HỢP 8: KHÔNG GOM NHÓM - AI TỰ CHỮA LÀNH LỖI ĐVVC ──────────
+      // ── TRƯỜNG HỢP 8: KHÔNG GOM NHÓM - AI tự phục hồi LỖI ĐVVC ──────────
       {
         _id: new ObjectId('66c0e812a1b2c3d4e5f6000c'),
         tenantId: tenant1Id,
-        name: 'AI Tự chữa lành lỗi ĐVVC & Tự động chuyển tuyến dự phòng (GHTK ➔ GHN ➔ Viettel Post)',
+        name: 'AI tự phục hồi lỗi ĐVVC & Tự động chuyển tuyến dự phòng (GHTK ➔ GHN ➔ Viettel Post)',
         description: 'Tự động bắt lỗi API nghẽn mạng hoặc quá tải SLA của đơn vị vận chuyển chính và điều phối sang hãng dự phòng',
         isActive: true,
         triggerType: 'WEBHOOK',
@@ -857,7 +857,7 @@ async function seed() {
             id: 'node_heal_ai_router',
             type: 'ai',
             position: { x: 630, y: 160 },
-            data: { label: 'AI tự chữa lành & Định tuyến', description: 'Tự phục hồi lỗi API & Điều phối tuyến dự phòng' },
+            data: { label: 'AI tự phục hồi & Định tuyến', description: 'Tự phục hồi lỗi API & Điều phối tuyến dự phòng' },
           },
           {
             id: 'node_heal_pos',
@@ -1125,7 +1125,7 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 2. Đã nạp ${workflows.length} Workflows Canvas phân tầng cho 2 Tenant.`);
+    console.log(`2. Đã nạp ${workflows.length} Workflows Canvas phân tầng cho 2 Tenant.`);
 
     // ══════════════════════════════════════════════════════════════════════════
     // 3. SEED SKU MAPPINGS FOR BOTH TENANTS
@@ -1260,7 +1260,7 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 3. Đã nạp ${skuMappings.length} SKU Mappings phân biệt cho cả 2 ngành hàng.`);
+    console.log(`3. Đã nạp ${skuMappings.length} SKU Mappings phân biệt cho cả 2 ngành hàng.`);
 
     // ══════════════════════════════════════════════════════════════════════════
     // 4. SEED SYNC EVENT LOGS FOR BOTH TENANTS
@@ -1273,7 +1273,7 @@ async function seed() {
         sourceOrderId: 'TTS_88921045',
         status: 'COMPLETED',
         durationMs: 198,
-        message: 'Đơn TikTok #TTS_88921045 -> Khớp SKU AI (98.5%) -> Trừ kho Sapo -> Tạo vận đơn GHTK (198ms) ✅',
+        message: 'Đơn TikTok #TTS_88921045 -> Khớp SKU AI (98.5%) -> Trừ kho Sapo -> Tạo vận đơn GHTK (198ms)',
         aiHealed: false,
         createdAt: new Date(Date.now() - 1000 * 60 * 2),
       },
@@ -1283,7 +1283,7 @@ async function seed() {
         sourceOrderId: 'SP_24081899120',
         status: 'AUTO_HEALED',
         durationMs: 412,
-        message: 'AI Auto-Healed: GHN Server Timeout (504) -> Reroute sang GHTK (Tiết kiệm 4,500đ) ⚡',
+        message: 'AI Auto-Healed: GHN Server Timeout (504) -> Reroute sang GHTK (Tiết kiệm 4,500đ)',
         aiHealed: true,
         healingDetails: { originalCarrier: 'GHN', fallbackCarrier: 'GHTK', reason: 'Gateway Timeout 504' },
         createdAt: new Date(Date.now() - 1000 * 60 * 5),
@@ -1296,7 +1296,7 @@ async function seed() {
         sourceOrderId: 'TTS_GLOW_991823',
         status: 'COMPLETED',
         durationMs: 172,
-        message: 'Đơn TikTok Live #TTS_GLOW_991823 -> Khớp Combo Serum B5 -> Trừ kho KiotViet -> Bàn giao GHN Hỏa Tốc (172ms) ✅',
+        message: 'Đơn TikTok Live #TTS_GLOW_991823 -> Khớp Combo Serum B5 -> Trừ kho KiotViet -> Bàn giao GHN Hỏa Tốc (172ms)',
         aiHealed: false,
         createdAt: new Date(Date.now() - 1000 * 60 * 1),
       },
@@ -1306,7 +1306,7 @@ async function seed() {
         sourceOrderId: 'SP_GLOW_551920',
         status: 'COMPLETED',
         durationMs: 185,
-        message: 'Đơn Shopee Mall #SP_GLOW_551920 -> Khớp Kem Chống Nắng Centella -> Trừ tồn Sapo -> In mã vận đơn GHN ✅',
+        message: 'Đơn Shopee Mall #SP_GLOW_551920 -> Khớp Kem Chống Nắng Centella -> Trừ tồn Sapo -> In mã vận đơn GHN',
         aiHealed: false,
         createdAt: new Date(Date.now() - 1000 * 60 * 8),
       },
@@ -1315,7 +1315,7 @@ async function seed() {
     for (const log of syncLogs) {
       await db.collection('sync_event_logs').insertOne(log);
     }
-    console.log(`✅ 4. Đã nạp ${syncLogs.length} Sync Logs thực tế vào MongoDB Atlas.`);
+    console.log(`4. Đã nạp ${syncLogs.length} Sync Logs thực tế vào MongoDB Atlas.`);
 
     // ══════════════════════════════════════════════════════════════════════════
     // 5. SEED CONNECTORS IN DB
@@ -1361,7 +1361,7 @@ async function seed() {
         { upsert: true }
       );
     }
-    console.log(`✅ 5. Đã nạp ${connectorsList.length} Cổng kết nối đối tác vào MongoDB Atlas.`);
+    console.log(`5. Đã nạp ${connectorsList.length} Cổng kết nối đối tác vào MongoDB Atlas.`);
 
     console.log('\n🎉 HOÀN TẤT NẠP DỮ LIỆU ĐA TENANT THỰC TẾ VÀO DATABASE PTIT_Aka! ✅');
   } catch (err) {

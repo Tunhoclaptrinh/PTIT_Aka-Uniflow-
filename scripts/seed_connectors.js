@@ -416,7 +416,7 @@ async function seedConnectors(tenantId = DEFAULT_TENANT_ID) {
       );
     }
 
-    console.log(`✅ ĐÃ NẠP THÀNH CÔNG ${ALL_CONNECTORS.length} CỔNG KẾT NỐI VÀO MONGODB DATABASE! 🚀`);
+    console.log(`ĐÃ NẠP THÀNH CÔNG ${ALL_CONNECTORS.length} CỔNG KẾT NỐI VÀO MONGODB DATABASE! 🚀`);
   } catch (err) {
     console.error('❌ Lỗi khi nạp cổng kết nối:', err.message);
   } finally {
