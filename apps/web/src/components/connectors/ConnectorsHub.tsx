@@ -14,7 +14,7 @@ import { getPartnerLogo } from '../../utils/partnerLogos';
 export interface ConnectorItem {
   id: string;
   name: string;
-  category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS';
+  category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS' | 'CHAT_SOCIAL' | 'SPREADSHEET' | 'LANDING_PAGE';
   categoryLabel: string;
   status: 'CONNECTED' | 'DISCONNECTED';
   ordersSynced: number;
@@ -61,6 +61,39 @@ const defaultConnectorsList: ConnectorItem[] = [
     description: 'Kết nối gian hàng Lazada Mall, đồng bộ trạng thái thanh toán tự động',
   },
   {
+    id: 'pancake',
+    name: 'Pancake POS & Social Chat',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
+    status: 'CONNECTED',
+    ordersSynced: 31200,
+    latency: '110ms',
+    brandColor: '#2563EB',
+    description: 'Đồng bộ tin nhắn Fanpage Facebook, Zalo OA và AI CSKH tự động tư vấn chốt đơn',
+  },
+  {
+    id: 'zalo',
+    name: 'Zalo OA & ZNS Notification',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
+    status: 'CONNECTED',
+    ordersSynced: 15400,
+    latency: '95ms',
+    brandColor: '#0068FF',
+    description: 'Tự động gửi thông báo biến động đơn hàng, mã tracking vận đơn qua Zalo ZNS',
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram Bot Webhook',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
+    status: 'CONNECTED',
+    ordersSynced: 42300,
+    latency: '80ms',
+    brandColor: '#24A1DE',
+    description: 'Nhận báo cáo đơn hàng mới, cảnh báo lỗi ánh xạ SKU và phê duyệt 1-click tức thì',
+  },
+  {
     id: 'sapo',
     name: 'Sapo POS & Omnichannel',
     category: 'POS_ERP',
@@ -83,6 +116,17 @@ const defaultConnectorsList: ConnectorItem[] = [
     description: 'Đồng bộ hóa đơn bán hàng và trừ tồn kho chi nhánh theo thời gian thực',
   },
   {
+    id: 'nhanh',
+    name: 'Nhanh.vn Omnichannel POS',
+    category: 'POS_ERP',
+    categoryLabel: 'Quản lý kho POS',
+    status: 'CONNECTED',
+    ordersSynced: 12600,
+    latency: '170ms',
+    brandColor: '#FF6F00',
+    description: 'Đồng bộ danh mục đa chi nhánh, trạng thái đối soát và phiếu chuyển kho nội bộ',
+  },
+  {
     id: 'haravan',
     name: 'Haravan Omnichannel',
     category: 'POS_ERP',
@@ -92,6 +136,17 @@ const defaultConnectorsList: ConnectorItem[] = [
     latency: '190ms',
     brandColor: '#E65100',
     description: 'Đồng bộ dữ liệu sản phẩm, giá bán và hóa đơn điện tử Haravan',
+  },
+  {
+    id: 'ladipage',
+    name: 'LadiPage Form Inbound',
+    category: 'LANDING_PAGE',
+    categoryLabel: 'Landing Page & Form',
+    status: 'CONNECTED',
+    ordersSynced: 8700,
+    latency: '85ms',
+    brandColor: '#10B981',
+    description: 'Thu thập đơn hàng từ form Landing Page, tự động chuẩn hóa địa chỉ và đẩy sang POS',
   },
   {
     id: 'ghtk',
@@ -120,11 +175,33 @@ const defaultConnectorsList: ConnectorItem[] = [
     name: 'Viettel Post API',
     category: 'LOGISTICS',
     categoryLabel: 'Đơn vị vận chuyển',
-    status: 'DISCONNECTED',
-    ordersSynced: 1200,
-    latency: '310ms',
+    status: 'CONNECTED',
+    ordersSynced: 14500,
+    latency: '135ms',
     brandColor: '#EE0033',
     description: 'Đồng bộ đơn hàng vận chuyển Viettel Post và tra cứu hành trình trực tiếp',
+  },
+  {
+    id: 'googlesheets',
+    name: 'Google Sheets Live Sync',
+    category: 'SPREADSHEET',
+    categoryLabel: 'Bảng tính & Tệp tin',
+    status: 'CONNECTED',
+    ordersSynced: 16400,
+    latency: '120ms',
+    brandColor: '#0F9D58',
+    description: 'Tự động chèn dòng đơn hàng realtime, trích xuất báo cáo doanh thu & tồn kho tức thì',
+  },
+  {
+    id: 'excel',
+    name: 'Microsoft Excel / CSV Engine',
+    category: 'SPREADSHEET',
+    categoryLabel: 'Bảng tính & Tệp tin',
+    status: 'CONNECTED',
+    ordersSynced: 9200,
+    latency: '95ms',
+    brandColor: '#107C41',
+    description: 'Xuất file Excel (.xlsx) theo mẫu tùy biến, đồng bộ OneDrive & nhập xuất SKU hàng loạt',
   },
 ];
 
@@ -220,8 +297,11 @@ export const ConnectorsHub: React.FC = () => {
           items={[
             { key: 'ALL', label: 'Tất cả cổng kết nối' },
             { key: 'MARKETPLACE', label: 'Sàn TMĐT' },
-            { key: 'POS_ERP', label: 'Quản lý kho POS' },
+            { key: 'CHAT_SOCIAL', label: 'CSKH & Hội thoại (Pancake, Zalo, Telegram)' },
+            { key: 'POS_ERP', label: 'Quản lý kho POS & ERP' },
             { key: 'LOGISTICS', label: 'Đơn vị vận chuyển' },
+            { key: 'SPREADSHEET', label: 'Bảng tính & Excel' },
+            { key: 'LANDING_PAGE', label: 'Landing Page & Form' },
           ]}
         />
 

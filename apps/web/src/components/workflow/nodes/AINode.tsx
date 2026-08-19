@@ -1,9 +1,37 @@
 import React, { useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { DownOutlined, UpOutlined, CheckCircleFilled } from '@ant-design/icons';
+import { getPartnerLogo } from '../../../utils/partnerLogos';
 
 export const AINode: React.FC<any> = ({ data, selected }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const nodeColor = '#8B5CF6';
+
+  const label = (data.label || '').toLowerCase();
+  const isRateCompare =
+    data.model === 'RATE_OPTIMIZER_AI' ||
+    label.includes('so sánh') ||
+    label.includes('cước') ||
+    label.includes('rẻ nhất');
+
+  const carriersComparison = Array.isArray(data.carriers)
+    ? data.carriers.map((c: any) => ({
+        name: c.name || c.carrier || 'ĐVVC',
+        price: c.price || (c.fee ? `${c.fee.toLocaleString('vi-VN')}đ` : ''),
+        logo: getPartnerLogo(c.name || c.carrier || ''),
+        isCheapest: Boolean(c.isCheapest || c.selected),
+        note: c.note || (c.isCheapest ? 'Rẻ nhất 🏆' : ''),
+      }))
+    : [];
+
+  const hasCarriers = carriersComparison.length > 0;
+
+  // Carrier được AI chọn (rẻ nhất) — hiển thị động trong description
+  const selectedCarrier = carriersComparison.find((c: { isCheapest: boolean; name: string; price: string }) => c.isCheapest);
+  const dynamicDescription = isRateCompare && selectedCarrier
+    ? `✅ Chốt: ${selectedCarrier.name} (${selectedCarrier.price}) — rẻ nhất trong ${carriersComparison.length} hãng`
+    : data.description || 'Xử lý tự động hóa thông minh';
 
   return (
     <div
@@ -11,57 +39,87 @@ export const AINode: React.FC<any> = ({ data, selected }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'relative',
+        height: '100%',
+        width: '100%',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={190}
+        minHeight={65}
+        handleStyle={{ width: 8, height: 8, borderRadius: 2, background: nodeColor, border: '2px solid #FFFFFF' }}
+        lineStyle={{ borderColor: nodeColor }}
+      />
+
       {/* Input Handle */}
       <Handle
         type="target"
         position={Position.Left}
         style={{
           background: nodeColor,
-          width: 10,
-          height: 10,
+          width: 8,
+          height: 8,
           border: '2px solid #FFFFFF',
-          boxShadow: `0 0 8px ${nodeColor}`,
+          boxShadow: `0 0 6px ${nodeColor}`,
         }}
       />
 
-      {/* Compact Node Container */}
+      {/* Clean Minimalist Node Container */}
       <div
         style={{
-          padding: '10px 14px',
+          width: '100%',
+          height: '100%',
+          minWidth: hasCarriers && expanded ? 260 : 220,
           background: '#FFFFFF',
-          borderRadius: 10,
+          borderRadius: 8,
           border: selected ? `2px solid ${nodeColor}` : '1px solid #E5E7EB',
+          borderLeft: `3px solid ${nodeColor}`,
           boxShadow: selected
-            ? `0 0 0 3px rgba(139, 92, 246, 0.2), 0 8px 16px rgba(0, 0, 0, 0.08)`
+            ? `0 0 0 3px rgba(139, 92, 246, 0.15), 0 6px 16px rgba(0, 0, 0, 0.06)`
             : isHovered
-            ? '0 6px 16px rgba(0, 0, 0, 0.08)'
-            : '0 2px 6px rgba(0, 0, 0, 0.04)',
-          width: 210,
+            ? '0 4px 12px rgba(0, 0, 0, 0.06)'
+            : '0 1px 3px rgba(0, 0, 0, 0.03)',
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
+          padding: '10px 12px',
+          transition: 'width 0.2s ease',
         }}
       >
+        {/* Top Minimal Category & Status */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 6,
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 600, color: nodeColor }}>
+            Trí tuệ nhân tạo AI
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#8B5CF6', fontWeight: 500 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8B5CF6' }} />
+            {isRateCompare ? 'So sánh cước' : 'Gemini + Qdrant'}
+          </span>
+        </div>
+
+        {/* Main Body: Logo & Info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* AI Logo Badge */}
           <div
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
+              width: 32,
+              height: 32,
+              borderRadius: 6,
               background: '#FFFFFF',
               border: '1px solid #E5E7EB',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               flexShrink: 0,
               padding: 4,
-              overflow: 'hidden',
             }}
           >
             <img src="/favicon.svg" alt="UniFlow AI" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -70,7 +128,7 @@ export const AINode: React.FC<any> = ({ data, selected }) => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: 13,
                 color: '#111827',
                 lineHeight: 1.2,
@@ -80,13 +138,95 @@ export const AINode: React.FC<any> = ({ data, selected }) => {
               }}
               title={data.label}
             >
-              {data.label || 'AI SKU Mapper'}
+              {data.label || 'AI Engine'}
             </div>
-            <div style={{ fontSize: 11, color: '#8B5CF6', fontWeight: 600, marginTop: 2 }}>
-              Gemini + Qdrant
+            <div
+              style={{
+                fontSize: 11,
+                color: isRateCompare ? '#059669' : '#6B7280',
+                fontWeight: isRateCompare ? 600 : 400,
+                marginTop: 2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {dynamicDescription}
             </div>
           </div>
+
+          {/* Toggle Expand for Rate Comparison Sub-Nodes */}
+          {hasCarriers && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
+              style={{
+                padding: '2px 4px',
+                borderRadius: 4,
+                background: '#F3F4F6',
+                color: '#4B5563',
+                fontSize: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                cursor: 'pointer',
+              }}
+              title={expanded ? 'Thu gọn danh sách hãng' : 'Mở rộng so sánh hãng'}
+            >
+              {expanded ? <UpOutlined /> : <DownOutlined />}
+            </div>
+          )}
         </div>
+
+        {/* Collapsible Nested Child Carrier Cards (Node con từ database/API) */}
+        {hasCarriers && expanded && (
+          <div
+            style={{
+              marginTop: 10,
+              paddingTop: 8,
+              borderTop: '1px dashed #E5E7EB',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}
+          >
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>
+              Đối tác vận chuyển được phân tích:
+            </div>
+            {carriersComparison.map((c: any) => (
+              <div
+                key={c.name}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  background: c.isCheapest ? '#ECFDF5' : '#F9FAFB',
+                  border: c.isCheapest ? '1px solid #10B981' : '1px solid #E5E7EB',
+                  fontSize: 11,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {c.logo ? (
+                    <img src={c.logo} alt={c.name} style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                  ) : null}
+                  <span style={{ fontWeight: c.isCheapest ? 700 : 500, color: c.isCheapest ? '#065F46' : '#374151' }}>
+                    {c.name}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontWeight: 700, color: c.isCheapest ? '#059669' : '#6B7280' }}>
+                    {c.price}
+                  </span>
+                  {c.isCheapest && <CheckCircleFilled style={{ color: '#10B981', fontSize: 12 }} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Output Handle */}
@@ -95,10 +235,10 @@ export const AINode: React.FC<any> = ({ data, selected }) => {
         position={Position.Right}
         style={{
           background: nodeColor,
-          width: 10,
-          height: 10,
+          width: 8,
+          height: 8,
           border: '2px solid #FFFFFF',
-          boxShadow: `0 0 8px ${nodeColor}`,
+          boxShadow: `0 0 6px ${nodeColor}`,
         }}
       />
     </div>

@@ -65,6 +65,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: <Link to="/mapping">Ánh xạ SKU AI</Link>,
     },
     {
+      key: '/copilot',
+      icon: (
+        <img
+          src="/favicon.svg"
+          alt="AI Agent"
+          style={{ width: 16, height: 16, objectFit: 'contain', verticalAlign: 'middle' }}
+        />
+      ),
+      label: <Link to="/copilot">Trợ lý AI Agent</Link>,
+    },
+    {
       key: '/connectors',
       icon: <ApiOutlined />,
       label: <Link to="/connectors">Kênh kết nối</Link>,

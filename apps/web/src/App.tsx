@@ -14,6 +14,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { CopilotAgentPage } from './pages/CopilotAgentPage';
 
 // Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -110,6 +111,14 @@ const ThemedApp: React.FC = () => {
             element={
               <ProtectedRoute>
                 <LiveLogsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/copilot"
+            element={
+              <ProtectedRoute>
+                <CopilotAgentPage />
               </ProtectedRoute>
             }
           />

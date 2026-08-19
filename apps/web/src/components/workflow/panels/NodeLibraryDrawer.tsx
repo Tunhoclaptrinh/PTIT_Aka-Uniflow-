@@ -9,6 +9,7 @@ import {
   BellFilled,
   BranchesOutlined,
   SearchOutlined,
+  FileExcelFilled,
 } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
@@ -92,8 +93,18 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
       ],
     },
     {
+      id: 'SPREADSHEET',
+      category: '6. Bảng tính & Tệp tin (Google Sheets / Excel)',
+      color: '#0F9D58',
+      icon: <FileExcelFilled />,
+      items: [
+        { type: 'action', label: 'Ghi đơn hàng vào Google Sheets', desc: 'Tự động chèn dòng đơn hàng mới vào Google Spreadsheet thời gian thực', cat: 'SPREADSHEET' },
+        { type: 'action', label: 'Xuất báo cáo Microsoft Excel (.xlsx)', desc: 'Tự động trích xuất thống kê doanh thu và SKU ra file Excel', cat: 'SPREADSHEET' },
+      ],
+    },
+    {
       id: 'NOTIFY',
-      category: '6. Cảnh báo và thông báo (Notification)',
+      category: '7. Cảnh báo và thông báo (Notification)',
       color: '#3B82F6',
       icon: <BellFilled />,
       items: [
@@ -180,6 +191,13 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
           onClick={() => setSelectedCat('LOGISTICS')}
         >
           Vận chuyển
+        </Tag>
+        <Tag
+          color={selectedCat === 'SPREADSHEET' ? '#0F9D58' : 'default'}
+          style={{ cursor: 'pointer', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 500 }}
+          onClick={() => setSelectedCat('SPREADSHEET')}
+        >
+          Bảng tính & Excel
         </Tag>
         <Tag
           color={selectedCat === 'NOTIFY' ? '#3B82F6' : 'default'}

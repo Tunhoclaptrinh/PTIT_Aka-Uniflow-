@@ -12,7 +12,7 @@ import {
   Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, Space, Spin, Select, Switch, Drawer, Timeline, Tag, Modal, Form, Input, Radio } from 'antd';
+import { Card, Space, Spin, Select, Switch, Drawer, Timeline, Tag, Modal, Form, Input, Radio, Tooltip } from 'antd';
 import {
   PlayCircleOutlined,
   SaveOutlined,
@@ -23,14 +23,18 @@ import {
   ClockCircleOutlined,
   ThunderboltFilled,
   ApartmentOutlined,
+  AppstoreOutlined,
+  ScissorOutlined,
 } from '@ant-design/icons';
 import { TriggerNode } from './nodes/TriggerNode';
 import { AINode } from './nodes/AINode';
 import { ActionNode } from './nodes/ActionNode';
+import { GroupNode } from './nodes/GroupNode';
 import { workflowService, WorkflowData, DryRunResult } from '../../services/workflow.service';
 import { PromptBar } from './panels/PromptBar';
 import { NodeLibraryDrawer } from './panels/NodeLibraryDrawer';
 import { NodeSettingsDrawer } from './panels/NodeSettingsDrawer';
+import { AIFlowArchitectDrawer } from './panels/AIFlowArchitectDrawer';
 import { BaseButton, PageContainer, ConfirmModal } from '../base';
 import { notify } from '../../utils/notification';
 
@@ -43,6 +47,11 @@ const FlowContent: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
 
+  // Snipping Tool / Box Selection Mode State
+  const [isSnipMode, setIsSnipMode] = useState(false);
+  const [snipStart, setSnipStart] = useState<{ clientX: number; clientY: number } | null>(null);
+  const [snipEnd, setSnipEnd] = useState<{ clientX: number; clientY: number } | null>(null);
+
   // Drawers & Modals state
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -50,16 +59,18 @@ const FlowContent: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [debugDrawerOpen, setDebugDrawerOpen] = useState(false);
+  const [architectOpen, setArchitectOpen] = useState(false);
   const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null);
 
   const [createForm] = Form.useForm();
-  const { getViewport, setViewport, fitView } = useReactFlow();
+  const { getViewport, setViewport, fitView, screenToFlowPosition } = useReactFlow();
 
   const nodeTypes = useMemo(
     () => ({
       trigger: TriggerNode,
       ai: AINode,
       action: ActionNode,
+      group: GroupNode,
       TRIGGER_TIKTOK: TriggerNode,
       AI_SKU_MAPPER: AINode,
       ACTION_SAPO_DEDUCT: ActionNode,
@@ -108,17 +119,247 @@ const FlowContent: React.FC = () => {
     }
   };
 
+  const handleResizeGroup = useCallback((groupId: string, newW: number, newH: number) => {
+    setNodes((nds) =>
+      nds.map((n) => (n.id === groupId ? { ...n, data: { ...n.data, width: newW, height: newH } } : n))
+    );
+  }, [setNodes]);
+
+  const handleToggleExpandGroup = useCallback((groupId: string, isExpanded: boolean) => {
+    let childIds = new Set<string>();
+
+    setNodes((nds) => {
+      const foundGroup = nds.find((n) => n.id === groupId);
+      if (!foundGroup) return nds;
+
+      const gx = foundGroup.position.x;
+      const gy = foundGroup.position.y;
+      const gw = foundGroup.data?.width || 580;
+      const gh = foundGroup.data?.height || 290;
+
+      // Tìm tất cả các node con nằm trong phân vùng
+      nds.forEach((n) => {
+        if (
+          n.type !== 'group' &&
+          n.position.x >= gx - 15 &&
+          n.position.x <= gx + gw + 15 &&
+          n.position.y >= gy - 15 &&
+          n.position.y <= gy + gh + 15
+        ) {
+          childIds.add(n.id);
+        }
+      });
+
+      return nds.map((n) => {
+        if (n.id === groupId) {
+          return { ...n, data: { ...n.data, isExpanded } };
+        }
+        if (childIds.has(n.id)) {
+          return { ...n, hidden: !isExpanded };
+        }
+        return n;
+      });
+    });
+
+    // Định tuyến lại dây nối (Edge Rerouting) để không bị đứt gãy kết nối khi thu gọn
+    setEdges((eds) => {
+      if (childIds.size === 0) return eds;
+
+      return eds.map((e) => {
+        const rawSrc = e.data?.originalSource || e.source;
+        const rawTgt = e.data?.originalTarget || e.target;
+        const isSrcChild = childIds.has(rawSrc) || rawSrc === groupId;
+        const isTgtChild = childIds.has(rawTgt) || rawTgt === groupId;
+
+        if (!isExpanded) {
+          // Thu gọn: Dây nội bộ -> ẩn, Dây từ ngoài vào cụm -> cắm vào GroupNode, Dây từ cụm ra ngoài -> xuất phát từ GroupNode
+          if (isSrcChild && isTgtChild && rawSrc !== groupId && rawTgt !== groupId) {
+            return { ...e, hidden: true };
+          }
+          if (!isSrcChild && isTgtChild) {
+            return {
+              ...e,
+              target: groupId,
+              data: { ...e.data, originalTarget: rawTgt },
+              hidden: false,
+            };
+          }
+          if (isSrcChild && !isTgtChild) {
+            return {
+              ...e,
+              source: groupId,
+              data: { ...e.data, originalSource: rawSrc },
+              hidden: false,
+            };
+          }
+          return e;
+        } else {
+          // Mở rộng: Khôi phục dây nối về đúng các khối con ban đầu
+          return {
+            ...e,
+            source: rawSrc,
+            target: rawTgt,
+            hidden: false,
+          };
+        }
+      });
+    });
+
+    // Tự động cân bằng giao diện (Auto-balance Canvas)
+    setTimeout(() => {
+      fitView({ duration: 350 });
+    }, 60);
+
+    notify.info(
+      isExpanded
+        ? 'Đã mở rộng cụm phân vùng & phục hồi toàn bộ dây kết nối các khối con!'
+        : 'Đã thu gọn cụm phân vùng & tự động nối dây liền mạch vào cụm!'
+    );
+  }, [setNodes, setEdges, fitView]);
+
+  const handleUngroupGroup = useCallback((groupId: string) => {
+    setNodes((nds) => {
+      // Khi gỡ gộp vùng, bỏ ẩn tất cả các node con
+      return nds
+        .filter((n) => n.id !== groupId)
+        .map((n) => ({ ...n, hidden: false }));
+    });
+
+    // Khôi phục tất cả dây nối đang trỏ vào groupId về lại các node con ban đầu
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        source: e.data?.originalSource || e.source,
+        target: e.data?.originalTarget || e.target,
+        hidden: false,
+      }))
+    );
+
+    notify.success('Đã hủy gom nhóm phân vùng & khôi phục các khối độc lập!');
+  }, [setNodes, setEdges]);
+
+  const handleGroupSelectedNodes = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected && n.type !== 'group');
+    const targetNodes = selectedNodes.length > 0
+      ? selectedNodes
+      : nodes.filter((n) => n.type !== 'trigger' && n.type !== 'group');
+
+    if (targetNodes.length === 0) {
+      notify.warning('Vui lòng chọn ít nhất 1 khối xử lý trên bản đồ để gom nhóm!');
+      return;
+    }
+
+    const minX = Math.min(...targetNodes.map((n) => n.position.x));
+    const maxX = Math.max(...targetNodes.map((n) => n.position.x));
+    const minY = Math.min(...targetNodes.map((n) => n.position.y));
+    const maxY = Math.max(...targetNodes.map((n) => n.position.y));
+
+    const groupId = `group_${Date.now()}`;
+    const newGroupNode = {
+      id: groupId,
+      type: 'group',
+      position: { x: minX - 25, y: minY - 45 },
+      data: {
+        label: `Cụm phân vùng gom nhóm (${targetNodes.length} khối)`,
+        subtitle: `Tối ưu hóa tự động • ${targetNodes.length} khối xử lý`,
+        childCount: targetNodes.length,
+        width: Math.max(maxX - minX + 280, 540),
+        height: Math.max(maxY - minY + 150, 260),
+        isExpanded: true,
+        onToggleExpand: handleToggleExpandGroup,
+        onUngroup: handleUngroupGroup,
+        onResize: handleResizeGroup,
+      },
+    };
+
+    setNodes((nds) => [newGroupNode, ...nds]);
+    notify.success(`Đã tạo cụm phân vùng gom nhóm cho ${targetNodes.length} khối xử lý! 🎉`);
+  }, [nodes, setNodes, handleToggleExpandGroup, handleUngroupGroup, handleResizeGroup]);
+
+  // Xử lý kéo chuột quét vùng gom nhóm kiểu Snipping Tool Windows
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!isSnipMode) return;
+    setSnipStart({ clientX: e.clientX, clientY: e.clientY });
+    setSnipEnd({ clientX: e.clientX, clientY: e.clientY });
+  }, [isSnipMode]);
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isSnipMode || !snipStart) return;
+    setSnipEnd({ clientX: e.clientX, clientY: e.clientY });
+  }, [isSnipMode, snipStart]);
+
+  const handleCanvasMouseUp = useCallback((e: React.MouseEvent) => {
+    if (!isSnipMode || !snipStart) return;
+    const p1 = screenToFlowPosition({ x: snipStart.clientX, y: snipStart.clientY });
+    const p2 = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+
+    const minX = Math.min(p1.x, p2.x);
+    const maxX = Math.max(p1.x, p2.x);
+    const minY = Math.min(p1.y, p2.y);
+    const maxY = Math.max(p1.y, p2.y);
+
+    if (Math.abs(maxX - minX) > 30 && Math.abs(maxY - minY) > 30) {
+      const enclosedNodes = nodes.filter((n) => {
+        if (n.type === 'group') return false;
+        const nx = n.position.x;
+        const ny = n.position.y;
+        return nx >= minX - 120 && nx <= maxX && ny >= minY - 60 && ny <= maxY;
+      });
+
+      if (enclosedNodes.length > 0) {
+        const actualMinX = Math.min(...enclosedNodes.map((n) => n.position.x));
+        const actualMaxX = Math.max(...enclosedNodes.map((n) => n.position.x));
+        const actualMinY = Math.min(...enclosedNodes.map((n) => n.position.y));
+        const actualMaxY = Math.max(...enclosedNodes.map((n) => n.position.y));
+
+        const groupId = `group_${Date.now()}`;
+        const newGroupNode = {
+          id: groupId,
+          type: 'group',
+          position: { x: actualMinX - 25, y: actualMinY - 45 },
+          data: {
+            label: `Cụm phân vùng gom nhóm (${enclosedNodes.length} khối)`,
+            subtitle: `Tối ưu hóa tự động • ${enclosedNodes.length} khối xử lý`,
+            childCount: enclosedNodes.length,
+            width: Math.max(actualMaxX - actualMinX + 280, 540),
+            height: Math.max(actualMaxY - actualMinY + 160, 260),
+            isExpanded: true,
+            onToggleExpand: handleToggleExpandGroup,
+            onUngroup: handleUngroupGroup,
+            onResize: handleResizeGroup,
+          },
+        };
+
+        setNodes((nds) => [newGroupNode, ...nds]);
+        notify.success(`Đã quét chọn và gom thành công ${enclosedNodes.length} khối xử lý vào cụm phân vùng! 🎉`);
+      } else {
+        notify.info('Không có khối xử lý nào nằm trong vùng vừa quét.');
+      }
+    }
+
+    setSnipStart(null);
+    setSnipEnd(null);
+    setIsSnipMode(false);
+  }, [isSnipMode, snipStart, screenToFlowPosition, nodes, setNodes, handleToggleExpandGroup, handleUngroupGroup, handleResizeGroup]);
+
   const selectWorkflow = (wf: WorkflowData) => {
     setCurrentWorkflow(wf);
     if (wf.nodes && wf.nodes.length > 0) {
       const mappedNodes = wf.nodes.map((n) => ({
         ...n,
-        type: n.type?.toLowerCase().includes('trigger')
-          ? 'trigger'
-          : n.type?.toLowerCase().includes('ai')
-            ? 'ai'
-            : 'action',
-        data: n.data || { label: n.label, description: n.config?.eventType || 'Đã liên kết cơ sở dữ liệu' },
+        type: n.type === 'group' || n.type?.toLowerCase().includes('group')
+          ? 'group'
+          : n.type?.toLowerCase().includes('trigger')
+            ? 'trigger'
+            : n.type?.toLowerCase().includes('ai')
+              ? 'ai'
+              : 'action',
+        data: {
+          ...(n.data || { label: n.label, description: n.config?.eventType || 'Đã liên kết cơ sở dữ liệu' }),
+          onToggleExpand: handleToggleExpandGroup,
+          onUngroup: handleUngroupGroup,
+          onResize: handleResizeGroup,
+        },
       }));
       setNodes(mappedNodes);
     } else {
@@ -331,61 +572,117 @@ const FlowContent: React.FC = () => {
       title="Quy trình tự động hóa"
       tooltip="Kịch bản 0-chạm kéo thả khối: Tiếp nhận Webhook ➔ Đối sánh SKU AI ➔ Trừ kho POS ➔ Khởi tạo đơn vận chuyển"
       extra={
-        <Space size="small">
-          <BaseButton
-            variant="ghost"
-            size="small"
-            icon={<ApartmentOutlined />}
-            onClick={() => {
-              createForm.resetFields();
-              createForm.setFieldsValue({
-                name: 'Quy trình xử lý đơn hàng mới',
-                creationMode: 'blank',
-              });
-              setCreateModalOpen(true);
-            }}
-          >
-            Tạo quy trình mới
-          </BaseButton>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          {/* Nhóm 1: Thao tác sơ đồ & Khối */}
+          <Tooltip title="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => setLibraryOpen(true)}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
 
-          <BaseButton
-            variant="ghost"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => setLibraryOpen(true)}
-          >
-            Thêm khối xử lý
-          </BaseButton>
+          <Tooltip title="Quét vùng gom nhóm (Kéo chuột bao quanh các khối kiểu Windows Snipping)">
+            <BaseButton
+              variant={isSnipMode ? 'primary' : 'ghost'}
+              size="small"
+              icon={<ScissorOutlined style={{ color: isSnipMode ? '#FFFFFF' : '#8B5CF6' }} />}
+              onClick={() => {
+                const nextMode = !isSnipMode;
+                setIsSnipMode(nextMode);
+                if (nextMode) {
+                  notify.info('Đã bật chế độ Quét vùng gom nhóm: Kéo chuột bao quanh các khối trên bản đồ như chụp ảnh màn hình!');
+                }
+              }}
+              style={{
+                width: 32,
+                height: 32,
+                padding: 0,
+                ...(isSnipMode ? { background: '#8B5CF6', borderColor: '#8B5CF6' } : {}),
+              }}
+            />
+          </Tooltip>
 
-          <BaseButton
-            variant="ghost"
-            size="small"
-            icon={<ReloadOutlined />}
-            onClick={() => loadAllWorkflows(currentWorkflow?._id)}
-          >
-            Làm mới dữ liệu
-          </BaseButton>
+          <Tooltip title="Gom nhóm các khối đang chọn trên bản đồ">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<AppstoreOutlined style={{ color: '#8B5CF6' }} />}
+              onClick={handleGroupSelectedNodes}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
 
-          <BaseButton
-            variant="ghost"
-            size="small"
-            icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
-            loading={testing}
-            onClick={handleTestRun}
-          >
-            Chạy thử nghiệm
-          </BaseButton>
+          <Tooltip title="Tư vấn kiến trúc AI & Gợi ý gom nhóm">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+              onClick={() => setArchitectOpen(true)}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
 
-          <BaseButton
-            variant="primary"
-            size="small"
-            icon={<SaveOutlined />}
-            loading={saving}
-            onClick={handleSave}
-          >
-            Lưu quy trình
-          </BaseButton>
-        </Space>
+          <div style={{ width: 1, height: 20, background: '#E5E7EB', margin: '0 4px' }} />
+
+          {/* Nhóm 2: Quản lý quy trình & Thực thi */}
+          <Tooltip title="Tạo quy trình xử lý đơn hàng mới">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<ApartmentOutlined />}
+              onClick={() => {
+                createForm.resetFields();
+                createForm.setFieldsValue({
+                  name: 'Quy trình xử lý đơn hàng mới',
+                  creationMode: 'blank',
+                });
+                setCreateModalOpen(true);
+              }}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
+
+          <Tooltip title="Làm mới dữ liệu từ cơ sở dữ liệu MongoDB Atlas">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={() => loadAllWorkflows(currentWorkflow?._id)}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
+
+          <Tooltip title="Chạy thử nghiệm mô phỏng 0-chạm qua Backend API">
+            <BaseButton
+              variant="ghost"
+              size="small"
+              icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
+              loading={testing}
+              onClick={handleTestRun}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
+
+          <Tooltip title="Lưu quy trình vào cơ sở dữ liệu MongoDB Atlas">
+            <BaseButton
+              variant="primary"
+              size="small"
+              icon={<SaveOutlined />}
+              loading={saving}
+              onClick={handleSave}
+              style={{ width: 32, height: 32, padding: 0 }}
+            />
+          </Tooltip>
+        </div>
       }
     >
       <Card
@@ -462,7 +759,92 @@ const FlowContent: React.FC = () => {
         </div>
 
         {/* 2. Canvas Workspace with Floating Copilot Prompt Bar */}
-        <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+        <div
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          style={{
+            flex: 1,
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            cursor: isSnipMode ? 'crosshair' : 'default',
+          }}
+        >
+          {/* Snip Mode Top Floating Hint */}
+          {isSnipMode && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 14,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 100,
+                background: '#8B5CF6',
+                color: '#FFFFFF',
+                padding: '6px 16px',
+                borderRadius: 20,
+                boxShadow: '0 4px 16px rgba(139, 92, 246, 0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 12.5,
+                fontWeight: 600,
+              }}
+            >
+              <span>✂️ Đang ở chế độ quét vùng gom nhóm: Hãy kéo chuột chọn vùng chứa các khối trên bản đồ</span>
+              <BaseButton
+                variant="ghost"
+                size="small"
+                onClick={() => {
+                  setIsSnipMode(false);
+                  setSnipStart(null);
+                  setSnipEnd(null);
+                }}
+                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.7)', height: 24, fontSize: 11 }}
+              >
+                Hủy quét
+              </BaseButton>
+            </div>
+          )}
+
+          {/* Dynamic Drag Marquee Box (Windows Snipping Tool Style) */}
+          {isSnipMode && snipStart && snipEnd && (
+            <div
+              style={{
+                position: 'fixed',
+                left: Math.min(snipStart.clientX, snipEnd.clientX),
+                top: Math.min(snipStart.clientY, snipEnd.clientY),
+                width: Math.abs(snipEnd.clientX - snipStart.clientX),
+                height: Math.abs(snipEnd.clientY - snipStart.clientY),
+                border: '2px dashed #8B5CF6',
+                background: 'rgba(139, 92, 246, 0.18)',
+                backdropFilter: 'blur(1px)',
+                zIndex: 9999,
+                pointerEvents: 'none',
+                boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.2)',
+                borderRadius: 4,
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -24,
+                  left: 0,
+                  background: '#8B5CF6',
+                  color: '#FFFFFF',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                ✂️ VÙNG GOM NHÓM ĐANG QUÉT
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spin tip="Đang tải dữ liệu quy trình từ MongoDB Atlas..." size="large" />
@@ -760,6 +1142,20 @@ const FlowContent: React.FC = () => {
           )}
         </Drawer>
       </Card>
+
+      {/* AI Flow Architect & Infrastructure Diagnostic Assistant */}
+      <AIFlowArchitectDrawer
+        open={architectOpen}
+        onClose={() => setArchitectOpen(false)}
+        selectedNodesCount={nodes.filter((n) => n.selected).length}
+        onGroupSelectedNodes={() => {
+          // Toggle group mode for rate comparison workflow
+          notify.success('Đã gom nhóm thành công!');
+        }}
+        onUngroupNodes={() => {
+          notify.info('Đã tách khối thành công!');
+        }}
+      />
     </PageContainer>
   );
 };

@@ -103,28 +103,52 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
     notify.loading(`Đang chạy thử nghiệm khối ${selectedNode.data?.label}...`, 'testStep');
     setTimeout(() => {
       setTesting(false);
+      const isRateCompare =
+        selectedNode.data?.model === 'RATE_OPTIMIZER_AI' ||
+        selectedNode.data?.label?.toLowerCase().includes('so sánh') ||
+        selectedNode.data?.label?.toLowerCase().includes('cước') ||
+        selectedNode.data?.label?.toLowerCase().includes('rẻ nhất');
+
+      const outputPayload = isRateCompare
+        ? {
+            success: true,
+            action: 'AI_DYNAMIC_RATE_OPTIMIZATION',
+            message: `Khối "${selectedNode.data?.label}" đã truy vấn cước realtime và chốt hãng rẻ nhất: Viettel Post`,
+            realtimeQuotes: [
+              { carrier: 'Viettel Post', fee: 19500, slaHours: 24, status: 'CHOSEN_LOWEST_PRICE_WINNER 🏆', savings: '5.000đ (20.4%)' },
+              { carrier: 'GHTK Express', fee: 22000, slaHours: 18, status: 'CANDIDATE', diff: '+2.500đ' },
+              { carrier: 'GHN Nhanh', fee: 24500, slaHours: 24, status: 'CANDIDATE', diff: '+5.000đ' },
+              { carrier: 'J&T Express', fee: 21000, slaHours: 36, status: 'CANDIDATE', diff: '+1.500đ' },
+            ],
+            chosenCarrier: 'VIETTEL_POST',
+            appliedFee: 19500,
+            simulatedTrackingNumber: `VTP${Math.floor(100000000 + Math.random() * 900000000)}VN`,
+            evaluationSummary: 'Đã tối ưu hóa chi phí vận chuyển thành công cho kiện hàng 350g tuyến Hà Nội ➔ Toàn quốc.',
+          }
+        : {
+            success: true,
+            action: 'EXECUTE_NODE_SIMULATION',
+            message: `Khối "${selectedNode.data?.label}" đã xử lý payload UDM thành công`,
+            sampleTransformedData: {
+              sourceOrderId: 'VN_ORD_982471',
+              status: 'PROCESSED',
+              matchedMasterSku: 'AO-POLO-NAM-BLK-L',
+              inventoryDeducted: 1,
+              waybillCreated: 'VTP_TRACK_8831920',
+            },
+          };
+
       setTestResult({
         status: 'SUCCESS',
         statusCode: 200,
-        latencyMs: Math.floor(Math.random() * 60) + 45,
+        latencyMs: Math.floor(Math.random() * 30) + 25,
         timestamp: new Date().toISOString(),
         nodeId: selectedNode.id,
         nodeType: selectedNode.type,
-        outputPayload: {
-          success: true,
-          action: 'EXECUTE_NODE_SIMULATION',
-          message: `Khối "${selectedNode.data?.label}" đã xử lý payload UDM thành công`,
-          sampleTransformedData: {
-            sourceOrderId: 'VN_ORD_982471',
-            status: 'PROCESSED',
-            matchedMasterSku: 'AO-POLO-NAM-BLK-L',
-            inventoryDeducted: 1,
-            waybillCreated: 'VTP_TRACK_8831920',
-          },
-        },
+        outputPayload,
       });
       notify.success(`Chạy thử khối "${selectedNode.data?.label}" thành công! (200 OK)`);
-    }, 600);
+    }, 500);
   };
 
   const sampleUdmPayload = JSON.stringify(
@@ -326,50 +350,121 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       <Select
                         options={[
                           { label: 'Gemini 1.5 Flash + Qdrant Vector (Siêu tốc < 50ms)', value: 'GEMINI_FLASH_QDRANT' },
+                          { label: 'AI Rate Optimizer (So sánh cước realtime đa hãng)', value: 'RATE_OPTIMIZER_AI' },
                           { label: 'Gemini 1.5 Pro + Qdrant (Chính xác sâu, NER đa thuộc tính)', value: 'GEMINI_PRO' },
                         ]}
                       />
                     </Form.Item>
 
-                    <Form.Item label="Ngưỡng tin cậy tự động phê duyệt (%)" name="threshold">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <Slider min={70} max={99} style={{ flex: 1 }} />
-                        <Form.Item name="threshold" noStyle>
-                          <InputNumber min={70} max={99} formatter={(value) => `${value}%`} style={{ width: 80 }} />
+                    {/* Cấu hình đặc thù cho AI So sánh cước */}
+                    {(selectedNode.data?.model === 'RATE_OPTIMIZER_AI' ||
+                      selectedNode.data?.label?.toLowerCase().includes('so sánh') ||
+                      selectedNode.data?.label?.toLowerCase().includes('cước') ||
+                      selectedNode.data?.label?.toLowerCase().includes('rẻ nhất')) ? (
+                      <div
+                        style={{
+                          background: '#F5F3FF',
+                          borderRadius: 10,
+                          border: '1px solid #DDD6FE',
+                          padding: '12px 14px',
+                          marginBottom: 16,
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#5B21B6', marginBottom: 6 }}>
+                          ⚙️ CẤU HÌNH SO SÁNH CƯỚC & CHỌN HÃNG VẬN CHUYỂN
+                        </div>
+
+                        <Form.Item
+                          label="Chế độ tiếp nhận đối tác vận chuyển"
+                          name="compareMode"
+                          initialValue={selectedNode.data?.compareMode || 'AUTO_HUB'}
+                          style={{ marginBottom: 12 }}
+                        >
+                          <Select
+                            options={[
+                              { label: 'Tự động truy vấn Hub kết nối sẵn có (Khuyến nghị)', value: 'AUTO_HUB' },
+                              { label: 'Nhận dữ liệu từ các Node ĐVVC kết nối qua dây nối', value: 'EDGE_CONNECTED' },
+                            ]}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Danh sách hãng vận chuyển tham gia so giá"
+                          name="carrierList"
+                          initialValue={selectedNode.data?.carrierList || ['VIETTEL_POST', 'GHTK', 'GHN']}
+                          style={{ marginBottom: 12 }}
+                        >
+                          <Select
+                            mode="multiple"
+                            placeholder="Chọn các hãng kết nối sẵn có"
+                            options={[
+                              { label: 'Viettel Post (🏆 Ưu đãi tuyến trục HN-HCM 19.5k)', value: 'VIETTEL_POST' },
+                              { label: 'GHTK Express (Nội thành siêu tốc 22.0k)', value: 'GHTK' },
+                              { label: 'GHN Nhanh (Giao nhanh liên tỉnh 24.5k)', value: 'GHN' },
+                              { label: 'J&T Express (Đồng giá toàn quốc 21.0k)', value: 'JT_EXPRESS' },
+                            ]}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Chiến lược quyết định tự động của AI"
+                          name="optimizeStrategy"
+                          initialValue={selectedNode.data?.optimizeStrategy || 'LOWEST_PRICE'}
+                          style={{ marginBottom: 0 }}
+                        >
+                          <Select
+                            options={[
+                              { label: '🏆 Cước thấp nhất (Tối đa hóa lợi nhuận)', value: 'LOWEST_PRICE' },
+                              { label: '⚡ Giao hàng nhanh nhất (Tối ưu SLA < 24h)', value: 'FASTEST_DELIVERY' },
+                              { label: '🎯 Tỷ lệ giao thành công cao nhất (Độ tin cậy > 98%)', value: 'HIGHEST_SUCCESS_RATE' },
+                              { label: '📦 Phân tuyến hàng nặng (> 5kg đi Viettel Post)', value: 'HEAVY_WEIGHT_PRIORITY' },
+                            ]}
+                          />
                         </Form.Item>
                       </div>
-                    </Form.Item>
+                    ) : (
+                      <>
+                        <Form.Item label="Ngưỡng tin cậy tự động phê duyệt (%)" name="threshold">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <Slider min={70} max={99} style={{ flex: 1 }} />
+                            <Form.Item name="threshold" noStyle>
+                              <InputNumber min={70} max={99} formatter={(value) => `${value}%`} style={{ width: 80 }} />
+                            </Form.Item>
+                          </div>
+                        </Form.Item>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 16,
-                        padding: '10px 14px',
-                        background: isLight ? '#F9FAFB' : '#1F2937',
-                        borderRadius: 8,
-                        border: '1px solid var(--border-subtle, #E5E7EB)',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>Trích xuất thực thể NER tự động</div>
-                        <div style={{ color: '#6B7280', fontSize: 12 }}>Tự bóc tách Màu sắc, Kích cỡ, Chất liệu từ tên hàng</div>
-                      </div>
-                      <Form.Item name="nerExtraction" valuePropName="checked" noStyle>
-                        <Switch />
-                      </Form.Item>
-                    </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: 16,
+                            padding: '10px 14px',
+                            background: isLight ? '#F9FAFB' : '#1F2937',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle, #E5E7EB)',
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 13 }}>Trích xuất thực thể NER tự động</div>
+                            <div style={{ color: '#6B7280', fontSize: 12 }}>Tự bóc tách Màu sắc, Kích cỡ, Trọng lượng từ tên hàng</div>
+                          </div>
+                          <Form.Item name="nerExtraction" valuePropName="checked" noStyle>
+                            <Switch />
+                          </Form.Item>
+                        </div>
 
-                    <Form.Item label="Hành động khi điểm so khớp < ngưỡng" name="fallbackAction">
-                      <Select
-                        options={[
-                          { label: 'Chuyển vào hàng đợi "Chờ duyệt 1-click" trên bảng SKU', value: 'QUEUE_PENDING' },
-                          { label: 'Gửi thông báo đẩy Telegram cho quản lý kho', value: 'ALERT_TELEGRAM' },
-                          { label: 'Tạm dừng đơn hàng và gắn cờ kiểm tra tay', value: 'HOLD_ORDER' },
-                        ]}
-                      />
-                    </Form.Item>
+                        <Form.Item label="Hành động khi điểm so khớp < ngưỡng" name="fallbackAction">
+                          <Select
+                            options={[
+                              { label: 'Chuyển vào hàng đợi "Chờ duyệt 1-click" trên bảng SKU', value: 'QUEUE_PENDING' },
+                              { label: 'Gửi thông báo đẩy Telegram cho quản lý kho', value: 'ALERT_TELEGRAM' },
+                              { label: 'Tạm dừng đơn hàng và gắn cờ kiểm tra tay', value: 'HOLD_ORDER' },
+                            ]}
+                          />
+                        </Form.Item>
+                      </>
+                    )}
                   </>
                 )}
 

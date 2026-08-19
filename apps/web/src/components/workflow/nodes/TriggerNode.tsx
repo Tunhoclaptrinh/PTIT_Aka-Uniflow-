@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { ThunderboltFilled, ShoppingFilled } from '@ant-design/icons';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
 
@@ -8,8 +8,10 @@ export const TriggerNode: React.FC<any> = ({ data, selected }) => {
 
   const isTikTok = data.label?.toLowerCase().includes('tiktok');
   const isShopee = data.label?.toLowerCase().includes('shopee');
+  const isLazada = data.label?.toLowerCase().includes('lazada');
+  const isTiki = data.label?.toLowerCase().includes('tiki');
   const nodeColor = isShopee ? '#EE4D2D' : '#ed1c24';
-  const partnerLogo = getPartnerLogo(data.label || data.name || '');
+  const partnerLogo = getPartnerLogo(data.label || data.name || (isLazada ? 'lazada' : isTiki ? 'tiki' : ''));
 
   return (
     <div
@@ -17,44 +19,73 @@ export const TriggerNode: React.FC<any> = ({ data, selected }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'relative',
+        height: '100%',
+        width: '100%',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
-      {/* Clean Compact Node Container */}
+      <NodeResizer
+        isVisible={selected}
+        minWidth={190}
+        minHeight={65}
+        handleStyle={{ width: 8, height: 8, borderRadius: 2, background: nodeColor, border: '2px solid #FFFFFF' }}
+        lineStyle={{ borderColor: nodeColor }}
+      />
+
+      {/* Clean Minimalist Node Container */}
       <div
         style={{
-          padding: '10px 14px',
+          width: '100%',
+          height: '100%',
+          minWidth: 220,
           background: '#FFFFFF',
-          borderRadius: 10,
+          borderRadius: 8,
           border: selected ? `2px solid ${nodeColor}` : '1px solid #E5E7EB',
+          borderLeft: `3px solid ${nodeColor}`,
           boxShadow: selected
-            ? `0 0 0 3px rgba(237, 28, 36, 0.2), 0 8px 16px rgba(0, 0, 0, 0.08)`
+            ? `0 0 0 3px rgba(237, 28, 36, 0.15), 0 6px 16px rgba(0, 0, 0, 0.06)`
             : isHovered
-            ? '0 6px 16px rgba(0, 0, 0, 0.08)'
-            : '0 2px 6px rgba(0, 0, 0, 0.04)',
-          width: 210,
+            ? '0 4px 12px rgba(0, 0, 0, 0.06)'
+            : '0 1px 3px rgba(0, 0, 0, 0.03)',
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
+          padding: '10px 12px',
         }}
       >
+        {/* Top Minimal Category & Status */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 6,
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 600, color: nodeColor }}>
+            Sàn TMĐT
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#10B981', fontWeight: 500 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
+            Webhook
+          </span>
+        </div>
+
+        {/* Main Body: Logo & Info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Logo Badge */}
           <div
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
+              width: 32,
+              height: 32,
+              borderRadius: 6,
               background: '#FFFFFF',
               border: '1px solid #E5E7EB',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               flexShrink: 0,
-              padding: 4,
-              overflow: 'hidden',
+              padding: 3,
             }}
           >
             {partnerLogo ? (
@@ -73,7 +104,7 @@ export const TriggerNode: React.FC<any> = ({ data, selected }) => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: 13,
                 color: '#111827',
                 lineHeight: 1.2,
@@ -83,10 +114,19 @@ export const TriggerNode: React.FC<any> = ({ data, selected }) => {
               }}
               title={data.label}
             >
-              {data.label || 'Inbound Trigger'}
+              {data.label || 'Inbound Webhook'}
             </div>
-            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-              Webhook Inbound
+            <div
+              style={{
+                fontSize: 11,
+                color: '#6B7280',
+                marginTop: 2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {data.description || 'Đơn thanh toán thành công'}
             </div>
           </div>
         </div>
@@ -98,10 +138,10 @@ export const TriggerNode: React.FC<any> = ({ data, selected }) => {
         position={Position.Right}
         style={{
           background: nodeColor,
-          width: 10,
-          height: 10,
+          width: 8,
+          height: 8,
           border: '2px solid #FFFFFF',
-          boxShadow: `0 0 8px ${nodeColor}`,
+          boxShadow: `0 0 6px ${nodeColor}`,
         }}
       />
     </div>
