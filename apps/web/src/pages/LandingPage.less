@@ -15,9 +15,11 @@
   background-position: 0 0, 0 0, 0 0;
   color: #0F172A;
   min-height: 100vh;
-  overflow-x: hidden;
+  // overflow-x is handled by html/body in global.less — do NOT set it here
+  // Setting overflow-x: hidden on a div creates a new scroll container, breaking window.scrollTo
   position: relative;
   transition: background-color 0.3s ease, color 0.3s ease;
+
 
   section[id],
   .lp-first-fold {
@@ -202,8 +204,8 @@
       align-items: center;
       gap: 32px;
 
-      @media (max-width: 900px) {
-        display: none;
+      @media (max-width: 1024px) {
+        display: none !important;
       }
 
       a {
@@ -237,6 +239,38 @@
       display: flex;
       align-items: center;
       gap: 14px;
+
+      .desktop-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        @media (max-width: 1024px) {
+          display: none !important;
+        }
+      }
+
+      .mobile-menu-trigger-btn {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid #CBD5E1;
+        color: #1E293B;
+        padding: 6px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.2s;
+
+        @media (max-width: 1024px) {
+          display: flex !important;
+        }
+
+        &:hover {
+          background: #F1F5F9;
+        }
+      }
 
       .lang-pill {
         display: flex;
@@ -475,6 +509,33 @@
       display: flex;
       align-items: center;
       justify-content: space-around;
+      box-sizing: border-box;
+
+      @media (max-width: 768px) {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 14px 10px !important;
+        border-radius: 16px !important;
+        margin-top: 24px !important;
+
+        .stat-divider {
+          display: none !important;
+        }
+
+        .stat-item {
+          padding: 6px 4px !important;
+
+          .stat-value {
+            font-size: 20px !important;
+          }
+
+          .stat-label {
+            font-size: 10.5px !important;
+            margin-top: 2px !important;
+          }
+        }
+      }
 
       .stat-item {
         flex: 1;
@@ -576,6 +637,7 @@
   .lp-demo-console {
     max-width: 1360px;
     margin: 0 auto;
+    width: 100%;
 
     .scenario-chips {
       display: flex;
@@ -583,6 +645,18 @@
       gap: 12px;
       margin-bottom: 24px;
       flex-wrap: wrap;
+
+      @media (max-width: 768px) {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 6px;
+        gap: 8px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar { display: none; }
+      }
 
       .chip-btn {
         padding: 9px 24px;
@@ -595,6 +669,8 @@
         color: #475569;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         transition: all 0.2s;
+        flex-shrink: 0;
+        white-space: nowrap;
 
         &:hover {
           border-color: #94A3B8;
@@ -622,9 +698,40 @@
         align-items: center;
         gap: 8px;
         transition: all 0.2s;
+        flex-shrink: 0;
+        white-space: nowrap;
 
         &:hover {
           border-color: #94A3B8;
+        }
+      }
+    }
+
+    // Scalable Responsive Canvas Container
+    .studio-stage-scaler {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 20px;
+
+      // Custom thin scrollbar for the stage
+      &::-webkit-scrollbar {
+        height: 4px;
+      }
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(237, 28, 36, 0.4);
+        border-radius: 2px;
+      }
+
+      @media (max-width: 900px) {
+        .pro-studio-window {
+          min-width: 760px;
         }
       }
     }
@@ -639,6 +746,7 @@
       display: flex;
       flex-direction: column;
       min-height: 680px;
+      min-width: 760px; // Preserve layout width - parent scaler handles scroll
 
       // Window Titlebar
       .window-titlebar {
@@ -1256,30 +1364,44 @@
       padding: 14px 24px;
       background: #F8FAFC;
       border-bottom: 1px solid #E2E8F0;
-      flex-wrap: wrap;
       gap: 12px;
 
-      .tab-btn {
-        padding: 8px 20px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1px solid transparent;
-        background: transparent;
-        color: #64748B;
-        transition: all 0.2s;
+      .docs-tabs-nav {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
 
-        &:hover {
-          color: #0F172A;
-          background: #EEF2F6;
+        &::-webkit-scrollbar {
+          display: none;
         }
 
-        &.active {
-          background: #ed1c24;
-          color: #FFFFFF;
-          font-weight: 700;
-          box-shadow: 0 4px 14px rgba(237, 28, 36, 0.3);
+        .tab-btn {
+          flex-shrink: 0;
+          white-space: nowrap;
+          padding: 8px 20px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid transparent;
+          background: transparent;
+          color: #64748B;
+          transition: all 0.2s;
+
+          &:hover {
+            color: #0F172A;
+            background: #EEF2F6;
+          }
+
+          &.active {
+            background: #ed1c24;
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(237, 28, 36, 0.3);
+          }
         }
       }
 
@@ -1320,8 +1442,8 @@
           font-size: 12.5px;
           font-weight: 600;
           cursor: pointer;
+          border: 1.5px solid #CBD5E1;
           background: #FFFFFF;
-          border: 1px solid #CBD5E1;
           color: #475569;
           transition: all 0.2s;
 
@@ -1329,6 +1451,39 @@
             background: #F1F5F9;
             color: #0F172A;
             border-color: #94A3B8;
+          }
+        }
+      }
+
+      @media (max-width: 860px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 14px;
+
+        .docs-tabs-nav {
+          width: 100%;
+          justify-content: flex-start;
+          padding-bottom: 4px;
+        }
+
+        .docs-actions-right {
+          width: 100%;
+          display: flex;
+          gap: 8px;
+
+          .btn-openapi-detail {
+            flex: 1;
+            justify-content: center;
+            font-size: 11.5px;
+            padding: 6px 8px;
+            white-space: nowrap;
+          }
+
+          .copy-btn {
+            flex-shrink: 0;
+            font-size: 11.5px;
+            padding: 6px 14px;
           }
         }
       }
@@ -1348,6 +1503,7 @@
       overflow-x: auto;
       box-sizing: border-box;
       line-height: 1.7;
+      white-space: pre;
 
       &::-webkit-scrollbar {
         width: 8px;
@@ -1361,6 +1517,15 @@
       &::-webkit-scrollbar-thumb {
         background: #1E293B;
         border-radius: 4px;
+      }
+
+      @media (max-width: 768px) {
+        padding: 14px 16px;
+        font-size: 11.5px;
+        height: 280px;
+        min-height: 280px;
+        max-height: 280px;
+        line-height: 1.6;
       }
     }
   }
@@ -2990,102 +3155,119 @@
   // ── LAPTOP & SMALL DESKTOP (max-width: 1200px) ───────────────────────────
   @media (max-width: 1200px) {
     .lp-navbar {
-      padding: 14px 32px;
+      padding: 14px 32px !important;
     }
 
-    .hero-content-wrapper {
-      padding: 120px 32px 50px;
+    .lp-hero {
+      padding: 110px 32px 50px !important;
     }
 
-    .lp-interactive-demo,
-    .lp-architecture-section,
-    .lp-features-section,
-    .lp-dev-docs-section,
-    .lp-faq-section,
+    .lp-section {
+      padding: 70px 32px !important;
+    }
+
     .lp-footer {
-      padding-left: 32px;
-      padding-right: 32px;
+      padding-left: 32px !important;
+      padding-right: 32px !important;
     }
   }
 
-  // ── TABLET SCREENS (max-width: 992px) ────────────────────────────────────
+  // ── TABLET & MOBILE SCREENS (max-width: 992px) ───────────────────────────
   @media (max-width: 992px) {
     .lp-navbar {
-      padding: 12px 20px;
+      padding: 12px 20px !important;
 
+      // Hide all desktop nav links & desktop action buttons completely
       .nav-links {
         display: none !important;
       }
 
-      .mobile-hamburger-btn {
-        display: flex !important;
+      .desktop-nav-actions {
+        display: none !important;
       }
 
-      .nav-controls {
-        gap: 8px;
+      .lang-pill,
+      .theme-btn,
+      .btn-dashboard {
+        display: none !important;
+      }
 
-        .btn-dashboard,
-        a button {
+      // Show the mobile menu trigger button cleanly
+      .mobile-menu-trigger-btn {
+        display: flex !important;
+      }
+    }
+
+    .lp-hero {
+      padding: 100px 20px 40px !important;
+
+      .hero-title {
+        font-size: 38px !important;
+        line-height: 1.25 !important;
+        letter-spacing: -1px !important;
+      }
+
+      .hero-subtitle {
+        font-size: 15.5px !important;
+        max-width: 100% !important;
+      }
+
+      .hero-stats-ribbon {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        padding: 16px 20px !important;
+
+        .stat-divider {
           display: none !important;
         }
 
-        .lang-pill {
-          padding: 4px 8px;
-          font-size: 11.5px;
-        }
+        .stat-item {
+          padding: 4px 8px !important;
 
-        .theme-btn {
-          width: 32px;
-          height: 32px;
+          .stat-value {
+            font-size: 26px !important;
+          }
+
+          .stat-label {
+            font-size: 12px !important;
+          }
         }
       }
     }
 
-    .hero-content-wrapper {
-      padding: 110px 20px 40px;
-    }
-
-    .hero-headline {
-      font-size: 38px !important;
-      line-height: 1.25 !important;
-    }
-
-    .hero-subhead {
-      font-size: 16px !important;
+    .lp-demo-console {
+      width: 100% !important;
       max-width: 100% !important;
-    }
+      overflow: hidden !important;
 
-    .hero-kpi-grid {
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 12px !important;
-    }
+      .pro-studio-window {
+        min-height: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        border-radius: 14px !important;
 
-    .lp-interactive-demo {
-      padding: 60px 20px !important;
+        .studio-body {
+          .studio-palette {
+            display: none !important; // Hide left palette sidebar on tablet/mobile
+          }
 
-      .demo-stage-card {
-        padding: 18px !important;
+          .studio-canvas-stage {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 18px 14px !important;
+            min-height: 160px !important;
+
+            .nodes-layer {
+              width: max-content !important;
+            }
+          }
+        }
       }
-    }
-
-    .udm-interactive-showcase {
-      grid-template-columns: 1fr !important;
-      gap: 20px !important;
-    }
-
-    .matrix-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 16px !important;
-    }
-
-    .pillars-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 16px !important;
-    }
-
-    .docs-container {
-      grid-template-columns: 1fr !important;
-      gap: 20px !important;
     }
 
     .lp-footer {
@@ -3101,7 +3283,7 @@
   // ── MOBILE PHONES (max-width: 768px) ─────────────────────────────────────
   @media (max-width: 768px) {
     .lp-navbar {
-      padding: 10px 16px;
+      padding: 10px 16px !important;
 
       .brand-logo {
         gap: 8px;
@@ -3118,235 +3300,291 @@
           display: none !important;
         }
       }
-    }
 
-    .hero-content-wrapper {
-      padding: 95px 16px 36px !important;
-    }
-
-    .hero-badge-pill {
-      font-size: 11px !important;
-      padding: 4px 10px !important;
-      max-width: 100% !important;
-      white-space: normal !important;
-      text-align: center !important;
-      height: auto !important;
-      min-height: 28px !important;
-      line-height: 1.4 !important;
-    }
-
-    .hero-headline {
-      font-size: 28px !important;
-      letter-spacing: -0.5px !important;
-      margin-top: 8px !important;
-      margin-bottom: 12px !important;
-    }
-
-    .hero-subhead {
-      font-size: 14px !important;
-      line-height: 1.55 !important;
-      margin-bottom: 24px !important;
-    }
-
-    .hero-cta-group {
-      flex-direction: column !important;
-      width: 100% !important;
-      gap: 10px !important;
-
-      a,
-      button {
-        width: 100% !important;
-        justify-content: center !important;
-        text-align: center !important;
-        height: 44px !important;
-      }
-    }
-
-    .hero-kpi-grid {
-      grid-template-columns: 1fr !important;
-      gap: 10px !important;
-      margin-top: 24px !important;
-    }
-
-    .hero-kpi-card {
-      padding: 14px 16px !important;
-    }
-
-    .section-header {
-      margin-bottom: 32px !important;
-
-      .section-badge {
-        font-size: 11px !important;
+      .nav-links,
+      .desktop-nav-actions,
+      .lang-pill,
+      .theme-btn,
+      .btn-dashboard {
+        display: none !important;
       }
 
-      .section-title {
-        font-size: 24px !important;
-        letter-spacing: -0.3px !important;
-      }
-
-      .section-sub {
-        font-size: 13.5px !important;
-        padding: 0 8px !important;
-      }
-    }
-
-    .lp-interactive-demo {
-      padding: 48px 16px !important;
-
-      .demo-header-bar {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 12px !important;
-      }
-
-      .demo-scenario-tabs {
-        overflow-x: auto !important;
-        width: 100% !important;
-        padding-bottom: 4px !important;
-        scrollbar-width: none !important;
-
-        &::-webkit-scrollbar {
-          display: none !important;
-        }
-      }
-
-      .demo-nodes-flow {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        padding-bottom: 16px !important;
-        gap: 8px !important;
-        justify-content: flex-start !important;
-
-        .flow-node-item {
-          min-width: 120px !important;
-          flex-shrink: 0 !important;
-        }
-
-        .flow-connector-arrow {
-          min-width: 20px !important;
-          flex-shrink: 0 !important;
-        }
-      }
-
-      .demo-console-card {
-        padding: 12px !important;
-      }
-    }
-
-    .lp-architecture-section {
-      padding: 48px 16px !important;
-
-      .conveyor-container {
-        padding: 12px 0 !important;
-      }
-    }
-
-    .lp-features-section {
-      padding: 48px 16px !important;
-
-      .matrix-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-      }
-
-      .pillars-grid {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-      }
-
-      .matrix-card,
-      .pillar-card {
-        padding: 16px !important;
-      }
-    }
-
-    .lp-dev-docs-section {
-      padding: 48px 16px !important;
-
-      .docs-tabs-nav {
-        overflow-x: auto !important;
-        scrollbar-width: none !important;
-
-        &::-webkit-scrollbar {
-          display: none !important;
-        }
-      }
-
-      .code-snippet-box {
-        padding: 12px !important;
-
-        pre {
-          font-size: 11px !important;
-        }
-      }
-    }
-
-    .lp-faq-section {
-      padding: 48px 16px !important;
-
-      .faq-categories-row {
-        overflow-x: auto !important;
+      .mobile-menu-trigger-btn {
         display: flex !important;
+      }
+    }
+
+    .lp-hero {
+      padding: 85px 16px 32px !important;
+
+      .hero-badge {
+        font-size: 11px !important;
+        padding: 5px 12px !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        text-align: center !important;
+        margin-bottom: 14px !important;
+      }
+
+      .hero-title {
+        font-size: 27px !important;
+        letter-spacing: -0.6px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 14px !important;
+      }
+
+      .hero-subtitle {
+        font-size: 13.5px !important;
+        line-height: 1.55 !important;
+        margin-bottom: 22px !important;
+      }
+
+      .hero-actions {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+
+        a,
+        button {
+          width: 100% !important;
+          justify-content: center !important;
+          text-align: center !important;
+          height: 44px !important;
+          font-size: 14px !important;
+        }
+      }
+
+      .hero-stats-ribbon {
+        margin-top: 24px !important;
+        padding: 14px 10px !important;
+        border-radius: 14px !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+
+        .stat-divider {
+          display: none !important;
+        }
+
+        .stat-item {
+          padding: 6px 4px !important;
+
+          .stat-value {
+            font-size: 20px !important;
+          }
+
+          .stat-label {
+            font-size: 10.5px !important;
+            margin-top: 2px !important;
+          }
+        }
+      }
+    }
+
+    .lp-section {
+      padding: 44px 16px !important;
+
+      .section-header {
+        margin-bottom: 28px !important;
+
+        .section-badge {
+          font-size: 11px !important;
+          padding: 5px 14px !important;
+        }
+
+        .section-title {
+          font-size: 23px !important;
+          letter-spacing: -0.4px !important;
+        }
+
+        .section-desc {
+          font-size: 13px !important;
+          padding: 0 4px !important;
+          line-height: 1.55 !important;
+        }
+      }
+    }
+
+    .lp-demo-console {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+
+      .scenario-chips {
+        overflow-x: auto !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
         flex-wrap: nowrap !important;
+        padding-bottom: 8px !important;
+        gap: 6px !important;
         scrollbar-width: none !important;
-        padding-bottom: 6px !important;
 
         &::-webkit-scrollbar {
           display: none !important;
         }
 
-        .faq-cat-btn {
+        .chip-btn,
+        .control-btn {
           flex-shrink: 0 !important;
           white-space: nowrap !important;
+          padding: 6px 14px !important;
+          font-size: 11.5px !important;
         }
       }
 
-      .faq-accordion-item {
-        padding: 14px 16px !important;
-      }
-
-      .faq-trust-row {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-      }
-    }
-
-    .lp-newsletter-strip {
-      padding: 36px 16px !important;
-
-      .cta-title {
-        font-size: 22px !important;
-      }
-
-      .cta-desc {
-        font-size: 13px !important;
-      }
-
-      .cta-form {
-        flex-direction: column !important;
+      .pro-studio-window {
         width: 100% !important;
-        padding: 8px !important;
-        gap: 8px !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        min-height: auto !important;
+        border-radius: 12px !important;
 
-        .cta-input-wrap {
-          width: 100% !important;
+        .window-titlebar {
+          padding: 8px 10px !important;
+          gap: 6px !important;
 
-          input {
-            width: 100% !important;
-            font-size: 13px !important;
+          .window-title-tab {
+            font-size: 10px !important;
+            max-width: 150px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            padding: 3px 8px !important;
+          }
+
+          .live-badge {
+            font-size: 9px !important;
+            padding: 2px 6px !important;
           }
         }
 
-        .btn-cta-submit {
-          width: 100% !important;
-          justify-content: center !important;
-          height: 40px !important;
+        .studio-toolbar {
+          flex-direction: column !important;
+          align-items: stretch !important;
+          gap: 8px !important;
+          padding: 8px 10px !important;
+
+          .tool-group {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 5px !important;
+
+            .tool-btn {
+              padding: 4px 8px !important;
+              font-size: 10.5px !important;
+            }
+          }
+
+          .tool-info {
+            display: none !important; // Hide tool info on mobile to save space
+          }
         }
+
+        .studio-body {
+          flex-direction: column !important;
+          width: 100% !important;
+          height: auto !important;
+
+          .studio-palette {
+            display: none !important;
+          }
+
+          .studio-canvas-stage {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 14px 8px !important;
+            min-height: 130px !important;
+
+            .nodes-layer {
+              width: max-content !important;
+              gap: 6px !important;
+
+              .flow-node-item {
+                min-width: 110px !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .lp-docs-box {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      border-radius: 14px !important;
+      overflow: hidden !important;
+
+      .docs-topbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+        box-sizing: border-box !important;
+
+        .docs-tabs-nav {
+          overflow-x: auto !important;
+          width: 100% !important;
+          display: flex !important;
+          flex-wrap: nowrap !important;
+          scrollbar-width: none !important;
+          gap: 6px !important;
+          padding: 2px 0 !important;
+          box-sizing: border-box !important;
+
+          &::-webkit-scrollbar {
+            display: none !important;
+          }
+
+          .tab-btn {
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            padding: 6px 14px !important;
+            font-size: 11.5px !important;
+          }
+        }
+
+        .docs-actions-right {
+          display: flex !important;
+          width: 100% !important;
+          gap: 8px !important;
+          box-sizing: border-box !important;
+
+          .btn-openapi-detail {
+            flex: 1 !important;
+            justify-content: center !important;
+            font-size: 11.5px !important;
+            padding: 6px 8px !important;
+            white-space: nowrap !important;
+          }
+
+          .copy-btn {
+            flex-shrink: 0 !important;
+            font-size: 11.5px !important;
+            padding: 6px 14px !important;
+          }
+        }
+      }
+
+      pre {
+        font-size: 11px !important;
+        padding: 14px !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        height: auto !important;
+        min-height: 240px !important;
+        max-height: 320px !important;
       }
     }
 
     .lp-footer {
-      padding: 48px 16px 24px !important;
+      padding: 44px 16px 20px !important;
 
       .footer-grid {
         grid-template-columns: 1fr !important;
@@ -3355,7 +3593,7 @@
 
       .footer-bottom {
         flex-direction: column !important;
-        gap: 12px !important;
+        gap: 10px !important;
         text-align: center !important;
         align-items: center !important;
       }
@@ -3364,24 +3602,26 @@
 
   // ── EXTRA SMALL PHONES (max-width: 480px) ────────────────────────────────
   @media (max-width: 480px) {
-    .hero-headline {
-      font-size: 24px !important;
-    }
+    .lp-hero {
+      .hero-title {
+        font-size: 23px !important;
+      }
 
-    .section-title {
-      font-size: 21px !important;
-    }
-
-    .hero-kpi-card {
-      .kpi-number {
-        font-size: 20px !important;
+      .hero-stats-ribbon {
+        .stat-item {
+          .stat-value {
+            font-size: 18px !important;
+          }
+        }
       }
     }
 
-    .hero-cta-group {
-      a, button {
-        font-size: 13px !important;
+    .lp-section {
+      .section-header {
+        .section-title {
+          font-size: 20px !important;
+        }
       }
     }
   }
-}
+}

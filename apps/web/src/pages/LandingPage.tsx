@@ -36,6 +36,7 @@ import {
   RiseOutlined,
   CheckCircleOutlined,
   MenuOutlined,
+  CloseOutlined,
   PhoneOutlined,
   MailOutlined,
   HomeOutlined,
@@ -142,50 +143,64 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   const scrollToSection = (id: string) => {
-    if (id === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setActiveNav('home');
-      return;
-    }
-    const el = document.getElementById(id);
-    if (el) {
-      const navHeight = 70;
-      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: elementPosition - navHeight,
-        behavior: 'smooth',
-      });
-      setActiveNav(id as any);
+    const doScroll = () => {
+      if (id === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Also try scrolling the root element for container-aware scroll
+        document.querySelector('.landing-page-root')?.scrollTo({ top: 0, behavior: 'smooth' });
+        setActiveNav('home');
+        return;
+      }
+      const el = document.getElementById(id);
+      if (el) {
+        // scrollIntoView is container-aware — works whether window or a div scrolls
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveNav(id as any);
+      }
+    };
+
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
+      setTimeout(() => requestAnimationFrame(doScroll), 320);
+    } else {
+      doScroll();
     }
   };
 
   useEffect(() => {
-    const onScroll = (e: any) => {
-      const target = e.target;
-      const scrollTop = target === document ? window.scrollY : (target?.scrollTop ?? window.scrollY);
-      if (scrollTop !== undefined) {
-        setScrolled(scrollTop > 20);
-      }
+    const onScroll = () => {
+      // Get scroll position regardless of whether window or a div element is the scroll container
+      const rootEl = document.querySelector('.landing-page-root');
+      const scrollY = (rootEl && rootEl.scrollTop > 0) ? rootEl.scrollTop : window.scrollY;
+      setScrolled(scrollY > 20);
 
-      // Scroll spy for navigation items
-      const scrollPosition = (window.scrollY || document.documentElement.scrollTop) + 140;
-      const sections: ('docs' | 'features' | 'pipeline' | 'demo')[] = ['docs', 'features', 'pipeline', 'demo'];
-      
-      let currentSection: 'home' | 'demo' | 'pipeline' | 'features' | 'docs' = 'home';
+      // Scroll spy: use viewport-relative top (getBoundingClientRect) — works for any scroll container
+      // A section is "active" when its top edge is within the top 120px of the viewport
+      const sections: ('demo' | 'pipeline' | 'features' | 'docs')[] = ['demo', 'pipeline', 'features', 'docs'];
+      const threshold = 120; // px from top of viewport
+
+      let active: 'home' | 'demo' | 'pipeline' | 'features' | 'docs' = 'home';
       for (const s of sections) {
         const el = document.getElementById(s);
         if (el) {
-          const top = el.offsetTop;
-          if (scrollPosition >= top) {
-            currentSection = s;
-            break;
+          const rect = el.getBoundingClientRect();
+          // Section has been scrolled past if its top is above the threshold line
+          if (rect.top <= threshold) {
+            active = s;
           }
         }
       }
-      setActiveNav(currentSection);
+      setActiveNav(active);
     };
-    window.addEventListener('scroll', onScroll, true);
-    return () => window.removeEventListener('scroll', onScroll, true);
+
+    const rootEl = document.querySelector('.landing-page-root');
+    window.addEventListener('scroll', onScroll, { passive: true });
+    rootEl?.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // run once on mount
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      rootEl?.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -386,7 +401,7 @@ export function verifyTikTokWebhook(
               scrollToSection('features');
             }}
           >
-            Tính năng cốt lõi
+            Tính năng
           </a>
           <a
             href="#docs"
@@ -403,71 +418,49 @@ export function verifyTikTokWebhook(
         </nav>
 
         <div className="nav-controls">
-          {/* Language switch */}
-          <div className="lang-pill" onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}>
-            <GlobalOutlined style={{ fontSize: 13, color: '#ed1c24' }} />
-            <span>{lang === 'VN' ? 'VN' : 'EN'}</span>
-          </div>
+          {/* Desktop Only Actions: Hidden completely on Mobile/Tablet */}
+          <div className="desktop-nav-actions">
+            {/* Language switch */}
+            <div className="lang-pill" onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}>
+              <GlobalOutlined style={{ fontSize: 13, color: '#ed1c24' }} />
+              <span>{lang === 'VN' ? 'VN' : 'EN'}</span>
+            </div>
 
-          {/* Theme toggle */}
-          <button className="theme-btn" onClick={toggleTheme} title="Chuyển đổi giao diện Sáng / Tối">
-            {isDark ? <SunOutlined style={{ fontSize: 14 }} /> : <MoonOutlined style={{ fontSize: 14 }} />}
-          </button>
+            {/* Theme toggle */}
+            <button className="theme-btn" onClick={toggleTheme} title="Chuyển đổi giao diện Sáng / Tối">
+              {isDark ? <SunOutlined style={{ fontSize: 14 }} /> : <MoonOutlined style={{ fontSize: 14 }} />}
+            </button>
 
-          {/* Auth Action Buttons */}
-          {isAuthenticated ? (
-            <Link to="/dashboard">
-              <button className="btn-dashboard">
-                <UserOutlined style={{ marginRight: 6 }} />
-                {user?.name || 'Vào Dashboard'}
-              </button>
-            </Link>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Auth Action Button — single entry point */}
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <button className="btn-dashboard">
+                  <UserOutlined style={{ marginRight: 6 }} />
+                  {user?.name || 'Vào Dashboard'}
+                </button>
+              </Link>
+            ) : (
               <Link to="/login">
-                <button
-                  type="button"
-                  style={{
-                    background: 'transparent',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #CBD5E1',
-                    color: isDark ? '#F8FAFC' : '#1E293B',
-                    padding: '6px 16px',
-                    borderRadius: 20,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
+                <button className="btn-dashboard">
+                  <RocketFilled style={{ marginRight: 6 }} />
                   Đăng nhập
                 </button>
               </Link>
-              <Link to="/register">
-                <button className="btn-dashboard">
-                  <RocketFilled style={{ marginRight: 6 }} />
-                  Dùng thử 14 ngày
-                </button>
-              </Link>
-            </div>
-          )}
-          {/* Mobile Hamburger Button */}
+            )}
+          </div>
+
+          {/* Mobile Only Menu Hamburger Button (Toggle Open/Close) */}
           <button
-            className="mobile-hamburger-btn"
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Mở danh mục điều hướng"
+            className="mobile-menu-trigger-btn"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label="Mở hoặc đóng danh mục điều hướng"
             style={{
-              display: 'none', // Shown via CSS media query
-              background: 'transparent',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #CBD5E1',
               color: isDark ? '#F8FAFC' : '#0F172A',
-              padding: '6px 10px',
-              borderRadius: 8,
-              cursor: 'pointer',
-              alignItems: 'center',
-              justifyContent: 'center',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : '#CBD5E1',
+              background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
             }}
           >
-            <MenuOutlined style={{ fontSize: 18 }} />
+            {mobileMenuOpen ? <CloseOutlined style={{ fontSize: 20, color: '#ed1c24' }} /> : <MenuOutlined style={{ fontSize: 20 }} />}
           </button>
         </div>
       </header>
@@ -591,7 +584,7 @@ export function verifyTikTokWebhook(
             }}
           >
             <AppstoreOutlined style={{ color: '#ed1c24' }} />
-            <span>Tính năng cốt lõi</span>
+            <span>Tính năng</span>
           </div>
 
           <div
@@ -729,7 +722,7 @@ export function verifyTikTokWebhook(
             </div>
           </div>
 
-          {/* Auth Action Buttons */}
+          {/* Auth Action — single button */}
           {isAuthenticated ? (
             <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
               <button
@@ -743,6 +736,7 @@ export function verifyTikTokWebhook(
                   fontWeight: 700,
                   fontSize: 13,
                   cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(237, 28, 36, 0.3)',
                 }}
               >
                 <UserOutlined style={{ marginRight: 6 }} />
@@ -750,46 +744,27 @@ export function verifyTikTokWebhook(
               </button>
             </Link>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                <button
-                  type="button"
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #CBD5E1',
-                    color: isDark ? '#F8FAFC' : '#1E293B',
-                    padding: '8px',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Đăng nhập
-                </button>
-              </Link>
-              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                <button
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    padding: '10px',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(237, 28, 36, 0.3)',
-                  }}
-                >
-                  <RocketFilled style={{ marginRight: 6 }} />
-                  Dùng thử 14 ngày
-                </button>
-              </Link>
-            </div>
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+              <button
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(237, 28, 36, 0.3)',
+                }}
+              >
+                <RocketFilled style={{ marginRight: 6 }} />
+                Đăng nhập
+              </button>
+            </Link>
           )}
+
         </div>
       </Drawer>
 
@@ -866,7 +841,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           2. LIVE WORKFLOW SIMULATION DEMO CONSOLE
       ══════════════════════════════════════════════════════════════════ */}
-      <section id="demo" className="lp-section bg-alt">
+      <section id="demo" className="lp-section bg-alt" style={{ scrollMarginTop: 80 }}>
         <div className="section-header">
           <div className="section-badge">
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ed1c24', display: 'inline-block' }} />
@@ -908,354 +883,353 @@ export function verifyTikTokWebhook(
             </button>
           </div>
 
-          {/* Authentic 16:9 Pro Studio Window */}
-          <div className="pro-studio-window">
-            {/* Window Chrome Titlebar */}
-            <div className="window-titlebar">
-              <div className="traffic-lights">
-                <span style={{ background: '#EF4444' }} />
-                <span style={{ background: '#F59E0B' }} />
-                <span style={{ background: '#10B981' }} />
-              </div>
-
-              <div className="window-title-tab">
-                <BranchesOutlined style={{ color: '#ed1c24' }} />
-                <span>uniflow-studio › workflows › <strong>omnichannel_sync.flow</strong></span>
-              </div>
-
-              <div className="window-actions">
-                <span className="live-badge">
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
-                  LIVE ENGINE
-                </span>
-              </div>
-            </div>
-
-            {/* Studio Toolbar */}
-            <div className="studio-toolbar">
-              <div className="tool-group">
-                <button
-                  className="tool-btn primary"
-                  onClick={() => setDemoRunning(!demoRunning)}
-                >
-                  {demoRunning ? <PauseCircleFilled /> : <PlayCircleFilled />}
-                  {demoRunning ? 'Tạm dừng' : 'Chạy mô phỏng'}
-                </button>
-                <div className="tool-btn">
-                  <ThunderboltFilled style={{ color: '#FCC20F' }} />
-                  <span>Sự kiện Webhook</span>
+          {/* Authentic 16:9 Pro Studio Window with Scale/Swipe Wrapper */}
+          <div className="studio-stage-scaler">
+            <div className="pro-studio-window">
+              {/* Window Chrome Titlebar */}
+              <div className="window-titlebar">
+                <div className="traffic-lights">
+                  <span style={{ background: '#EF4444' }} />
+                  <span style={{ background: '#F59E0B' }} />
+                  <span style={{ background: '#10B981' }} />
                 </div>
-                <div className="tool-btn">
-                  <span>＋ Thêm node</span>
+
+                <div className="window-title-tab">
+                  <BranchesOutlined style={{ color: '#ed1c24' }} />
+                  <span>uniflow-studio › workflows › <strong>omnichannel_sync.flow</strong></span>
+                </div>
+
+                <div className="window-actions">
+                  <span className="live-badge">
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
+                    LIVE ENGINE
+                  </span>
                 </div>
               </div>
 
-              <div className="tool-info">
-                <span>Cụm máy chủ: <strong style={{ color: '#ed1c24' }}>VN-HN-01 (Hoạt động)</strong></span>
-                <span>Idempotency: <strong style={{ color: '#D86A04' }}>Redis 24h ✓</strong></span>
-              </div>
-            </div>
-
-            {/* Studio 3-Column Workspace */}
-            <div className="studio-body">
-              {/* 1. Left Node Palette */}
-              <div className="studio-palette">
-                <div className="palette-header">Thư viện Node</div>
-
-                <div className="palette-item">
-                  <span className="item-dot" style={{ background: '#ed1c24' }} />
-                  <span>Inbound Trigger</span>
-                </div>
-                <div className="palette-item">
-                  <span className="item-dot" style={{ background: '#D86A04' }} />
-                  <span>AI Hybrid SKU</span>
-                </div>
-                <div className="palette-item">
-                  <span className="item-dot" style={{ background: '#ed1c24' }} />
-                  <span>Trừ tồn kho POS</span>
-                </div>
-                <div className="palette-item">
-                  <span className="item-dot" style={{ background: '#D86A04' }} />
-                  <span>Vận đơn thông minh</span>
-                </div>
-                <div className="palette-item">
-                  <span className="item-dot" style={{ background: '#ed1c24' }} />
-                  <span>Tự chữa lành sự cố</span>
-                </div>
-              </div>
-
-              {/* 2. Center Main Flow Canvas */}
-              <div className="studio-canvas-stage">
-                <div className="nodes-layer">
-                  {/* Node 1: TriggerNode */}
-                  {(() => {
-                    const active = demoStep === 1;
-                    const done = demoStep > 1;
-                    const nodeColor = '#ed1c24';
-                    return (
-                      <div style={{
-                        position: 'relative',
-                        transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                        transform: active ? 'scale(1.06)' : 'scale(1)',
-                      }}>
-                        <div
-                          className={active ? 'node-active-red' : ''}
-                          style={{
-                            padding: '12px 18px',
-                            background: isDark ? '#1F2937' : '#FFFFFF',
-                            borderRadius: 16,
-                            border: `2px solid ${done || active ? nodeColor : '#334155'}`,
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            minWidth: 180,
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                          }}
-                        >
-                          <div style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: `linear-gradient(135deg, ${nodeColor} 0%, #D86A04 100%)`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#FFFFFF', fontSize: 17, flexShrink: 0,
-                          }}>
-                            <ShoppingFilled />
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, color: isDark ? '#F8FAFC' : '#0F172A' }}>{sc.source}</div>
-                            <div style={{ fontSize: 11, marginTop: 3, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 500 }}>
-                              {done ? 'HMAC Verified ✓' : 'Webhook Inbound'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right Output Socket */}
-                        <div style={{
-                          position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)',
-                          width: 12, height: 12, borderRadius: '50%',
-                          background: done || active ? nodeColor : '#475569',
-                          border: '2px solid #0B0F19',
-                        }} />
-                      </div>
-                    );
-                  })()}
-
-                  {/* Flowing Connector 1 */}
-                  <div style={{ display: 'flex', alignItems: 'center', width: 44, flexShrink: 0 }}>
-                    <div style={{ flex: 1, height: 2, background: demoStep >= 2 ? 'linear-gradient(to right, #ed1c24, #D86A04)' : '#334155', transition: 'all 0.4s' }} />
-                    <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 2 ? '#D86A04' : '#334155'}` }} />
+              {/* Studio Toolbar */}
+              <div className="studio-toolbar">
+                <div className="tool-group">
+                  <button
+                    className="tool-btn primary"
+                    onClick={() => setDemoRunning(!demoRunning)}
+                  >
+                    {demoRunning ? <PauseCircleFilled /> : <PlayCircleFilled />}
+                    {demoRunning ? 'Tạm dừng' : 'Chạy mô phỏng'}
+                  </button>
+                  <div className="tool-btn">
+                    <ThunderboltFilled style={{ color: '#FCC20F' }} />
+                    <span>Sự kiện Webhook</span>
                   </div>
-
-                  {/* Node 2: AINode */}
-                  {(() => {
-                    const active = demoStep === 2;
-                    const done = demoStep > 2;
-                    return (
-                      <div style={{
-                        position: 'relative',
-                        transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                        transform: active ? 'scale(1.06)' : 'scale(1)',
-                      }}>
-                        {/* Left Input Socket */}
-                        <div style={{
-                          position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
-                          width: 12, height: 12, borderRadius: '50%',
-                          background: done || active ? '#D86A04' : '#475569',
-                          border: '2px solid #0B0F19',
-                        }} />
-
-                        <div
-                          className={active ? 'node-active-gold' : ''}
-                          style={{
-                            padding: '12px 18px',
-                            background: isDark ? '#1F2937' : '#FFFFFF',
-                            borderRadius: 16,
-                            border: `2px solid ${done || active ? '#D86A04' : '#334155'}`,
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            minWidth: 195,
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                          }}
-                        >
-                          <div style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #D86A04 0%, #FCC20F 100%)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#FFFFFF', fontSize: 17, flexShrink: 0,
-                          }}>
-                            <RocketFilled />
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, color: isDark ? '#F8FAFC' : '#0F172A' }}>AI Hybrid Match</div>
-                            <div style={{ fontSize: 11, marginTop: 3, color: done ? '#10B981' : active ? '#D86A04' : '#94A3B8', fontWeight: done ? 700 : 500 }}>
-                              {done ? '98.5% Khớp SKU ✓' : 'Qdrant + NER'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right Output Sockets */}
-                        <div style={{
-                          position: 'absolute', right: -6, top: '35%', transform: 'translateY(-50%)',
-                          width: 10, height: 10, borderRadius: '50%',
-                          background: done || active ? '#ed1c24' : '#475569',
-                          border: '2px solid #0B0F19',
-                        }} />
-                        <div style={{
-                          position: 'absolute', right: -6, top: '65%', transform: 'translateY(-50%)',
-                          width: 10, height: 10, borderRadius: '50%',
-                          background: done || active ? '#D86A04' : '#475569',
-                          border: '2px solid #0B0F19',
-                        }} />
-                      </div>
-                    );
-                  })()}
-
-                  {/* Flowing Connector 2 (Branching) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18, flexShrink: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', width: 44 }}>
-                      <div style={{ flex: 1, height: 2, background: demoStep >= 3 ? '#ed1c24' : '#334155' }} />
-                      <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 3 ? '#ed1c24' : '#334155'}` }} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', width: 44 }}>
-                      <div style={{ flex: 1, height: 2, background: demoStep >= 4 ? '#D86A04' : '#334155' }} />
-                      <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 4 ? '#D86A04' : '#334155'}` }} />
-                    </div>
+                  <div className="tool-btn">
+                    <span>＋ Thêm node</span>
                   </div>
+                </div>
 
-                  {/* Nodes 3 & 4 (Stacked Actions) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flexShrink: 0 }}>
-                    {/* Node 3: POS Deduct */}
+                <div className="tool-info">
+                  <span>Cụm máy chủ: <strong style={{ color: '#ed1c24' }}>VN-HN-01 (Hoạt động)</strong></span>
+                  <span>Idempotency: <strong style={{ color: '#D86A04' }}>Redis 24h ✓</strong></span>
+                </div>
+              </div>
+
+              {/* Studio 3-Column Workspace */}
+              <div className="studio-body">
+                {/* 1. Left Node Palette */}
+                <div className="studio-palette">
+                  <div className="palette-header">Thư viện Node</div>
+
+                  <div className="palette-item">
+                    <span className="item-dot" style={{ background: '#ed1c24' }} />
+                    <span>Inbound Trigger</span>
+                  </div>
+                  <div className="palette-item">
+                    <span className="item-dot" style={{ background: '#D86A04' }} />
+                    <span>AI Hybrid SKU</span>
+                  </div>
+                  <div className="palette-item">
+                    <span className="item-dot" style={{ background: '#ed1c24' }} />
+                    <span>Trừ tồn kho POS</span>
+                  </div>
+                  <div className="palette-item">
+                    <span className="item-dot" style={{ background: '#D86A04' }} />
+                    <span>Vận đơn thông minh</span>
+                  </div>
+                  <div className="palette-item">
+                    <span className="item-dot" style={{ background: '#ed1c24' }} />
+                    <span>Tự chữa lành sự cố</span>
+                  </div>
+                </div>
+
+                {/* 2. Center Main Flow Canvas */}
+                <div className="studio-canvas-stage">
+                  <div className="nodes-layer">
+                    {/* Node 1: TriggerNode */}
                     {(() => {
-                      const active = demoStep === 3;
-                      const done = demoStep > 3;
+                      const active = demoStep === 1;
+                      const done = demoStep > 1;
+                      const nodeColor = '#ed1c24';
                       return (
-                        <div style={{ position: 'relative' }}>
+                        <div style={{
+                          position: 'relative',
+                          transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                          transform: active ? 'scale(1.06)' : 'scale(1)',
+                        }}>
+                          <div
+                            className={active ? 'node-active-red' : ''}
+                            style={{
+                              padding: '12px 18px',
+                              background: isDark ? '#1F2937' : '#FFFFFF',
+                              borderRadius: 16,
+                              border: `2px solid ${done || active ? nodeColor : '#334155'}`,
+                              display: 'flex', alignItems: 'center', gap: 12,
+                              minWidth: 180,
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                            }}
+                          >
+                            <div style={{
+                              width: 36, height: 36, borderRadius: '50%',
+                              background: `linear-gradient(135deg, ${nodeColor} 0%, #D86A04 100%)`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#FFFFFF', fontSize: 17, flexShrink: 0,
+                            }}>
+                              <ShoppingFilled />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, color: isDark ? '#F8FAFC' : '#0F172A' }}>{sc.source}</div>
+                              <div style={{ fontSize: 11, marginTop: 3, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 500 }}>
+                                {done ? 'HMAC Verified ✓' : 'Webhook Inbound'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Output Socket */}
+                          <div style={{
+                            position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)',
+                            width: 12, height: 12, borderRadius: '50%',
+                            background: done || active ? nodeColor : '#475569',
+                            border: '2px solid #0B0F19',
+                          }} />
+                        </div>
+                      );
+                    })()}
+
+                    {/* Flowing Connector 1 */}
+                    <div style={{ display: 'flex', alignItems: 'center', width: 44, flexShrink: 0 }}>
+                      <div style={{ flex: 1, height: 2, background: demoStep >= 2 ? 'linear-gradient(to right, #ed1c24, #D86A04)' : '#334155', transition: 'all 0.4s' }} />
+                      <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 2 ? '#D86A04' : '#334155'}` }} />
+                    </div>
+
+                    {/* Node 2: AINode */}
+                    {(() => {
+                      const active = demoStep === 2;
+                      const done = demoStep > 2;
+                      return (
+                        <div style={{
+                          position: 'relative',
+                          transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                          transform: active ? 'scale(1.06)' : 'scale(1)',
+                        }}>
                           {/* Left Input Socket */}
                           <div style={{
                             position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+                            width: 12, height: 12, borderRadius: '50%',
+                            background: done || active ? '#D86A04' : '#475569',
+                            border: '2px solid #0B0F19',
+                          }} />
+
+                          <div
+                            className={active ? 'node-active-gold' : ''}
+                            style={{
+                              padding: '12px 18px',
+                              background: isDark ? '#1F2937' : '#FFFFFF',
+                              borderRadius: 16,
+                              border: `2px solid ${done || active ? '#D86A04' : '#334155'}`,
+                              display: 'flex', alignItems: 'center', gap: 12,
+                              minWidth: 195,
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                            }}
+                          >
+                            <div style={{
+                              width: 36, height: 36, borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #D86A04 0%, #FCC20F 100%)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#FFFFFF', fontSize: 17, flexShrink: 0,
+                            }}>
+                              <RocketFilled />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: 13.5, lineHeight: 1.2, color: isDark ? '#F8FAFC' : '#0F172A' }}>AI Hybrid Match</div>
+                              <div style={{ fontSize: 11, marginTop: 3, color: done ? '#10B981' : active ? '#D86A04' : '#94A3B8', fontWeight: done ? 700 : 500 }}>
+                                {done ? '98.5% Khớp SKU ✓' : 'Qdrant + NER'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Output Sockets */}
+                          <div style={{
+                            position: 'absolute', right: -6, top: '35%', transform: 'translateY(-50%)',
                             width: 10, height: 10, borderRadius: '50%',
                             background: done || active ? '#ed1c24' : '#475569',
                             border: '2px solid #0B0F19',
                           }} />
-
-                          <div className={active ? 'node-active-red' : ''} style={{
-                            padding: '10px 16px',
-                            background: isDark ? '#1F2937' : '#FFFFFF',
-                            borderRadius: 14,
-                            border: `2px solid ${done || active ? '#ed1c24' : '#334155'}`,
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            minWidth: 180,
-                            boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
-                          }}>
-                            <div style={{
-                              width: 32, height: 32, borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#FFFFFF', fontSize: 15,
-                            }}>
-                              <DatabaseFilled />
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 800, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A' }}>Trừ kho {sc.pos}</div>
-                              <div style={{ fontSize: 10.5, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 400 }}>
-                                {done ? 'ERP Deduct ✓' : 'Đồng bộ trực tiếp'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Node 4: Logistics */}
-                    {(() => {
-                      const active = demoStep === 4 || demoStep === 5;
-                      const done = demoStep >= 5;
-                      const isHealing = demoScenario === 'HEALING';
-                      const nodeColor = isHealing && demoStep === 4 ? '#EF4444' : '#D86A04';
-                      return (
-                        <div style={{ position: 'relative' }}>
-                          {/* Left Input Socket */}
                           <div style={{
-                            position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+                            position: 'absolute', right: -6, top: '65%', transform: 'translateY(-50%)',
                             width: 10, height: 10, borderRadius: '50%',
-                            background: done || active ? nodeColor : '#475569',
+                            background: done || active ? '#D86A04' : '#475569',
                             border: '2px solid #0B0F19',
                           }} />
-
-                          <div className={active ? 'node-active-gold' : ''} style={{
-                            padding: '10px 16px',
-                            background: isDark ? '#1F2937' : '#FFFFFF',
-                            borderRadius: 14,
-                            border: `2px solid ${done || active ? nodeColor : '#334155'}`,
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            minWidth: 180,
-                            boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
-                          }}>
-                            <div style={{
-                              width: 32, height: 32, borderRadius: '50%',
-                              background: isHealing && demoStep === 4
-                                ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                                : 'linear-gradient(135deg, #D86A04 0%, #FCC20F 100%)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#FFFFFF', fontSize: 15,
-                            }}>
-                              <CarFilled />
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 800, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A' }}>
-                                {isHealing && demoStep === 4 ? 'GHTK 504 ➔ Đổi hãng' : sc.waybill}
-                              </div>
-                              <div style={{ fontSize: 10.5, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 400 }}>
-                                {done ? `${sc.waybillCode} ✓` : 'Tạo vận đơn'}
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       );
                     })()}
-                  </div>
-                </div>
 
-                {/* Floating Canvas Controls */}
-                <div className="floating-controls">
-                  <button title="Phóng to">+</button>
-                  <button title="Thu nhỏ">-</button>
-                  <button title="Toàn màn hình">⛶</button>
-                </div>
-
-                {/* Floating MiniMap */}
-                <div className="floating-minimap">
-                  <div className="map-view-box" />
-                </div>
-              </div>
-
-              {/* 3. Right Live Event Inspector & Terminal */}
-              <div className="studio-inspector">
-                <div>
-                  <div className="inspector-header">
-                    <span>Nhật ký luồng sự kiện</span>
-                    <span style={{ color: '#10B981', fontSize: 10 }}>200 OK</span>
-                  </div>
-
-                  <div className="inspector-logs">
-                    {sc.logs.map((log, i) => (
-                      <div key={i} style={{
-                        display: 'flex', gap: 8,
-                        opacity: demoStep >= i + 1 ? 1 : 0.2,
-                        transition: 'opacity 0.3s ease',
-                      }}>
-                        <span style={{ color: '#64748B', flexShrink: 0 }}>[{log.t}]</span>
-                        <span style={{ color: demoStep >= i + 1 ? log.color : '#475569' }}>{log.msg}</span>
+                    {/* Flowing Connector 2 (Branching) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 18, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', width: 44 }}>
+                        <div style={{ flex: 1, height: 2, background: demoStep >= 3 ? '#ed1c24' : '#334155' }} />
+                        <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 3 ? '#ed1c24' : '#334155'}` }} />
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div style={{ display: 'flex', alignItems: 'center', width: 44 }}>
+                        <div style={{ flex: 1, height: 2, background: demoStep >= 4 ? '#D86A04' : '#334155' }} />
+                        <div style={{ width: 0, height: 0, borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: `6px solid ${demoStep >= 4 ? '#D86A04' : '#334155'}` }} />
+                      </div>
+                    </div>
 
-                <div className="inspector-footer">
-                  <div>
-                    <div style={{ fontSize: 10, color: '#64748B' }}>Độ trễ P99 SLA</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: '#10B981', letterSpacing: '-0.5px' }}>
-                      185ms
+                    {/* Nodes 3 & 4 (Stacked Actions) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flexShrink: 0 }}>
+                      {/* Node 3: POS Deduct */}
+                      {(() => {
+                        const active = demoStep === 3;
+                        const done = demoStep > 3;
+                        return (
+                          <div style={{ position: 'relative' }}>
+                            {/* Left Input Socket */}
+                            <div style={{
+                              position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+                              width: 10, height: 10, borderRadius: '50%',
+                              background: done || active ? '#ed1c24' : '#475569',
+                              border: '2px solid #0B0F19',
+                            }} />
+
+                            <div className={active ? 'node-active-red' : ''} style={{
+                              padding: '10px 16px',
+                              background: isDark ? '#1F2937' : '#FFFFFF',
+                              borderRadius: 14,
+                              border: `2px solid ${done || active ? '#ed1c24' : '#334155'}`,
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              minWidth: 180,
+                              boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                            }}>
+                              <div style={{
+                                width: 32, height: 32, borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#FFFFFF', fontSize: 15,
+                              }}>
+                                <DatabaseFilled />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A' }}>Trừ kho {sc.pos}</div>
+                                <div style={{ fontSize: 10.5, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 400 }}>
+                                  {done ? 'ERP Deduct ✓' : 'Đồng bộ trực tiếp'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Node 4: Logistics */}
+                      {(() => {
+                        const active = demoStep === 4 || demoStep === 5;
+                        const done = demoStep >= 5;
+                        const isHealing = demoScenario === 'HEALING';
+                        const nodeColor = isHealing && demoStep === 4 ? '#EF4444' : '#D86A04';
+                        return (
+                          <div style={{ position: 'relative' }}>
+                            {/* Left Input Socket */}
+                            <div style={{
+                              position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+                              width: 10, height: 10, borderRadius: '50%',
+                              background: done || active ? nodeColor : '#475569',
+                              border: '2px solid #0B0F19',
+                            }} />
+
+                            <div className={active ? 'node-active-gold' : ''} style={{
+                              padding: '10px 16px',
+                              background: isDark ? '#1F2937' : '#FFFFFF',
+                              borderRadius: 14,
+                              border: `2px solid ${done || active ? nodeColor : '#334155'}`,
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              minWidth: 180,
+                              boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                            }}>
+                              <div style={{
+                                width: 32, height: 32, borderRadius: '50%',
+                                background: isHealing && demoStep === 4
+                                  ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                                  : 'linear-gradient(135deg, #D86A04 0%, #FCC20F 100%)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#FFFFFF', fontSize: 15,
+                              }}>
+                                <CarFilled />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, fontSize: 13, color: isDark ? '#F8FAFC' : '#0F172A' }}>
+                                  {isHealing && demoStep === 4 ? 'GHTK 504 ➔ Đổi hãng' : sc.waybill}
+                                </div>
+                                <div style={{ fontSize: 10.5, color: done ? '#10B981' : '#94A3B8', fontWeight: done ? 700 : 400 }}>
+                                  {done ? `${sc.waybillCode} ✓` : 'Tạo vận đơn'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, color: '#94A3B8' }}>
-                    Tenant: <strong style={{ color: '#F8FAFB' }}>PTIT_Aka</strong>
+
+                  {/* Floating Canvas Controls */}
+                  <div className="floating-controls">
+                    <button title="Phóng to">+</button>
+                    <button title="Thu nhỏ">-</button>
+                    <button title="Toàn màn hình">⛶</button>
+                  </div>
+
+                  {/* Floating MiniMap */}
+                  <div className="floating-minimap">
+                    <div className="map-view-box" />
+                  </div>
+                </div>
+
+                {/* 3. Right Live Event Inspector & Terminal */}
+                <div className="studio-inspector">
+                  <div>
+                    <div className="inspector-header">
+                      <span>Nhật ký luồng sự kiện</span>
+                      <span style={{ color: '#10B981', fontSize: 10 }}>200 OK</span>
+                    </div>
+
+                    <div className="inspector-logs">
+                      {sc.logs.map((log, i) => (
+                        <div key={i} style={{
+                          display: 'flex', gap: 8,
+                          opacity: demoStep >= i + 1 ? 1 : 0.2,
+                          transition: 'opacity 0.3s ease',
+                        }}>
+                          <span style={{ color: '#64748B', flexShrink: 0 }}>[{log.t}]</span>
+                          <span style={{ color: demoStep >= i + 1 ? log.color : '#475569' }}>{log.msg}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="inspector-footer">
+                    <div>
+                      <div style={{ fontSize: 10, color: '#64748B' }}>Độ trễ P99 SLA</div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: '#10B981', letterSpacing: '-0.5px' }}>
+                        185ms
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1392,7 +1366,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           4. ARCHITECTURE PIPELINE: 5-STEP STREAM (1 HORIZONTAL ROW)
       ══════════════════════════════════════════════════════════════════ */}
-      <section id="pipeline" className="lp-section lp-section-pipeline-dark">
+      <section id="pipeline" className="lp-section lp-section-pipeline-dark" style={{ scrollMarginTop: 80 }}>
         <div className="section-header">
           <div className="section-badge">QUY TRÌNH 0-CHẠM</div>
           <h2 className="section-title">Hành trình xử lý đơn hàng đa kênh tốc độ cao</h2>
@@ -1429,7 +1403,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           4. 4 CORE TECHNOLOGY PILLARS
       ══════════════════════════════════════════════════════════════════ */}
-      <section id="features" className="lp-section bg-alt">
+      <section id="features" className="lp-section bg-alt" style={{ scrollMarginTop: 80 }}>
         <div className="section-header">
           <div className="section-badge">CÔNG NGHỆ CỐT LÕI</div>
           <h2 className="section-title">4 trụ cột nền tảng của UniFlow AI</h2>
@@ -1459,7 +1433,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           5. DEVELOPER DOCS & CODE EXPLORER
       ══════════════════════════════════════════════════════════════════ */}
-      <section id="docs" className="lp-section">
+      <section id="docs" className="lp-section" style={{ scrollMarginTop: 80 }}>
         <div className="section-header">
           <div className="section-badge">DÀNH CHO NHÀ PHÁT TRIỂN</div>
           <h2 className="section-title">Tài liệu kỹ thuật & OpenAPI v3</h2>
@@ -1470,7 +1444,7 @@ export function verifyTikTokWebhook(
 
         <div className="lp-docs-box">
           <div className="docs-topbar">
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="docs-tabs-nav">
               <button
                 onClick={() => setCodeTab('udm')}
                 className={`tab-btn ${codeTab === 'udm' ? 'active' : ''}`}

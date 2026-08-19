@@ -22,7 +22,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
   return (
     <div className="auth-page-wrapper" data-theme={themeMode}>
-      {/* ── LEFT HERO BRAND PANEL ────────────────────────────────────────── */}
+      {/* ── LEFT HERO BRAND PANEL (hidden on mobile) ──────────────────────────── */}
       <div className="auth-hero-panel">
         <div className="auth-bg-orb-1" />
         <div className="auth-bg-orb-2" />
@@ -41,7 +41,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         {/* Hero Main Showcase */}
         <div className="auth-hero-main">
           <div className="auth-badge-pill">
-            <span>OMNICHANNEL IPAAS & AI MIDDLEWARE</span>
+            <span>OMNICHANNEL IPAAS &amp; AI MIDDLEWARE</span>
           </div>
 
           <h1 className="auth-hero-title">
@@ -55,19 +55,15 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
           <div className="auth-feature-cards">
             <div className="auth-feat-item">
-              <div className="feat-icon-box">
-                <ThunderboltOutlined />
-              </div>
+              <div className="feat-icon-box"><ThunderboltOutlined /></div>
               <div>
                 <div className="feat-title">Tốc độ xử lý dưới 200ms</div>
-                <div className="feat-sub">Idempotency Key 24h & Redis Cluster chống trùng đơn Flash Sale</div>
+                <div className="feat-sub">Idempotency Key 24h &amp; Redis Cluster chống trùng đơn Flash Sale</div>
               </div>
             </div>
 
             <div className="auth-feat-item">
-              <div className="feat-icon-box">
-                <ApiOutlined />
-              </div>
+              <div className="feat-icon-box"><ApiOutlined /></div>
               <div>
                 <div className="feat-title">Khớp SKU AI 98.5% chính xác</div>
                 <div className="feat-sub">Hybrid Semantic Vector (Qdrant) kết hợp Gemini Flash NER</div>
@@ -75,12 +71,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             </div>
 
             <div className="auth-feat-item">
-              <div className="feat-icon-box">
-                <SafetyCertificateOutlined />
-              </div>
+              <div className="feat-icon-box"><SafetyCertificateOutlined /></div>
               <div>
                 <div className="feat-title">Bảo mật chuẩn Enterprise</div>
-                <div className="feat-sub">Mã hóa AES-256-GCM, phân quyền RBAC & Tenant Isolation</div>
+                <div className="feat-sub">Mã hóa AES-256-GCM, phân quyền RBAC &amp; Tenant Isolation</div>
               </div>
             </div>
           </div>
@@ -93,8 +87,36 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* ── RIGHT FORM PANEL ─────────────────────────────────────────────── */}
+      {/* ── RIGHT FORM PANEL ─────────────────────────────────────────────────── */}
       <div className="auth-form-panel">
+        {/* Mobile-only topbar: Logo + Home + Theme toggle */}
+        <div className="auth-mobile-topbar">
+          <Link to="/" className="auth-mobile-brand">
+            <img src="/logo.svg" alt="UniFlow" />
+            <span className="auth-brand-title">
+              Uni<span className="brand-flow">Flow</span>
+              <span className="brand-ai">AI</span>
+            </span>
+          </Link>
+          <div className="auth-mobile-actions">
+            <Tooltip title="Về trang chủ">
+              <Link to="/">
+                <Button type="text" shape="circle" size="small" icon={<HomeOutlined />} />
+              </Link>
+            </Tooltip>
+            <Tooltip title={isDark ? 'Chuyển sang Sáng' : 'Chuyển sang Tối'}>
+              <Button
+                type="text"
+                shape="circle"
+                size="small"
+                icon={isDark ? <SunOutlined style={{ color: '#FCC20F' }} /> : <MoonOutlined />}
+                onClick={toggleTheme}
+              />
+            </Tooltip>
+          </div>
+        </div>
+
+        {/* Desktop top-right actions */}
         <div className="auth-top-actions">
           <Tooltip title="Về trang chủ">
             <Link to="/">
@@ -111,7 +133,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           </Tooltip>
         </div>
 
-        {children}
+        {/* Form content, vertically centered */}
+        <div className="auth-form-inner">
+          {children}
+        </div>
       </div>
     </div>
   );
