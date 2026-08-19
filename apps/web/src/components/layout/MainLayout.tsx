@@ -13,6 +13,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   QuestionCircleOutlined,
+  AimOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NotificationDrawer } from './NotificationDrawer';
@@ -67,11 +68,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     {
       key: '/copilot',
       icon: (
-        <img
-          src="/favicon.svg"
-          alt="AI Agent"
-          style={{ width: 16, height: 16, objectFit: 'contain', verticalAlign: 'middle' }}
-        />
+        // <img
+        //   src="/favicon.svg"
+        //   alt="AI Agent"
+        //   style={{ width: 16, height: 16, objectFit: 'contain', verticalAlign: 'middle' }}
+        // />
+        <AimOutlined />
       ),
       label: <Link to="/copilot">Trợ lý AI Agent</Link>,
     },

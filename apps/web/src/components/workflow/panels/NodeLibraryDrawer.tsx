@@ -25,6 +25,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
+import { FormFooter } from '../../base/FormFooter';
 import { notify } from '../../../utils/notification';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
 
@@ -379,7 +380,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                     style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
                     onClick={() => setSelectedCat('NOTIFY')}
                   >
-                    Cảnh báo & CRM
+                    Thông báo & CRM
                   </Tag>
                 </div>
 
@@ -651,15 +652,24 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <CodeOutlined style={{ color: '#8B5CF6' }} />
-            <span style={{ fontWeight: 700 }}>Thiết kế Khối Xử lý Tùy chỉnh (Custom Node)</span>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Thiết kế Khối Xử lý Tùy chỉnh (Custom Node)</span>
           </div>
         }
         open={createModalOpen}
-        onOk={handleSaveCustomNode}
         onCancel={() => setCreateModalOpen(false)}
-        okText="Lưu vào Thư viện"
-        cancelText="Hủy bỏ"
+        footer={
+          <FormFooter
+            align="center"
+            submitText="Lưu vào Thư viện"
+            cancelText="Hủy bỏ"
+            onCancel={() => setCreateModalOpen(false)}
+            onSubmit={handleSaveCustomNode}
+            style={{ marginTop: 0, paddingTop: 14 }}
+          />
+        }
         width={560}
+        centered
+        destroyOnClose
       >
         <Form form={form} layout="vertical" initialValues={{ nodeType: 'action', customType: 'HTTP_REQUEST', category: 'CUSTOM' }}>
           <Form.Item

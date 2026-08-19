@@ -37,25 +37,29 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <span style={{ color: '#F9FAFB', fontWeight: 700, fontSize: 16 }}>{title}</span>
         </Space>
       }
-      footer={[
-        <Button key="cancel" onClick={onCancel} disabled={loading} style={{ borderColor: '#374151', color: '#9CA3AF' }}>
-          {cancelText}
-        </Button>,
-        <Button
-          key="confirm"
-          type="primary"
-          danger={danger}
-          loading={loading}
-          onClick={onConfirm}
-          style={{
-            background: danger ? '#EF4444' : 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
-            border: 'none',
-            fontWeight: 700,
-          }}
-        >
-          {confirmText}
-        </Button>,
-      ]}
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, paddingTop: 10 }}>
+          <Button key="cancel" onClick={onCancel} disabled={loading} style={{ borderColor: '#374151', color: '#9CA3AF', minWidth: 96, height: 32 }}>
+            {cancelText}
+          </Button>
+          <Button
+            key="confirm"
+            type="primary"
+            danger={danger}
+            loading={loading}
+            onClick={onConfirm}
+            style={{
+              background: danger ? '#EF4444' : 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
+              border: 'none',
+              fontWeight: 700,
+              minWidth: 120,
+              height: 32,
+            }}
+          >
+            {confirmText}
+          </Button>
+        </div>
+      }
       styles={{
         body: { background: '#0B0F19', padding: '16px 0' },
         header: { background: '#111827', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' },

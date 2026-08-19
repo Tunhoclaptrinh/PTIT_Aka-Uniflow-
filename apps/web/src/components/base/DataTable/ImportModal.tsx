@@ -50,7 +50,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       }
       footer={
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-          <BaseButton variant="ghost" size="small" onClick={onCancel}>
+          <BaseButton variant="secondary" size="small" onClick={onCancel} style={{ minWidth: 96, height: 32 }}>
             Hủy bỏ
           </BaseButton>
           <BaseButton
@@ -61,6 +61,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             icon={<UploadOutlined />}
             disabled={fileList.length === 0}
             glow
+            style={{ minWidth: 140, height: 32 }}
           >
             Tiến hành Import
           </BaseButton>

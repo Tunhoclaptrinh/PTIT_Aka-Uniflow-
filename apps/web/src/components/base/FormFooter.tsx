@@ -47,11 +47,11 @@ export const FormFooter: React.FC<FormFooterProps> = ({
       <Space size="middle">
         {onReset && resetText && (
           <BaseButton
-            variant="ghost"
+            variant="secondary"
             icon={<UndoOutlined />}
             onClick={onReset}
             disabled={disabled || loading}
-            style={{ minWidth: 90 }}
+            style={{ minWidth: 96, height: 32 }}
           >
             {resetText}
           </BaseButton>
@@ -59,11 +59,11 @@ export const FormFooter: React.FC<FormFooterProps> = ({
 
         {onCancel && (
           <BaseButton
-            variant="ghost"
+            variant="secondary"
             icon={<CloseOutlined />}
             onClick={onCancel}
             disabled={disabled || loading}
-            style={{ minWidth: 90 }}
+            style={{ minWidth: 96, height: 32 }}
           >
             {cancelText}
           </BaseButton>
@@ -77,7 +77,7 @@ export const FormFooter: React.FC<FormFooterProps> = ({
             disabled={disabled}
             glow
             onClick={onSubmit}
-            style={{ minWidth: 120 }}
+            style={{ minWidth: 120, height: 32 }}
           >
             {submitText}
           </BaseButton>

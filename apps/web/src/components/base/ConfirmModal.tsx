@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, Space, Typography } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import { BaseButton } from './BaseButton';
+import { FormFooter } from './FormFooter';
 import { ConfirmModalProps } from './types';
 
 const { Paragraph } = Typography;
@@ -27,20 +27,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
         </Space>
       }
-      footer={[
-        <BaseButton key="cancel" variant="ghost" size="small" onClick={onCancel} disabled={loading}>
-          {cancelText}
-        </BaseButton>,
-        <BaseButton
-          key="confirm"
-          variant={danger ? 'danger' : 'primary'}
-          size="small"
+      footer={
+        <FormFooter
+          align="center"
+          cancelText={cancelText}
+          submitText={confirmText}
           loading={loading}
-          onClick={onConfirm}
-        >
-          {confirmText}
-        </BaseButton>,
-      ]}
+          onCancel={onCancel}
+          onSubmit={onConfirm}
+          style={{ marginTop: 0, paddingTop: 14 }}
+        />
+      }
       styles={{
         body: { padding: '16px 0' },
       }}

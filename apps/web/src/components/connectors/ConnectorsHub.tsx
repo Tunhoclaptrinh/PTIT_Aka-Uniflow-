@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Tag, Space, Tabs } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Row, Col, Tag, Space, Tabs, Spin } from 'antd';
 import {
   SettingOutlined,
   PlusOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 import { ConnectorConfigModal } from './ConnectorConfigModal';
 import { AddConnectorModal } from './AddConnectorModal';
 import { StatusTag, BaseButton, SearchInput, EmptyState, PageContainer } from '../base';
 import { notify } from '../../utils/notification';
-import { metricsService } from '../../services/metrics.service';
+import { connectorsService, DbConnectorItem } from '../../services/connectors.service';
 import { getPartnerLogo } from '../../utils/partnerLogos';
 
 export interface ConnectorItem {
@@ -16,7 +17,7 @@ export interface ConnectorItem {
   name: string;
   category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS' | 'CHAT_SOCIAL' | 'SPREADSHEET' | 'LANDING_PAGE' | 'ACCOUNTING';
   categoryLabel: string;
-  status: 'CONNECTED' | 'DISCONNECTED';
+  status: 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
   ordersSynced: number;
   latency: string;
   brandColor: string;
@@ -26,6 +27,7 @@ export interface ConnectorItem {
   endpoint?: string;
 }
 
+// ── DANH MỤC THƯƠNG HIỆU & KÊNH KẾT NỐI MẶC ĐỊNH (KHÔNG CHỨA SỐ LIỆU CỐ ĐỊNH) ──
 const defaultConnectorsList: ConnectorItem[] = [
   {
     id: 'tiktok',
@@ -33,8 +35,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'MARKETPLACE',
     categoryLabel: 'Sàn TMĐT',
     status: 'CONNECTED',
-    ordersSynced: 28450,
-    latency: '185ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#000000',
     description: 'Inbound Webhook 0-chạm, xác thực HMAC-SHA256 chuẩn SLA TikTok',
   },
@@ -44,8 +46,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'MARKETPLACE',
     categoryLabel: 'Sàn TMĐT',
     status: 'CONNECTED',
-    ordersSynced: 14220,
-    latency: '210ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#EE4D2D',
     description: 'Nhận push notification READY_TO_SHIP và pull đơn hàng chi tiết qua API v2',
   },
@@ -55,8 +57,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'MARKETPLACE',
     categoryLabel: 'Sàn TMĐT',
     status: 'DISCONNECTED',
-    ordersSynced: 5180,
-    latency: '230ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0F146D',
     description: 'Kết nối gian hàng Lazada Mall, đồng bộ trạng thái thanh toán tự động',
   },
@@ -66,8 +68,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'CHAT_SOCIAL',
     categoryLabel: 'CSKH & Hội thoại',
     status: 'CONNECTED',
-    ordersSynced: 31200,
-    latency: '110ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#2563EB',
     description: 'Đồng bộ tin nhắn Fanpage Facebook, Zalo OA và AI CSKH tự động tư vấn chốt đơn',
   },
@@ -77,8 +79,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'CHAT_SOCIAL',
     categoryLabel: 'CSKH & Hội thoại',
     status: 'CONNECTED',
-    ordersSynced: 15400,
-    latency: '95ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0068FF',
     description: 'Tự động gửi thông báo biến động đơn hàng, mã tracking vận đơn qua Zalo ZNS',
   },
@@ -88,8 +90,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'CHAT_SOCIAL',
     categoryLabel: 'CSKH & Hội thoại',
     status: 'CONNECTED',
-    ordersSynced: 42300,
-    latency: '80ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#24A1DE',
     description: 'Nhận báo cáo đơn hàng mới, cảnh báo lỗi ánh xạ SKU và phê duyệt 1-click tức thì',
   },
@@ -99,8 +101,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
     status: 'CONNECTED',
-    ordersSynced: 38900,
-    latency: '145ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0088FF',
     description: 'Trừ tồn kho tức thì (Live Inventory Deduct) và cập nhật phiếu xuất kho',
   },
@@ -110,8 +112,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
     status: 'CONNECTED',
-    ordersSynced: 19800,
-    latency: '160ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#004F9E',
     description: 'Đồng bộ hóa đơn bán hàng và trừ tồn kho chi nhánh theo thời gian thực',
   },
@@ -121,8 +123,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
     status: 'CONNECTED',
-    ordersSynced: 12600,
-    latency: '170ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#FF6F00',
     description: 'Đồng bộ danh mục đa chi nhánh, trạng thái đối soát và phiếu chuyển kho nội bộ',
   },
@@ -132,8 +134,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
     status: 'DISCONNECTED',
-    ordersSynced: 3400,
-    latency: '190ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#E65100',
     description: 'Đồng bộ dữ liệu sản phẩm, giá bán và hóa đơn điện tử Haravan',
   },
@@ -143,8 +145,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'LANDING_PAGE',
     categoryLabel: 'Landing Page & Form',
     status: 'CONNECTED',
-    ordersSynced: 8700,
-    latency: '85ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#10B981',
     description: 'Thu thập đơn hàng từ form Landing Page, tự động chuẩn hóa địa chỉ và đẩy sang POS',
   },
@@ -154,8 +156,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'LOGISTICS',
     categoryLabel: 'Đơn vị vận chuyển',
     status: 'CONNECTED',
-    ordersSynced: 26100,
-    latency: '175ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#005D38',
     description: 'Tạo vận đơn tự động, lấy mã tracking và in phiếu giao hàng A6 ngay lập tức',
   },
@@ -165,8 +167,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'LOGISTICS',
     categoryLabel: 'Đơn vị vận chuyển',
     status: 'CONNECTED',
-    ordersSynced: 18400,
-    latency: '150ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#F26522',
     description: 'Tự động tính cước vận chuyển chuẩn SLA và định tuyến thông minh (Smart Rerouting)',
   },
@@ -176,8 +178,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'LOGISTICS',
     categoryLabel: 'Đơn vị vận chuyển',
     status: 'CONNECTED',
-    ordersSynced: 14500,
-    latency: '135ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#EE0033',
     description: 'Đồng bộ đơn hàng vận chuyển Viettel Post và tra cứu hành trình trực tiếp',
   },
@@ -187,8 +189,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'SPREADSHEET',
     categoryLabel: 'Bảng tính & Tệp tin',
     status: 'CONNECTED',
-    ordersSynced: 16400,
-    latency: '120ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0F9D58',
     description: 'Tự động chèn dòng đơn hàng realtime, trích xuất báo cáo doanh thu & tồn kho tức thì',
   },
@@ -198,8 +200,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'SPREADSHEET',
     categoryLabel: 'Bảng tính & Tệp tin',
     status: 'CONNECTED',
-    ordersSynced: 9200,
-    latency: '95ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#107C41',
     description: 'Xuất file Excel (.xlsx) theo mẫu tùy biến, đồng bộ OneDrive & nhập xuất SKU hàng loạt',
   },
@@ -209,8 +211,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'CONNECTED',
-    ordersSynced: 4820,
-    latency: '140ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0070C0',
     description: 'Tự động ghi sổ cái, xuất chứng từ và đồng bộ hóa đơn VAT sang MISA AMIS theo thời gian thực',
   },
@@ -220,8 +222,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'CONNECTED',
-    ordersSynced: 3120,
-    latency: '155ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#0070C0',
     description: 'Phát hành hóa đơn GTGT điện tử ký số, tuân thủ Nghị định 117/2025 & Thông tư 40/2021',
   },
@@ -231,8 +233,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'DISCONNECTED',
-    ordersSynced: 1840,
-    latency: '185ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#E65100',
     description: 'Đối soát số dư tài khoản ngân hàng, tổng hợp báo cáo tài chính và kê khai thuế TNCN',
   },
@@ -242,8 +244,8 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'DISCONNECTED',
-    ordersSynced: 920,
-    latency: '200ms',
+    ordersSynced: 0,
+    latency: '--',
     brandColor: '#1565C0',
     description: 'Quản lý tài chính tổng hợp, phân tích lãi lỗ đa trung tâm chi phí và kiểm toán nội bộ',
   },
@@ -251,39 +253,53 @@ const defaultConnectorsList: ConnectorItem[] = [
 
 export const ConnectorsHub: React.FC = () => {
   const [connectors, setConnectors] = useState<ConnectorItem[]>(defaultConnectorsList);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [configModalOpen, setConfigModalOpen] = useState<boolean>(false);
   const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
   const [selectedConnector, setSelectedConnector] = useState<ConnectorItem | null>(null);
 
-  // Sync real metrics from MongoDB Atlas
-  useEffect(() => {
-    const fetchRealData = async () => {
-      try {
-        const metrics = await metricsService.getDashboardMetrics();
-        if (metrics && metrics.channels) {
-          setConnectors((prev) =>
-            prev.map((c) => {
-              if (c.id === 'tiktok' && metrics.channels?.tiktok) {
-                return { ...c, ordersSynced: metrics.channels.tiktok.orderCount || c.ordersSynced };
-              }
-              if (c.id === 'shopee' && metrics.channels?.shopee) {
-                return { ...c, ordersSynced: metrics.channels.shopee.orderCount || c.ordersSynced };
-              }
-              if (c.id === 'lazada' && metrics.channels?.lazada) {
-                return { ...c, ordersSynced: metrics.channels.lazada.orderCount || c.ordersSynced };
-              }
-              return c;
-            })
-          );
-        }
-      } catch (err: any) {
-        console.warn('Lỗi đồng bộ dữ liệu connectors:', err.message);
+  // ── LOAD DỮ LIỆU THỰC SỰ TỪ MONGODB DATABASE ─────────────────────────────────
+  const fetchDbConnectors = useCallback(async () => {
+    setLoading(true);
+    try {
+      const dbList = await connectorsService.getConnectors();
+      if (dbList && dbList.length > 0) {
+        const dbMap = new Map<string, DbConnectorItem>();
+        dbList.forEach((item) => dbMap.set(item.connectorId, item));
+
+        // Hợp nhất danh mục đối tác với số liệu thực tế từ Database
+        setConnectors(
+          defaultConnectorsList.map((catalogItem) => {
+            const dbItem = dbMap.get(catalogItem.id);
+            if (dbItem) {
+              return {
+                ...catalogItem,
+                name: dbItem.name || catalogItem.name,
+                category: (dbItem.category as any) || catalogItem.category,
+                status: dbItem.status || catalogItem.status,
+                ordersSynced: dbItem.ordersSynced || 0,
+                latency: dbItem.latency || `${dbItem.latencyMs || 0}ms`,
+                appKey: dbItem.config?.appKey,
+                appSecret: dbItem.config?.appSecret,
+                endpoint: dbItem.config?.endpoint,
+              };
+            }
+            return catalogItem;
+          })
+        );
       }
-    };
-    fetchRealData();
+    } catch (err: any) {
+      console.warn('Lỗi tải dữ liệu cổng kết nối từ Database:', err.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchDbConnectors();
+  }, [fetchDbConnectors]);
 
   const filteredConnectors = connectors.filter((item) => {
     const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;
@@ -298,15 +314,50 @@ export const ConnectorsHub: React.FC = () => {
     setConfigModalOpen(true);
   };
 
-  const handleSaveConfig = (updatedConnector: ConnectorItem) => {
-    setConnectors((prev) =>
-      prev.map((c) => (c.id === updatedConnector.id ? updatedConnector : c))
-    );
-    notify.success(`Đã cập nhật cấu hình cho ${updatedConnector.name} thành công!`);
+  // ── LƯU CẤU HÌNH VÀO MONGODB DATABASE THỰC SỰ ────────────────────────────────
+  const handleSaveConfig = async (updatedConnector: ConnectorItem) => {
+    try {
+      await connectorsService.updateConnector(updatedConnector.id, {
+        name: updatedConnector.name,
+        category: updatedConnector.category,
+        status: updatedConnector.status,
+        config: {
+          appKey: updatedConnector.appKey,
+          appSecret: updatedConnector.appSecret,
+          endpoint: updatedConnector.endpoint,
+        },
+      });
+
+      setConnectors((prev) =>
+        prev.map((c) => (c.id === updatedConnector.id ? updatedConnector : c))
+      );
+      notify.success(`Đã lưu cấu hình ${updatedConnector.name} vào Database thực tế thành công!`);
+    } catch (err: any) {
+      notify.error('Lỗi khi lưu cấu hình vào Database: ' + err.message);
+    }
   };
 
-  const handleAddConnector = (newConnector: ConnectorItem) => {
-    setConnectors((prev) => [newConnector, ...prev]);
+  const handleAddConnector = async (newConnector: ConnectorItem) => {
+    try {
+      await connectorsService.updateConnector(newConnector.id, {
+        name: newConnector.name,
+        category: newConnector.category,
+        status: newConnector.status,
+        ordersSynced: 0,
+        latencyMs: 100,
+        latency: '100ms',
+        config: {
+          appKey: newConnector.appKey,
+          appSecret: newConnector.appSecret,
+          endpoint: newConnector.endpoint,
+        },
+      });
+
+      setConnectors((prev) => [newConnector, ...prev]);
+      notify.success(`Đã thêm cổng kết nối ${newConnector.name} vào Database!`);
+    } catch (err: any) {
+      notify.error('Lỗi khi thêm kênh vào Database: ' + err.message);
+    }
   };
 
   return (
@@ -322,6 +373,15 @@ export const ConnectorsHub: React.FC = () => {
             style={{ width: 240 }}
           />
           <BaseButton
+            variant="secondary"
+            size="small"
+            icon={<ReloadOutlined />}
+            loading={loading}
+            onClick={fetchDbConnectors}
+          >
+            Đồng bộ DB
+          </BaseButton>
+          <BaseButton
             variant="primary"
             size="small"
             icon={<PlusOutlined />}
@@ -335,7 +395,7 @@ export const ConnectorsHub: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Category Tabs */}
         <Tabs
-          size='small'
+          size="small"
           activeKey={selectedCategory}
           onChange={setSelectedCategory}
           items={[
@@ -351,20 +411,24 @@ export const ConnectorsHub: React.FC = () => {
         />
 
         {/* Connectors Grid */}
-        {filteredConnectors.length === 0 ? (
+        {loading && connectors.every((c) => c.ordersSynced === 0 && c.latency === '--') ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+            <Spin tip="Đang tải dữ liệu cổng kết nối từ MongoDB Atlas..." size="large" />
+          </div>
+        ) : filteredConnectors.length === 0 ? (
           <EmptyState
-            title="Không tìm thấy cổng kết nối nào"
-            description="Vui lòng thử lại với từ khóa khác hoặc chuyển danh mục."
+            title="Không tìm thấy cổng kết nối phù hợp"
+            description="Hãy thử đổi từ khóa tìm kiếm hoặc chọn danh mục khác"
           />
         ) : (
           <Row gutter={[16, 16]}>
-            {filteredConnectors.map((item) => {
-              const isConnected = item.status === 'CONNECTED';
+            {filteredConnectors.map((connector) => {
+              const partnerLogo = getPartnerLogo(connector.id);
 
               return (
-                <Col xs={24} sm={12} lg={8} key={item.id}>
+                <Col xs={24} sm={12} lg={8} key={connector.id}>
                   <Card
-                    bordered={false}
+                    hoverable
                     style={{
                       borderRadius: 12,
                       border: '1px solid var(--border-subtle, #E5E7EB)',
@@ -373,87 +437,152 @@ export const ConnectorsHub: React.FC = () => {
                       display: 'flex',
                       flexDirection: 'column',
                     }}
-                    bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20 }}
+                    bodyStyle={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      padding: 20,
+                    }}
                   >
                     <div>
-                      {/* Top Row: Full Bare Logo & Status */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 44, marginBottom: 14 }}>
-                        {(() => {
-                          const partnerLogo = getPartnerLogo(item.id || item.name);
-                          if (partnerLogo) {
-                            return (
-                              <img
-                                src={partnerLogo}
-                                alt={item.name}
-                                style={{
-                                  height: 38,
-                                  maxWidth: 150,
-                                  objectFit: 'contain',
-                                  objectPosition: 'left center',
-                                }}
-                              />
-                            );
-                          }
-                          return (
+                      {/* Top Header: Logo + Title + Status */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          marginBottom: 12,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          {partnerLogo ? (
                             <div
                               style={{
-                                height: 36,
-                                padding: '0 12px',
-                                borderRadius: 6,
-                                background: item.brandColor,
-                                display: 'inline-flex',
+                                width: 42,
+                                height: 42,
+                                borderRadius: 10,
+                                background: '#FFFFFF',
+                                border: '1px solid #E5E7EB',
+                                display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                fontSize: 14,
+                                padding: 6,
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                               }}
                             >
-                              {item.name}
+                              <img
+                                src={partnerLogo}
+                                alt={connector.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                              />
                             </div>
-                          );
-                        })()}
+                          ) : (
+                            <div
+                              style={{
+                                width: 42,
+                                height: 42,
+                                borderRadius: 10,
+                                background: `${connector.brandColor}15`,
+                                border: `1.5px solid ${connector.brandColor}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: connector.brandColor,
+                                fontWeight: 800,
+                                fontSize: 16,
+                              }}
+                            >
+                              {connector.name.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
 
-                        <StatusTag status={isConnected ? 'CONNECTED' : 'DISCONNECTED'} />
-                      </div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111827' }}>
+                              {connector.name}
+                            </div>
+                            <Tag
+                              style={{
+                                margin: 0,
+                                marginTop: 3,
+                                fontSize: 10.5,
+                                padding: '0 6px',
+                                borderRadius: 4,
+                                background: '#F3F4F6',
+                                border: 'none',
+                                color: '#4B5563',
+                              }}
+                            >
+                              {connector.categoryLabel}
+                            </Tag>
+                          </div>
+                        </div>
 
-                      {/* Title & Category Tag */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{item.name}</span>
-                        <Tag style={{ borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
-                          {item.categoryLabel}
-                        </Tag>
+                        <StatusTag
+                          status={connector.status === 'CONNECTED' ? 'ACTIVE' : 'INACTIVE'}
+                          text={connector.status === 'CONNECTED' ? 'Đã kết nối' : 'Chưa kết nối'}
+                        />
                       </div>
 
                       {/* Description */}
-                      <p style={{ color: '#6B7280', fontSize: 13, minHeight: 40, lineHeight: 1.5, margin: 0 }}>
-                        {item.description}
+                      <p
+                        style={{
+                          fontSize: 12.5,
+                          color: '#4B5563',
+                          lineHeight: 1.5,
+                          marginBottom: 16,
+                          minHeight: 38,
+                        }}
+                      >
+                        {connector.description}
                       </p>
                     </div>
 
-                    {/* Metrics & Action Button */}
-                    <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #F3F4F6' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, fontSize: 12 }}>
-                        <span style={{ color: '#6B7280' }}>
-                          Đã đồng bộ: <strong>{item.ordersSynced.toLocaleString()}</strong> đơn
-                        </span>
-                        <span style={{ color: '#6B7280' }}>
-                          Độ trễ: <strong style={{ color: '#10B981' }}>{item.latency}</strong>
-                        </span>
+                    {/* Footer: Metrics + Action Button */}
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          background: '#F9FAFB',
+                          borderRadius: 8,
+                          border: '1px solid #F3F4F6',
+                          marginBottom: 14,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 11, color: '#6B7280' }}>Đơn đã qua kênh:</div>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>
+                            {connector.ordersSynced > 0
+                              ? `${connector.ordersSynced.toLocaleString('vi-VN')} đơn`
+                              : '0 đơn (Sẵn sàng)'}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 11, color: '#6B7280' }}>Độ trễ phản hồi:</div>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 13,
+                              color: connector.latency !== '--' ? '#10B981' : '#6B7280',
+                            }}
+                          >
+                            {connector.latency}
+                          </div>
+                        </div>
                       </div>
 
                       <BaseButton
-                        variant="ghost"
-                        block
+                        variant="secondary"
+                        size="small"
                         icon={<SettingOutlined />}
-                        onClick={() => handleOpenConfig(item)}
-                        style={{
-                          background: '#FFFFFF',
-                          borderColor: '#E5E7EB',
-                          color: '#374151',
-                        }}
+                        onClick={() => handleOpenConfig(connector)}
+                        style={{ width: '100%' }}
                       >
-                        Cấu hình & kiểm tra kết nối
+                        Cấu hình kết nối
                       </BaseButton>
                     </div>
                   </Card>
@@ -463,15 +592,17 @@ export const ConnectorsHub: React.FC = () => {
           </Row>
         )}
 
-        {/* Connector Config Modal */}
-        <ConnectorConfigModal
-          open={configModalOpen}
-          connector={selectedConnector}
-          onClose={() => setConfigModalOpen(false)}
-          onSave={handleSaveConfig}
-        />
+        {/* Modal Cấu hình Cổng Kết Nối */}
+        {selectedConnector && (
+          <ConnectorConfigModal
+            open={configModalOpen}
+            connector={selectedConnector}
+            onClose={() => setConfigModalOpen(false)}
+            onSave={handleSaveConfig}
+          />
+        )}
 
-        {/* Add Connector Modal */}
+        {/* Modal Thêm Kết Nối Mới */}
         <AddConnectorModal
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}

@@ -14,6 +14,7 @@
     "dev:infra": "docker-compose -f infra/docker-compose.dev.yml up -d",
     "build:packages": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/udm-schema",
     "build:all": "npm run build:packages && npm run build --workspace=apps/backend && npm run build --workspace=apps/web",
+    "seed": "node scripts/seed_database.js",
     "lint:all": "npm run lint --workspaces",
     "test:all": "npm run test --workspaces"
   },

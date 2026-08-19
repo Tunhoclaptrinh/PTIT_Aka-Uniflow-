@@ -44,7 +44,7 @@ export const SkuDetailModal: React.FC<SkuDetailModalProps> = ({
       centered
       footer={
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, width: '100%', paddingTop: 10 }}>
-          <BaseButton key="close" variant="ghost" size="small" onClick={onClose} style={{ minWidth: 90 }}>
+          <BaseButton key="close" variant="secondary" size="small" onClick={onClose} style={{ minWidth: 96, height: 32 }}>
             Đóng
           </BaseButton>
           {item.mappingStatus !== 'AUTO_APPROVED' && (

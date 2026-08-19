@@ -11,6 +11,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
+import { ConnectorsModule } from './modules/connectors/connectors.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     LogsModule,
     AuthModule,
     TenantsModule,
+    ConnectorsModule,
   ],
 })
 export class AppModule {}

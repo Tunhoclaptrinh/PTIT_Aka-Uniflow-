@@ -4,7 +4,6 @@ import {
   Form,
   Input,
   Switch,
-  Space,
   Radio,
   Tag,
   Divider,
@@ -12,9 +11,9 @@ import {
 import {
   BranchesOutlined,
   DeleteOutlined,
-  SaveOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
+import { FormFooter } from '../../base/FormFooter';
 import { notify } from '../../../utils/notification';
 
 interface EdgeDirectiveModalProps {
@@ -128,19 +127,19 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
         </div>
       }
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <BaseButton variant="danger" size="small" icon={<DeleteOutlined />} onClick={handleDelete}>
-            Xóa đường nối
-          </BaseButton>
-          <Space size="small">
-            <BaseButton variant="ghost" size="small" onClick={onClose}>
-              Hủy
+        <FormFooter
+          align="center"
+          submitText="Lưu chỉ lệnh"
+          cancelText="Hủy"
+          onCancel={onClose}
+          onSubmit={handleFinish}
+          extra={
+            <BaseButton variant="danger" size="small" icon={<DeleteOutlined />} onClick={handleDelete}>
+              Xóa đường nối
             </BaseButton>
-            <BaseButton variant="primary" size="small" icon={<SaveOutlined />} onClick={handleFinish}>
-              Lưu chỉ lệnh
-            </BaseButton>
-          </Space>
-        </div>
+          }
+          style={{ marginTop: 0, paddingTop: 14 }}
+        />
       }
     >
       {/* Node Connection Flow Preview */}

@@ -128,7 +128,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
       centered
       footer={
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, width: '100%', paddingTop: 10 }}>
-          <BaseButton variant="ghost" size="small" onClick={onClose} style={{ minWidth: 90 }}>
+          <BaseButton variant="secondary" size="small" onClick={onClose} style={{ minWidth: 96, height: 32 }}>
             Đóng
           </BaseButton>
           <BaseButton

@@ -34,12 +34,12 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
 
   const isPos =
     (category === 'POS' ||
-    category === 'POS_ERP' ||
-    label.includes('sapo') ||
-    label.includes('kiotviet') ||
-    label.includes('haravan') ||
-    label.includes('odoo') ||
-    label.includes('kho')) && !isAccounting;
+      category === 'POS_ERP' ||
+      label.includes('sapo') ||
+      label.includes('kiotviet') ||
+      label.includes('haravan') ||
+      label.includes('odoo') ||
+      label.includes('kho')) && !isAccounting;
 
   const isLogic =
     category === 'LOGIC' ||
@@ -87,7 +87,7 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
     FallbackIcon = <BranchesOutlined style={{ color: '#EC4899', fontSize: 16 }} />;
   } else if (isNotify) {
     nodeColor = '#3B82F6';
-    catTitle = 'Cảnh báo & CRM';
+    catTitle = 'Thông báo & CRM';
     subTag = label.includes('telegram') ? 'Telegram' : 'Zalo ZNS';
     FallbackIcon = <BellFilled style={{ color: '#3B82F6', fontSize: 16 }} />;
   }
@@ -173,8 +173,8 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
           boxShadow: selected
             ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.08)`
             : isHovered
-            ? `0 4px 14px ${nodeColor}25`
-            : `0 1px 4px rgba(0, 0, 0, 0.04)`,
+              ? `0 4px 14px ${nodeColor}25`
+              : `0 1px 4px rgba(0, 0, 0, 0.04)`,
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',

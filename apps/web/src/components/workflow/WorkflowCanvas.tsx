@@ -38,7 +38,7 @@ import { NodeLibraryDrawer } from './panels/NodeLibraryDrawer';
 import { NodeSettingsDrawer } from './panels/NodeSettingsDrawer';
 import { AIFlowArchitectDrawer } from './panels/AIFlowArchitectDrawer';
 import { EdgeDirectiveModal } from './panels/EdgeDirectiveModal';
-import { BaseButton, PageContainer, ConfirmModal } from '../base';
+import { BaseButton, PageContainer, ConfirmModal, FormFooter } from '../base';
 import { notify } from '../../utils/notification';
 
 // Khối tiêu đề quy trình 1 dòng siêu tối giản (không khung, không handle chấm kết nối)
@@ -161,11 +161,11 @@ const FlowContent: React.FC = () => {
         eds.map((e) =>
           e.id === edgeId
             ? {
-                ...e,
-                data: { ...e.data, ...updatedData },
-                style: { ...e.style, ...updatedStyle },
-                animated,
-              }
+              ...e,
+              data: { ...e.data, ...updatedData },
+              style: { ...e.style, ...updatedStyle },
+              animated,
+            }
             : e
         )
       );
@@ -267,12 +267,12 @@ const FlowContent: React.FC = () => {
         return updated.map((n) =>
           n.id === parentGroupId
             ? {
-                ...n,
-                data: {
-                  ...n.data,
-                  childCount: newChildCount,
-                },
-              }
+              ...n,
+              data: {
+                ...n.data,
+                childCount: newChildCount,
+              },
+            }
             : n
         );
       });
@@ -285,16 +285,16 @@ const FlowContent: React.FC = () => {
       nds.map((n) =>
         n.id === groupId
           ? {
-              ...n,
-              style: { ...n.style, width: newW, height: newH },
-              data: {
-                ...n.data,
-                width: newW,
-                height: newH,
-                origWidth: newW,
-                origHeight: newH,
-              },
-            }
+            ...n,
+            style: { ...n.style, width: newW, height: newH },
+            data: {
+              ...n.data,
+              width: newW,
+              height: newH,
+              origWidth: newW,
+              origHeight: newH,
+            },
+          }
           : n
       )
     );
@@ -385,18 +385,18 @@ const FlowContent: React.FC = () => {
         return updatedNodes.map((n) =>
           n.id === groupId
             ? {
-                ...n,
-                position: { x: newGx, y: newGy },
-                style: { ...n.style, width: newGw, height: newGh },
-                data: {
-                  ...n.data,
-                  width: newGw,
-                  height: newGh,
-                  origWidth: newGw,
-                  origHeight: newGh,
-                  childCount,
-                },
-              }
+              ...n,
+              position: { x: newGx, y: newGy },
+              style: { ...n.style, width: newGw, height: newGh },
+              data: {
+                ...n.data,
+                width: newGw,
+                height: newGh,
+                origWidth: newGw,
+                origHeight: newGh,
+                childCount,
+              },
+            }
             : n
         );
       });
@@ -985,7 +985,7 @@ const FlowContent: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOverviewMode, currentWorkflow, setNodes, setEdges, fitView]);
 
   // ── Drag stop handler: Hỗ trợ kéo thả khối vào/ra khỏi cụm phân vùng ─────
@@ -1177,56 +1177,56 @@ const FlowContent: React.FC = () => {
           {/* Nhóm 1: Thao tác sơ đồ & Khối */}
           {!isOverviewMode && (
             <>
-          <Tooltip title="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<PlusOutlined />}
-              onClick={() => setLibraryOpen(true)}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+              <Tooltip title="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)">
+                <BaseButton
+                  variant="ghost"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={() => setLibraryOpen(true)}
+                  style={{ width: 32, height: 32, padding: 0 }}
+                />
+              </Tooltip>
 
-          <Tooltip title="Quét vùng gom nhóm (Kéo chuột bao quanh các khối kiểu Windows Snipping)">
-            <BaseButton
-              variant={isSnipMode ? 'primary' : 'ghost'}
-              size="small"
-              icon={<ScissorOutlined style={{ color: isSnipMode ? '#FFFFFF' : '#8B5CF6' }} />}
-              onClick={() => {
-                const nextMode = !isSnipMode;
-                setIsSnipMode(nextMode);
-                if (nextMode) {
-                  notify.info('Đã bật chế độ Quét vùng gom nhóm: Kéo chuột bao quanh các khối trên bản đồ như chụp ảnh màn hình!');
-                }
-              }}
-              style={{
-                width: 32,
-                height: 32,
-                padding: 0,
-                ...(isSnipMode ? { background: '#8B5CF6', borderColor: '#8B5CF6' } : {}),
-              }}
-            />
-          </Tooltip>
+              <Tooltip title="Quét vùng gom nhóm (Kéo chuột bao quanh các khối kiểu Windows Snipping)">
+                <BaseButton
+                  variant={isSnipMode ? 'primary' : 'ghost'}
+                  size="small"
+                  icon={<ScissorOutlined style={{ color: isSnipMode ? '#FFFFFF' : '#8B5CF6' }} />}
+                  onClick={() => {
+                    const nextMode = !isSnipMode;
+                    setIsSnipMode(nextMode);
+                    if (nextMode) {
+                      notify.info('Đã bật chế độ Quét vùng gom nhóm: Kéo chuột bao quanh các khối trên bản đồ như chụp ảnh màn hình!');
+                    }
+                  }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    padding: 0,
+                    ...(isSnipMode ? { background: '#8B5CF6', borderColor: '#8B5CF6' } : {}),
+                  }}
+                />
+              </Tooltip>
 
-          <Tooltip title="Gom nhóm các khối đang chọn trên bản đồ">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<AppstoreOutlined style={{ color: '#8B5CF6' }} />}
-              onClick={handleGroupSelectedNodes}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+              <Tooltip title="Gom nhóm các khối đang chọn trên bản đồ">
+                <BaseButton
+                  variant="ghost"
+                  size="small"
+                  icon={<AppstoreOutlined style={{ color: '#8B5CF6' }} />}
+                  onClick={handleGroupSelectedNodes}
+                  style={{ width: 32, height: 32, padding: 0 }}
+                />
+              </Tooltip>
 
-          <Tooltip title="Tư vấn kiến trúc AI & Gợi ý gom nhóm">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
-              onClick={() => setArchitectOpen(true)}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+              <Tooltip title="Tư vấn kiến trúc AI & Gợi ý gom nhóm">
+                <BaseButton
+                  variant="ghost"
+                  size="small"
+                  icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+                  onClick={() => setArchitectOpen(true)}
+                  style={{ width: 32, height: 32, padding: 0 }}
+                />
+              </Tooltip>
             </>
           )}
 
@@ -1336,18 +1336,18 @@ const FlowContent: React.FC = () => {
                 </BaseButton>
               </span>
             ) : (
-            <Select
-              value={currentWorkflow?._id}
-              onChange={(val) => {
-                const wf = workflowsList.find((w) => w._id === val);
-                if (wf) selectWorkflow(wf);
-              }}
-              style={{ width: 320 }}
-              options={workflowsList.map((w) => ({
-                label: `${w.name} ${w.isActive ? '(Đang chạy)' : '(Bản nháp)'}`,
-                value: w._id,
-              }))}
-            />
+              <Select
+                value={currentWorkflow?._id}
+                onChange={(val) => {
+                  const wf = workflowsList.find((w) => w._id === val);
+                  if (wf) selectWorkflow(wf);
+                }}
+                style={{ width: 320 }}
+                options={workflowsList.map((w) => ({
+                  label: `${w.name} ${w.isActive ? '(Đang chạy)' : '(Bản nháp)'}`,
+                  value: w._id,
+                }))}
+              />
             )}
 
             {currentWorkflow && (
@@ -1544,7 +1544,7 @@ const FlowContent: React.FC = () => {
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EC4899' }} /> Logic & Rẽ nhánh
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#3B82F6' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /> Cảnh báo & CRM
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /> Thông báo & CRM
             </span>
           </div>
 
@@ -1629,13 +1629,22 @@ const FlowContent: React.FC = () => {
 
         {/* Create Workflow Modal */}
         <Modal
-          title={<span style={{ fontWeight: 600 }}>Tạo quy trình tự động hóa mới</span>}
+          title={<span style={{ fontWeight: 700, fontSize: 16 }}>Tạo quy trình tự động hóa mới</span>}
           open={createModalOpen}
-          onOk={handleCreateWorkflow}
           onCancel={() => setCreateModalOpen(false)}
-          okText="Tạo quy trình"
-          cancelText="Hủy bỏ"
-          okButtonProps={{ style: { background: '#ed1c24' } }}
+          footer={
+            <FormFooter
+              align="center"
+              submitText="Tạo quy trình"
+              cancelText="Hủy bỏ"
+              onCancel={() => setCreateModalOpen(false)}
+              onSubmit={handleCreateWorkflow}
+              style={{ marginTop: 0, paddingTop: 14 }}
+            />
+          }
+          width={560}
+          centered
+          destroyOnClose
         >
           <Form
             form={createForm}
