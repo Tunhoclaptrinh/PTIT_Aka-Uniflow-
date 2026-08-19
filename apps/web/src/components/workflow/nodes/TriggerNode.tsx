@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Tag } from 'antd';
-import { ThunderboltFilled, ShoppingFilled, DownOutlined, UpOutlined } from '@ant-design/icons';
+import { ThunderboltFilled, ShoppingFilled } from '@ant-design/icons';
+import { getPartnerLogo } from '../../../utils/partnerLogos';
 
-export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
-  const [expanded, setExpanded] = useState(false);
+export const TriggerNode: React.FC<any> = ({ data, selected }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const isTikTok = data.label?.toLowerCase().includes('tiktok');
   const isShopee = data.label?.toLowerCase().includes('shopee');
   const nodeColor = isShopee ? '#EE4D2D' : '#ed1c24';
+  const partnerLogo = getPartnerLogo(data.label || data.name || '');
 
   return (
     <div
@@ -17,77 +17,79 @@ export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'relative',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: isHovered ? 'scale(1.04)' : 'scale(1)',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
-      {/* Node Container */}
+      {/* Clean Compact Node Container */}
       <div
-        onClick={() => setExpanded(!expanded)}
         style={{
-          padding: expanded ? '14px 18px' : '10px 14px',
+          padding: '10px 14px',
           background: '#FFFFFF',
-          borderRadius: expanded ? 14 : 28,
-          border: `2px solid ${nodeColor}`,
-          boxShadow: isHovered || expanded ? `0 6px 20px rgba(237, 28, 36, 0.25)` : `0 2px 10px rgba(0, 0, 0, 0.08)`,
-          minWidth: expanded ? 220 : 160,
+          borderRadius: 10,
+          border: selected ? `2px solid ${nodeColor}` : '1px solid #E5E7EB',
+          boxShadow: selected
+            ? `0 0 0 3px rgba(237, 28, 36, 0.2), 0 8px 16px rgba(0, 0, 0, 0.08)`
+            : isHovered
+            ? '0 6px 16px rgba(0, 0, 0, 0.08)'
+            : '0 2px 6px rgba(0, 0, 0, 0.04)',
+          width: 210,
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          {/* Round Icon Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Logo Badge */}
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: `linear-gradient(135deg, ${nodeColor} 0%, #fcc20f 100%)`,
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: `0 2px 8px rgba(237, 28, 36, 0.3)`,
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               flexShrink: 0,
+              padding: 4,
+              overflow: 'hidden',
             }}
           >
-            {isTikTok ? <ThunderboltFilled style={{ color: '#FFFFFF', fontSize: 16 }} /> : <ShoppingFilled style={{ color: '#FFFFFF', fontSize: 16 }} />}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.2 }}>
-              {data.label || 'Inbound Trigger'}
-            </div>
-            {!expanded && (
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-                Webhook Inbound
-              </div>
+            {partnerLogo ? (
+              <img
+                src={partnerLogo}
+                alt={data.label}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : isTikTok ? (
+              <ThunderboltFilled style={{ color: '#ed1c24', fontSize: 16 }} />
+            ) : (
+              <ShoppingFilled style={{ color: '#EE4D2D', fontSize: 16 }} />
             )}
           </div>
 
-          {/* Toggle Expand Icon */}
-          <div style={{ color: '#9CA3AF', fontSize: 12 }}>
-            {expanded ? <UpOutlined /> : <DownOutlined />}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#111827',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={data.label}
+            >
+              {data.label || 'Inbound Trigger'}
+            </div>
+            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+              Webhook Inbound
+            </div>
           </div>
         </div>
-
-        {/* Expanded Details Body */}
-        {expanded && (
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #F3F4F6' }}>
-            <div style={{ color: '#4B5563', fontSize: 12, marginBottom: 8, lineHeight: 1.4 }}>
-              {data.description || 'Lắng nghe đơn hàng thanh toán thành công (SLA < 100ms)'}
-            </div>
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <Tag color="#ed1c24" style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
-                HMAC-SHA256
-              </Tag>
-              <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
-                Real-time Push
-              </Tag>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Output Handle */}
@@ -105,3 +107,5 @@ export const TriggerNode: React.FC<{ data: any }> = ({ data }) => {
     </div>
   );
 };
+
+export default TriggerNode;

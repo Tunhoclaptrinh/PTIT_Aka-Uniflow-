@@ -38,7 +38,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
           const isHealed = l.aiHealed;
           return {
             id: l._id,
-            title: isHealed ? '⚡ AI tự phục hồi & Chuyển tuyến' : `Đơn hàng ${l.platform} #${l.sourceOrderId}`,
+            title: isHealed ? 'AI tự phục hồi & chuyển tuyến' : `Đơn hàng ${l.platform} #${l.sourceOrderId}`,
             description: l.message || 'Xử lý hoàn tất qua luồng tự động 0-chạm',
             type: isHealed ? 'AI_HEALING' : 'ORDER',
             time: new Date(l.createdAt).toLocaleTimeString('vi-VN'),
@@ -79,7 +79,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
         </div>
       }
       placement="right"
-      width={400}
+      width={600}
       open={open}
       onClose={onClose}
       extra={

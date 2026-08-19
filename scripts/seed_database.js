@@ -209,6 +209,62 @@ async function seed() {
         executionCount: 14220,
         updatedAt: new Date(),
       },
+      {
+        _id: new ObjectId('66c0e812a1b2c3d4e5f60009'),
+        tenantId: tenant1Id,
+        name: 'Tự động so sánh cước vận chuyển đa hãng & Chọn đối tác rẻ nhất',
+        description: 'Tự động tính cước realtime giữa GHTK, GHN, Viettel Post theo khối lượng gói hàng, tự động xuất mã vận đơn hãng rẻ nhất và báo cáo Telegram',
+        isActive: true,
+        triggerType: 'WEBHOOK',
+        nodes: [
+          {
+            id: 'node_rate_trigger',
+            type: 'trigger',
+            position: { x: 50, y: 160 },
+            data: { label: 'Lazada Inbound Webhook', description: 'Đơn hàng mới tạo (Awaiting Payment / Paid)', platform: 'LAZADA' },
+          },
+          {
+            id: 'node_rate_ai_sku',
+            type: 'ai',
+            position: { x: 350, y: 160 },
+            data: { label: 'AI Hybrid SKU Mapper', description: 'So khớp SKU Master & Bóc tách trọng lượng/kích thước', threshold: 95 },
+          },
+          {
+            id: 'node_rate_ai_compare',
+            type: 'ai',
+            position: { x: 650, y: 160 },
+            data: { label: 'AI So sánh cước & Chọn hãng rẻ nhất', description: 'So sánh realtime: GHTK vs GHN vs Viettel Post', model: 'RATE_OPTIMIZER_AI' },
+          },
+          {
+            id: 'node_rate_pos',
+            type: 'action',
+            position: { x: 950, y: 60 },
+            data: { label: 'Trừ tồn kho Sapo POS', description: 'Kho Tổng Hà Nội (WH_MAIN_HN)', category: 'POS' },
+          },
+          {
+            id: 'node_rate_carrier',
+            type: 'action',
+            position: { x: 950, y: 260 },
+            data: { label: 'Tạo vận đơn hãng rẻ nhất', description: 'Auto-pick: GHTK / GHN / Viettel Post (Auto In nhãn A6)', category: 'LOGISTICS' },
+          },
+          {
+            id: 'node_rate_notify',
+            type: 'action',
+            position: { x: 1250, y: 160 },
+            data: { label: 'Thông báo Telegram Bot', description: 'Báo cáo số tiền cước tiết kiệm được cho mỗi đơn hàng', category: 'NOTIFY' },
+          },
+        ],
+        edges: [
+          { id: 'e_rate_1-2', source: 'node_rate_trigger', target: 'node_rate_ai_sku', animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 } },
+          { id: 'e_rate_2-3', source: 'node_rate_ai_sku', target: 'node_rate_ai_compare', animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 } },
+          { id: 'e_rate_3-4', source: 'node_rate_ai_compare', target: 'node_rate_pos', animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } },
+          { id: 'e_rate_3-5', source: 'node_rate_ai_compare', target: 'node_rate_carrier', animated: true, style: { stroke: '#10B981', strokeWidth: 2 } },
+          { id: 'e_rate_5-6', source: 'node_rate_carrier', target: 'node_rate_notify', animated: true, style: { stroke: '#3B82F6', strokeWidth: 2 } },
+        ],
+        viewport: { x: 0, y: 0, zoom: 0.95 },
+        executionCount: 19830,
+        updatedAt: new Date(),
+      },
 
       // ── TENANT 2: Mỹ Phẩm & Skincare GlowTech ──────────────────────────────
       {

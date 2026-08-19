@@ -3,6 +3,7 @@ import { baseApi } from './api';
 
 export interface SKUMappingItem {
   _id: string;
+  tenantId?: string;
   sourcePlatform: string;
   sourceSkuCode: string;
   sourceProductName: string;

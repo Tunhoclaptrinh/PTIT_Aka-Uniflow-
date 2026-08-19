@@ -11,9 +11,9 @@ import {
   Space,
 } from 'antd';
 import {
-  RobotFilled,
   ThunderboltFilled,
   CheckCircleFilled,
+  CloseCircleFilled,
   AimOutlined,
   TagOutlined,
   SaveOutlined,
@@ -79,7 +79,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
       if (aiResponse) {
         setAnalysisResult(aiResponse);
         const scorePercent = Math.round((aiResponse.confidenceScore || aiResponse.match_score || 0.95) * 100);
-        notify.success(`Hoàn tất phân tích AI (${aiResponse.engineUsed || 'Vector NLP'})! Điểm tin cậy: ${scorePercent}% ✨`);
+        notify.success(`Hoàn tất phân tích AI (${aiResponse.engineUsed || 'Vector NLP'}). Điểm tin cậy: ${scorePercent}%.`);
       }
     } catch (err: any) {
       notify.error('Lỗi khi gọi AI Engine: ' + err.message);
@@ -113,9 +113,9 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
     <Modal
       title={
         <Space>
-          <RobotFilled style={{ color: '#8B5CF6', fontSize: 20 }} />
-          <span style={{ fontWeight: 800, fontSize: 16 }}>
-            Phòng Thí Nghiệm AI So Khớp SKU (Live AI Matching Playground)
+          <img src="/favicon.svg" alt="UniFlow AI" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+          <span style={{ fontWeight: 700, fontSize: 16 }}>
+            Phòng thí nghiệm AI so khớp SKU
           </span>
           <Tag color="#8B5CF6" style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}>
             Gemini 1.5 Flash + Qdrant
@@ -272,7 +272,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               borderRadius: 8,
             }}
           >
-            {analyzing ? 'AI Đang Tính Toán Vector & NER...' : '⚡ Khởi Chạy Thuật Toán So Khớp AI'}
+            {analyzing ? 'AI đang tính toán Vector & NER...' : 'Khởi chạy thuật toán so khớp AI'}
           </BaseButton>
         </div>
 
@@ -388,8 +388,8 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
                       <div style={{ color: '#6B7280', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>
                         {key === 'category' ? 'Loại' : key === 'color' ? 'Màu' : key === 'size' ? 'Size' : 'Vải'}
                       </div>
-                      <div style={{ color: val.match ? '#10B981' : '#EF4444', fontWeight: 700, marginTop: 2 }}>
-                        {val.match ? '✓ ' : '✗ '} {val.raw}
+                      <div style={{ color: val.match ? '#10B981' : '#EF4444', fontWeight: 700, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        {val.match ? <CheckCircleFilled style={{ fontSize: 11 }} /> : <CloseCircleFilled style={{ fontSize: 11 }} />} {val.raw}
                       </div>
                     </div>
                   </Col>

@@ -51,7 +51,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({
           <Space size={8}>
             <EyeOutlined style={{ color: '#ed1c24' }} />
             <span style={{ fontWeight: 700, fontSize: 16 }}>
-              {title || `Chi Tiết ${entityName}`}
+              {title || `Chi tiết ${entityName}`}
             </span>
           </Space>
           {status && <StatusTag status={status} text={statusLabel} />}
@@ -81,10 +81,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({
             {extraActions}
             {onEdit && record && (
               <BaseButton
-                variant="brand"
+                variant="primary"
                 size="small"
                 icon={<EditOutlined />}
-                glow
                 onClick={() => {
                   onEdit(record);
                   onClose();

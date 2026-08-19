@@ -56,15 +56,18 @@ class TenantService {
     return baseApi.post('/tenants/current/rotate-keys');
   }
 
-  async testConnector(connectorId: string, appKey?: string): Promise<{
+  async testConnector(connectorId: string, appKey?: string, customEndpoint?: string): Promise<{
     connectorId: string;
     status: string;
+    httpStatusCode?: number;
     latencyMs: number;
+    remoteServer?: string;
     handshakeSignature: string;
     oauthTokenStatus: string;
+    endpoint?: string;
     testedAt: string;
   }> {
-    return baseApi.post('/tenants/test-connector', { connectorId, appKey });
+    return baseApi.post('/tenants/test-connector', { connectorId, appKey, customEndpoint });
   }
 }
 

@@ -5,6 +5,7 @@ import {
   BellFilled,
   CrownFilled,
   ReloadOutlined,
+  CheckCircleFilled,
 } from '@ant-design/icons';
 import { BaseCard, BaseButton, ConfirmModal, PageContainer, FormFooter } from '../components/base';
 import { tenantService, TenantData } from '../services/tenant.service';
@@ -62,7 +63,7 @@ export const SettingsPage: React.FC = () => {
         },
       });
       setTenant(updated);
-      notify.success('Đã lưu cấu hình doanh nghiệp thành công vào MongoDB Atlas! ✨');
+      notify.success('Đã lưu cấu hình doanh nghiệp thành công vào MongoDB Atlas.');
     } catch (err: any) {
       notify.error('Lỗi khi cập nhật cấu hình: ' + err.message);
     } finally {
@@ -87,7 +88,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <PageContainer
-      title="Cài Đặt Hệ Thống"
+      title="Cài đặt hệ thống"
       tooltip="Cấu hình thông tin Merchant, Mã hóa bảo mật và Kênh thông báo sự cố thời gian thực"
       tags={
         <Tag color="#ed1c24" style={{ fontWeight: 600, borderRadius: 4 }}>
@@ -106,12 +107,12 @@ export const SettingsPage: React.FC = () => {
               {/* 1. Tenant Info */}
               <Col xs={24} lg={12}>
                 <BaseCard
-                  icon={<CrownFilled style={{ color: '#fcc20f' }} />}
-                  title="Thông Tin Doanh Nghiệp (Tenant Profile)"
+                  icon={<CrownFilled style={{ color: '#ed1c24' }} />}
+                  title="Thông tin doanh nghiệp"
                   subtitle="Thông tin định danh của Merchant trên nền tảng UniFlow AI"
                 >
                   <Form.Item
-                    label="Tên Doanh Nghiệp / Thương Hiệu"
+                    label="Tên doanh nghiệp / Thương hiệu"
                     name="name"
                     rules={[
                       validationRules.required('Tên doanh nghiệp là bắt buộc!'),
@@ -121,7 +122,7 @@ export const SettingsPage: React.FC = () => {
                     <Input placeholder="Nhập tên doanh nghiệp..." />
                   </Form.Item>
 
-                  <Form.Item label="Subdomain Định Danh (Tenant ID)" name="subdomain">
+                  <Form.Item label="Subdomain định danh (Tenant ID)" name="subdomain">
                     <Input
                       readOnly
                       style={{
@@ -135,7 +136,7 @@ export const SettingsPage: React.FC = () => {
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item
-                        label="Màu Thương Hiệu Chủ Đạo"
+                        label="Màu thương hiệu chủ đạo"
                         name="primaryColor"
                         initialValue="#ed1c24"
                       >
@@ -144,7 +145,7 @@ export const SettingsPage: React.FC = () => {
                     </Col>
                     <Col span={12}>
                       <Form.Item
-                        label="Màu Ánh Kim Bổ Trợ"
+                        label="Màu ánh kim bổ trợ"
                         name="secondaryColor"
                         initialValue="#fcc20f"
                       >
@@ -154,7 +155,7 @@ export const SettingsPage: React.FC = () => {
                   </Row>
 
                   <Form.Item
-                    label="Đơn Vị Vận Chuyển Mặc Định"
+                    label="Đơn vị vận chuyển mặc định"
                     name="defaultCarrier"
                     initialValue="GHTK"
                   >
@@ -168,7 +169,7 @@ export const SettingsPage: React.FC = () => {
                   </Form.Item>
 
                   <Form.Item
-                    label="Tự Động Thử Lại Khi Sự Cố (Auto-Retry on Failure)"
+                    label="Tự động thử lại khi gặp sự cố mạng (Auto-Retry)"
                     name="autoRetryOnFailure"
                     valuePropName="checked"
                   >
@@ -178,8 +179,8 @@ export const SettingsPage: React.FC = () => {
                   {/* Form Footer */}
                   <FormFooter
                     align="center"
-                    submitText="Lưu Cấu Hình Doanh Nghiệp"
-                    cancelText="Tải Lại"
+                    submitText="Lưu cấu hình doanh nghiệp"
+                    cancelText="Tải lại"
                     loading={saving}
                     onSubmit={() => form.submit()}
                     onCancel={fetchTenant}
@@ -191,7 +192,7 @@ export const SettingsPage: React.FC = () => {
               <Col xs={24} lg={12}>
                 <BaseCard
                   icon={<SafetyCertificateFilled style={{ color: '#10B981' }} />}
-                  title="Bảo Mật & Mã Hóa Dữ Liệu"
+                  title="Bảo mật và mã hóa dữ liệu"
                   subtitle="Tiêu chuẩn mã hóa AES-256-GCM bảo vệ an toàn Token OAuth và thông tin khách hàng"
                 >
                   <div
@@ -204,13 +205,13 @@ export const SettingsPage: React.FC = () => {
                   >
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 13 }}>
-                        Khóa Mã Hóa AES-256-GCM (32 Bytes)
+                        Khóa mã hóa AES-256-GCM (32 Bytes)
                       </div>
                       <div style={{ color: '#6B7280', fontSize: 12, marginTop: 2 }}>
                         Mã hóa toàn bộ Token OAuth và thông tin khách hàng nhạy cảm
                       </div>
                       <Tag color="#10B981" style={{ marginTop: 6, fontWeight: 600 }}>
-                        ● Đang kích hoạt chuẩn PCI-DSS
+                        <CheckCircleFilled style={{ marginRight: 4 }} /> Đang kích hoạt chuẩn PCI-DSS
                       </Tag>
                     </div>
 
@@ -220,7 +221,7 @@ export const SettingsPage: React.FC = () => {
                       icon={<ReloadOutlined />}
                       onClick={() => setResetModalOpen(true)}
                     >
-                      Tạo Khóa Mới
+                      Tạo khóa mới
                     </BaseButton>
                   </div>
 
@@ -229,14 +230,14 @@ export const SettingsPage: React.FC = () => {
                   <div
                     style={{
                       fontSize: 14,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       marginBottom: 12,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
                     }}
                   >
-                    <BellFilled style={{ color: '#fcc20f' }} /> Kênh Thông Báo Sự Cố Vận Hành
+                    <BellFilled style={{ color: '#ed1c24' }} /> Kênh thông báo sự cố vận hành
                   </div>
 
                   <div
@@ -297,4 +298,5 @@ export const SettingsPage: React.FC = () => {
     </PageContainer>
   );
 };
+
 export default SettingsPage;

@@ -21,6 +21,7 @@ import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../BaseButton';
 import { IconButton } from '../IconButton';
@@ -331,7 +332,7 @@ export const DataTable = <T extends Record<string, any>>({
             <Badge count={activeSelectedRowKeys.length}>
               <Dropdown menu={batchActionsMenu} trigger={['click']}>
                 <BaseButton variant="ghost" size="small">
-                  Thao tác hàng loạt <span style={{ fontSize: 9, marginLeft: 4 }}>▼</span>
+                  Thao tác hàng loạt <DownOutlined style={{ fontSize: 10, marginLeft: 4 }} />
                 </BaseButton>
               </Dropdown>
             </Badge>
@@ -444,7 +445,7 @@ export const DataTable = <T extends Record<string, any>>({
       <Modal
         open={filterModalOpen}
         onCancel={() => setFilterModalOpen(false)}
-        title="Bộ Lọc Dữ Liệu Tùy Chỉnh"
+        title="Bộ lọc dữ liệu tùy chỉnh"
         width={680}
         footer={null}
         destroyOnClose

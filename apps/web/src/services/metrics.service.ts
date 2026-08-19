@@ -7,11 +7,12 @@ export interface ChannelStats {
 }
 
 export interface SkuHealthStats {
-  total: number;
+  total?: number;
   autoApproved: number;
   pendingReview: number;
   manualRequired: number;
-  matchRate: number;
+  matchRate?: string | number;
+  autoRate?: string;
 }
 
 export interface WorkflowGlance {
@@ -26,12 +27,20 @@ export interface WorkflowGlance {
 export interface DashboardMetrics {
   totalSyncedOrders: number;
   averageLatencyMs: number;
-  successRate: number;
-  costSavedVND: number;
+  p99LatencyMs?: number;
+  successRate: any;
+  costSavedVND?: number;
+  costSavedVnd?: string;
   hoursSaved?: number;
-  healedOrdersCount: number;
+  healedOrdersCount?: number;
   failedOrdersCount?: number;
-  totalLogsCount: number;
+  totalLogsCount?: number;
+  activeWorkflows?: number;
+  channels?: {
+    tiktok: { orderCount: number; percentage: number; status: string };
+    shopee: { orderCount: number; percentage: number; status: string };
+    lazada: { orderCount: number; percentage: number; status: string };
+  };
   channelBreakdown?: {
     tiktok: ChannelStats;
     shopee: ChannelStats;
@@ -40,6 +49,7 @@ export interface DashboardMetrics {
   skuHealth?: SkuHealthStats;
   workflows?: WorkflowGlance[];
   systemStatus?: {
+    gateway?: string;
     database: string;
     redisCluster: string;
     aiMatcher: string;
@@ -56,6 +66,7 @@ export interface SyncLogItem {
   message: string;
   aiHealed: boolean;
   payload?: any;
+  rawPayload?: any;
   requestPayload?: any;
   createdAt: string;
 }
@@ -67,6 +78,10 @@ class MetricsApiService extends BaseApiService<SyncLogItem> {
     return baseApi.get<DashboardMetrics>('/metrics', {
       params: tenantId ? { tenantId } : undefined,
     });
+  }
+
+  async getDashboardMetrics(tenantId?: string): Promise<DashboardMetrics> {
+    return this.getMetrics(tenantId);
   }
 
   async getLogs(limit = 20, tenantId?: string): Promise<SyncLogItem[]> {

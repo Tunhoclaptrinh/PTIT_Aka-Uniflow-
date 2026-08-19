@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Tag } from 'antd';
-import { DatabaseFilled, CarFilled, DownOutlined, UpOutlined } from '@ant-design/icons';
+import { DatabaseFilled, CarFilled } from '@ant-design/icons';
+import { getPartnerLogo } from '../../../utils/partnerLogos';
 
-export const ActionNode: React.FC<{ data: any }> = ({ data }) => {
-  const [expanded, setExpanded] = useState(false);
+export const ActionNode: React.FC<any> = ({ data, selected }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const isPos = data.category === 'POS';
+  const isPos = data.category === 'POS' || data.category === 'POS_ERP';
   const nodeColor = isPos ? '#fcc20f' : '#10B981';
+  const partnerLogo = getPartnerLogo(data.label || data.name || '');
 
   return (
     <div
@@ -16,10 +16,11 @@ export const ActionNode: React.FC<{ data: any }> = ({ data }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'relative',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: isHovered ? 'scale(1.04)' : 'scale(1)',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
+      {/* Input Handle */}
       <Handle
         type="target"
         position={Position.Left}
@@ -27,77 +28,96 @@ export const ActionNode: React.FC<{ data: any }> = ({ data }) => {
           background: nodeColor,
           width: 10,
           height: 10,
-          border: '2px solid #ffffff',
+          border: '2px solid #FFFFFF',
           boxShadow: `0 0 8px ${nodeColor}`,
         }}
       />
 
+      {/* Compact Node Container */}
       <div
-        onClick={() => setExpanded(!expanded)}
         style={{
-          padding: expanded ? '14px 18px' : '10px 14px',
+          padding: '10px 14px',
           background: '#FFFFFF',
-          borderRadius: expanded ? 14 : 28,
-          border: `2px solid ${nodeColor}`,
-          boxShadow: isHovered || expanded ? `0 6px 20px rgba(0, 0, 0, 0.15)` : `0 2px 10px rgba(0, 0, 0, 0.08)`,
-          minWidth: expanded ? 220 : 160,
+          borderRadius: 10,
+          border: selected ? `2px solid ${nodeColor}` : '1px solid #E5E7EB',
+          boxShadow: selected
+            ? `0 0 0 3px ${isPos ? 'rgba(252, 194, 15, 0.25)' : 'rgba(16, 185, 129, 0.25)'}, 0 8px 16px rgba(0, 0, 0, 0.08)`
+            : isHovered
+            ? '0 6px 16px rgba(0, 0, 0, 0.08)'
+            : '0 2px 6px rgba(0, 0, 0, 0.04)',
+          width: 210,
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          {/* Round Icon Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Logo Badge */}
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: isPos ? 'linear-gradient(135deg, #fcc20f 0%, #EA5400 100%)' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
               flexShrink: 0,
+              padding: 4,
+              overflow: 'hidden',
             }}
           >
-            {isPos ? <DatabaseFilled style={{ color: '#FFFFFF', fontSize: 16 }} /> : <CarFilled style={{ color: '#FFFFFF', fontSize: 16 }} />}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', lineHeight: 1.2 }}>
-              {data.label || 'Action Node'}
-            </div>
-            {!expanded && (
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-                {isPos ? 'Trừ kho POS' : 'Tạo vận đơn'}
-              </div>
+            {partnerLogo ? (
+              <img
+                src={partnerLogo}
+                alt={data.label}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : isPos ? (
+              <DatabaseFilled style={{ color: '#d48806', fontSize: 16 }} />
+            ) : (
+              <CarFilled style={{ color: '#10B981', fontSize: 16 }} />
             )}
           </div>
 
-          <div style={{ color: '#9CA3AF', fontSize: 12 }}>
-            {expanded ? <UpOutlined /> : <DownOutlined />}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 13,
+                color: '#111827',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={data.label}
+            >
+              {data.label || 'Action Node'}
+            </div>
+            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+              {isPos ? 'Trừ kho POS' : 'Tạo vận đơn HVC'}
+            </div>
           </div>
         </div>
-
-        {/* Expanded Details Body */}
-        {expanded && (
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #F3F4F6' }}>
-            <div style={{ color: '#4B5563', fontSize: 12, marginBottom: 8, lineHeight: 1.4 }}>
-              {data.description || (isPos ? 'Trừ tồn kho trực tiếp qua Open API' : 'Tạo vận đơn tự động và lấy mã Tracking')}
-            </div>
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <Tag color={isPos ? '#fcc20f' : '#10B981'} style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
-                {isPos ? 'ERP Inventory' : 'Auto Waybill'}
-              </Tag>
-              <Tag style={{ borderRadius: 4, fontWeight: 600, fontSize: 10 }}>
-                Kho Tổng HN
-              </Tag>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Output Handle */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          background: nodeColor,
+          width: 10,
+          height: 10,
+          border: '2px solid #FFFFFF',
+          boxShadow: `0 0 8px ${nodeColor}`,
+        }}
+      />
     </div>
   );
 };
+
+export default ActionNode;

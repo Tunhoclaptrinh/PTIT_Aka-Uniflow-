@@ -8,6 +8,8 @@ import {
   DeleteOutlined,
   ThunderboltFilled,
   ExperimentOutlined,
+  PlusOutlined,
+  CheckCircleFilled,
 } from '@ant-design/icons';
 import { mappingService, SKUMappingItem } from '../../services/mapping.service';
 import { SkuDetailModal } from './SkuDetailModal';
@@ -20,10 +22,10 @@ import {
   IconButton,
   PageContainer,
   StatisticsItem,
+  FilterConfig,
 } from '../base';
 import { useCRUD } from '../../hooks';
 import { notify } from '../../utils/notification';
-import { downloadExcelTemplate, parseImportFile } from '../../utils/export';
 
 export const SkuMappingTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState('ALL');
@@ -37,9 +39,7 @@ export const SkuMappingTable: React.FC = () => {
     pageSize,
     setPage,
     setPageSize,
-    filters,
     updateFilter,
-    clearFilters,
     create,
     update,
     remove,
@@ -83,7 +83,7 @@ export const SkuMappingTable: React.FC = () => {
       for (const item of pendingItems) {
         await mappingService.approveMapping(item._id);
       }
-      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingItems.length} mã SKU thành công! ✨`);
+      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingItems.length} mã SKU thành công.`);
       setBatchModalOpen(false);
       refresh();
     } catch (err: any) {
@@ -184,32 +184,33 @@ export const SkuMappingTable: React.FC = () => {
   const pendingCount = data.filter((d) => d.mappingStatus === 'PENDING_REVIEW').length;
   const approvedCount = data.filter((d) => d.mappingStatus === 'AUTO_APPROVED').length;
   const manualCount = data.filter((d) => d.mappingStatus === 'MANUAL_REQUIRED').length;
+  const totalCount = total || data.length || 0;
 
-  // Top Statistics Items (Pill style pastel colors directly inside DataTable)
+  // Top Statistics Items (Pill style pastel colors with direct filter tabs)
   const statItems: StatisticsItem[] = [
     {
-      title: 'Tổng SKU Sàn TMĐT',
-      value: total || data.length || 9,
+      title: 'Tổng SKU sàn TMĐT',
+      value: totalCount,
       backgroundColor: '#FFF1F0',
       valueColor: '#cf1322',
       onClick: () => handleTabChange('ALL'),
     },
     {
-      title: 'Đã Đồng Bộ Master SKU',
+      title: 'Đã đồng bộ Master SKU',
       value: approvedCount,
       backgroundColor: '#E6F7FF',
       valueColor: '#096dd9',
       onClick: () => handleTabChange('APPROVED'),
     },
     {
-      title: 'Chờ Duyệt 1-Click (AI >= 90%)',
+      title: 'Chờ duyệt 1-click (AI >= 90%)',
       value: pendingCount,
       backgroundColor: '#FFF7E6',
       valueColor: '#d46b08',
       onClick: () => handleTabChange('PENDING'),
     },
     {
-      title: 'Cần Ghép Thủ Công',
+      title: 'Cần ghép thủ công',
       value: manualCount,
       backgroundColor: '#FFF0F6',
       valueColor: '#c41d7f',
@@ -217,11 +218,58 @@ export const SkuMappingTable: React.FC = () => {
     },
   ];
 
+  const mappingFilters: FilterConfig[] = [
+    {
+      key: 'sourcePlatform',
+      label: 'Nền tảng sàn',
+      type: 'select',
+      options: [
+        { label: 'TikTok Shop', value: 'TIKTOK_SHOP' },
+        { label: 'Shopee', value: 'SHOPEE' },
+        { label: 'Lazada', value: 'LAZADA' },
+      ],
+      operators: ['eq', 'ne', 'in'],
+    },
+    {
+      key: 'targetPosPlatform',
+      label: 'Phần mềm kho POS',
+      type: 'select',
+      options: [
+        { label: 'Sapo', value: 'SAPO' },
+        { label: 'KiotViet', value: 'KIOTVIET' },
+      ],
+      operators: ['eq', 'ne'],
+    },
+    {
+      key: 'mappingStatus',
+      label: 'Trạng thái đối soát',
+      type: 'select',
+      options: [
+        { label: 'Tự động duyệt', value: 'AUTO_APPROVED' },
+        { label: 'Chờ duyệt 1-click', value: 'PENDING_REVIEW' },
+        { label: 'Cần ghép thủ công', value: 'MANUAL_REQUIRED' },
+      ],
+      operators: ['eq', 'ne'],
+    },
+    {
+      key: 'sourceSkuCode',
+      label: 'Mã SKU sàn',
+      type: 'input',
+      operators: ['eq', 'like'],
+    },
+    {
+      key: 'targetMasterSku',
+      label: 'Mã Master SKU kho',
+      type: 'input',
+      operators: ['eq', 'like'],
+    },
+  ];
+
   const getActionMenuItems = (record: SKUMappingItem): MenuProps['items'] => [
     {
       key: 'approve',
       icon: <CheckOutlined style={{ color: '#10B981' }} />,
-      label: 'Duyệt liên kết 1-Click',
+      label: 'Duyệt liên kết 1-click',
       disabled: record.mappingStatus === 'AUTO_APPROVED',
       onClick: () => handleApprove(record._id),
     },
@@ -251,7 +299,7 @@ export const SkuMappingTable: React.FC = () => {
 
   const columns = [
     {
-      title: 'Sản phẩm Sàn TMĐT (Nguồn)',
+      title: 'Sản phẩm sàn TMĐT (Nguồn)',
       key: 'source',
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.sourceSkuCode.localeCompare(b.sourceSkuCode),
       filters: [
@@ -268,8 +316,8 @@ export const SkuMappingTable: React.FC = () => {
                 record.sourcePlatform === 'TIKTOK_SHOP'
                   ? '#000000'
                   : record.sourcePlatform === 'SHOPEE'
-                  ? '#EE4D2D'
-                  : '#0F146D'
+                    ? '#EE4D2D'
+                    : '#0F146D'
               }
               style={{
                 borderRadius: 4,
@@ -279,8 +327,8 @@ export const SkuMappingTable: React.FC = () => {
               {record.sourcePlatform === 'TIKTOK_SHOP'
                 ? 'TikTok Shop'
                 : record.sourcePlatform === 'SHOPEE'
-                ? 'Shopee'
-                : 'Lazada'}
+                  ? 'Shopee'
+                  : 'Lazada'}
             </Tag>
             <span style={{ fontFamily: 'JetBrains Mono', color: '#ed1c24', fontWeight: 700 }}>
               {record.sourceSkuCode}
@@ -298,7 +346,7 @@ export const SkuMappingTable: React.FC = () => {
       ),
     },
     {
-      title: 'SKU Kho POS Đích (Master SKU)',
+      title: 'SKU kho POS đích (Master SKU)',
       key: 'target',
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.targetMasterSku.localeCompare(b.targetMasterSku),
       filters: [
@@ -323,7 +371,7 @@ export const SkuMappingTable: React.FC = () => {
       ),
     },
     {
-      title: 'Điểm Tin Cậy AI',
+      title: 'Điểm tin cậy AI',
       dataIndex: 'confidenceScore',
       key: 'confidenceScore',
       width: 190,
@@ -337,7 +385,7 @@ export const SkuMappingTable: React.FC = () => {
         return (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>Qdrant + Gemini</span>
+              <span style={{ fontSize: 12, color: '#6B7280' }}>Vector Cosine + NER</span>
               <span style={{ fontWeight: 700, color: strokeColor }}>{percent}%</span>
             </div>
             <Progress
@@ -352,9 +400,9 @@ export const SkuMappingTable: React.FC = () => {
       },
     },
     {
-      title: 'Trạng Thái',
+      title: 'Trạng thái đối soát',
       key: 'mappingStatus',
-      width: 140,
+      width: 150,
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.mappingStatus.localeCompare(b.mappingStatus),
       filters: [
         { text: 'Tự động duyệt', value: 'AUTO_APPROVED' },
@@ -364,16 +412,28 @@ export const SkuMappingTable: React.FC = () => {
       onFilter: (value: any, record: SKUMappingItem) => record.mappingStatus === value,
       render: (_: any, record: SKUMappingItem) => {
         if (record.mappingStatus === 'AUTO_APPROVED') {
-          return <Tag color="#10B981" style={{ fontWeight: 600 }}>✓ Tự động duyệt</Tag>;
+          return (
+            <Tag color="#10B981" style={{ fontWeight: 600 }}>
+              <CheckCircleFilled style={{ marginRight: 4 }} /> Tự động duyệt
+            </Tag>
+          );
         }
         if (record.mappingStatus === 'PENDING_REVIEW') {
-          return <Tag color="#fcc20f" style={{ fontWeight: 600, color: '#111827' }}>⚡ Chờ duyệt</Tag>;
+          return (
+            <Tag color="#fcc20f" style={{ fontWeight: 600, color: '#111827' }}>
+              <ThunderboltFilled style={{ marginRight: 4 }} /> Chờ duyệt
+            </Tag>
+          );
         }
-        return <Tag color="#EF4444" style={{ fontWeight: 600 }}>Cần ghép tay</Tag>;
+        return (
+          <Tag color="#EF4444" style={{ fontWeight: 600 }}>
+            <EditOutlined style={{ marginRight: 4 }} /> Cần ghép tay
+          </Tag>
+        );
       },
     },
     {
-      title: 'Thao Tác',
+      title: 'Thao tác',
       key: 'action',
       width: 130,
       align: 'center' as const,
@@ -382,7 +442,7 @@ export const SkuMappingTable: React.FC = () => {
         const isApproved = record.mappingStatus === 'AUTO_APPROVED';
         return (
           <Space size={2}>
-            {/* 1. Fixed Position: Approve 1-Click (Active if pending, Disabled if already approved) */}
+            {/* 1. Fixed Position: Approve 1-Click */}
             <IconButton
               icon={<CheckOutlined />}
               tooltip={isApproved ? 'Đã được phê duyệt tự động' : 'Phê duyệt nhanh 1-Click'}
@@ -425,175 +485,108 @@ export const SkuMappingTable: React.FC = () => {
 
   return (
     <PageContainer
-      title="Ánh Xạ SKU"
-      tooltip="Khớp nối sản phẩm sàn TMĐT và Master SKU trong kho POS bằng thuật toán AI Vector Cosine"
-      extra={
-        <Space size="middle">
-          {/* AI Playground Button */}
-          <BaseButton
-            variant="ghost"
-            icon={<ExperimentOutlined style={{ color: '#8B5CF6' }} />}
-            onClick={() => setAiPlaygroundOpen(true)}
-            style={{
-              borderColor: '#8B5CF6',
-              color: '#8B5CF6',
-              fontWeight: 700,
-            }}
-          >
-            ⚡ AI Matching Playground
-          </BaseButton>
-
-          {pendingCount > 0 && (
-            <BaseButton
-              variant="primary"
-              icon={<ThunderboltFilled />}
-              glow
-              onClick={() => setBatchModalOpen(true)}
-            >
-              Duyệt Hàng Loạt ({pendingCount})
-            </BaseButton>
-          )}
-        </Space>
-      }
+      title="Ánh xạ SKU"
+      tooltip="Bảng đối chiếu danh mục sản phẩm từ các Sàn TMĐT về mã Master SKU trong kho POS nội bộ"
     >
-      {/* DataTable kết nối 100% qua useCRUD */}
-      <DataTable
-        dataSource={data}
+      <DataTable<SKUMappingItem>
         columns={columns}
+        dataSource={data}
         rowKey="_id"
         loading={loading}
         statisticsData={statItems}
-        statisticsTitle="Thống kê ánh xạ SKU sàn"
-        onRefresh={refresh}
-        onAdd={openAddModal}
-        importable={true}
-        onImport={async (file) => {
-          try {
-            const records = await parseImportFile(file);
-            if (records.length === 0) {
-              notify.warning('Tệp tải lên không có dữ liệu hợp lệ!');
-              return;
-            }
-            let successCount = 0;
-            for (const r of records) {
-              const skuData = {
-                sourcePlatform: r.sourcePlatform || r['Nền tảng sàn'] || 'TIKTOK_SHOP',
-                sourceSkuCode: r.sourceSkuCode || r['Mã SKU sàn'] || `IMPORT_${Date.now()}`,
-                sourceProductName: r.sourceProductName || r['Tên sản phẩm sàn'] || 'Sản phẩm Import',
-                targetPosPlatform: r.targetPosPlatform || r['Nền tảng POS'] || 'SAPO',
-                targetMasterSku: r.targetMasterSku || r['Mã Master SKU'] || 'MASTER_SKU_DEFAULT',
-                targetProductName: r.targetProductName || r['Tên sản phẩm Master'] || 'Master Product',
-                mappingStatus: 'PENDING_REVIEW' as const,
-                confidenceScore: 0.95,
-              };
-              await create(skuData);
-              successCount++;
-            }
-            notify.success(`Đã import thành công ${successCount} bản ghi ánh xạ SKU vào Database!`);
-            refresh();
-          } catch (err: any) {
-            notify.error('Lỗi khi xử lý tệp import: ' + err.message);
-          }
-        }}
-        onDownloadTemplate={() => {
-          downloadExcelTemplate(
-            [
-              { key: 'sourcePlatform', label: 'Nền tảng sàn (SHOPEE/TIKTOK_SHOP/LAZADA)', sample: 'SHOPEE' },
-              { key: 'sourceSkuCode', label: 'Mã SKU sàn', sample: 'AO-POLO-NAM-DEN-L' },
-              { key: 'sourceProductName', label: 'Tên sản phẩm sàn', sample: 'Áo Polo Nam Cotton Cổ Bẻ Cao Cấp' },
-              { key: 'targetPosPlatform', label: 'Nền tảng POS (SAPO/KIOTVIET)', sample: 'SAPO' },
-              { key: 'targetMasterSku', label: 'Mã Master SKU POS', sample: 'AP-COT-BLK-L' },
-              { key: 'targetProductName', label: 'Tên sản phẩm Master POS', sample: 'Áo Polo Nam Cotton Compact - Đen - L' },
-            ],
-            'uniflow_sku_mapping_template.csv'
-          );
-          notify.success('Đã tải xuống tệp mẫu uniflow_sku_mapping_template.csv!');
-        }}
-        exportable={true}
-        exportFilename="uniflow-sku-mappings"
-        batchOperations={true}
-        onBatchDelete={handleBatchDelete}
+        extra={
+          <Space size="small">
+            <BaseButton
+              variant="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={openAddModal}
+            >
+              Thêm mới
+            </BaseButton>
+
+            <BaseButton
+              variant="secondary"
+              size="small"
+              icon={<ExperimentOutlined style={{ color: '#8B5CF6' }} />}
+              onClick={() => setAiPlaygroundOpen(true)}
+            >
+              Phòng thí nghiệm AI
+            </BaseButton>
+
+            {pendingCount > 0 && (
+              <BaseButton
+                variant="secondary"
+                size="small"
+                icon={<ThunderboltFilled style={{ color: '#F59E0B' }} />}
+                onClick={() => setBatchModalOpen(true)}
+              >
+                Phê duyệt tất cả ({pendingCount})
+              </BaseButton>
+            )}
+          </Space>
+        }
         pagination={{
           current: page,
-          pageSize: pageSize,
-          total: total || data.length,
+          pageSize,
+          total,
           onChange: (p: number, ps: number) => {
             setPage(p);
             setPageSize(ps);
           },
         }}
-        searchFields={['sourceSkuCode', 'sourceProductName', 'targetMasterSku', 'targetProductName']}
-        filters={[
+        batchActions={[
           {
-            key: 'sourcePlatform',
-            label: 'Nền tảng Sàn Nguồn',
-            type: 'select',
-            options: [
-              { label: 'TikTok Shop', value: 'TIKTOK_SHOP' },
-              { label: 'Shopee', value: 'SHOPEE' },
-              { label: 'Lazada', value: 'LAZADA' },
-            ],
-            operators: ['eq', 'ne', 'in'],
-          },
-          {
-            key: 'targetPosPlatform',
-            label: 'Hệ thống Kho POS Đích',
-            type: 'select',
-            options: [
-              { label: 'Sapo Omnichannel', value: 'SAPO' },
-              { label: 'KiotViet', value: 'KIOTVIET' },
-            ],
-            operators: ['eq', 'ne'],
-          },
-          {
-            key: 'mappingStatus',
-            label: 'Trạng Thái Phê Duyệt',
-            type: 'select',
-            options: [
-              { label: 'Đã Đồng Bộ (AUTO_APPROVED)', value: 'AUTO_APPROVED' },
-              { label: 'Chờ Duyệt (PENDING_REVIEW)', value: 'PENDING_REVIEW' },
-              { label: 'Cần Ghép Tay (MANUAL_REQUIRED)', value: 'MANUAL_REQUIRED' },
-            ],
-            operators: ['eq', 'ne'],
+            key: 'delete',
+            label: 'Xóa các mục đã chọn',
+            danger: true,
+            confirm: {
+              title: 'Xác nhận xóa hàng loạt',
+              content: 'Bạn có chắc chắn muốn xóa tất cả các cấu hình ánh xạ đã chọn không?',
+            },
+            onClick: handleBatchDelete,
           },
         ]}
-        filterValues={filters}
-        onFilterChange={updateFilter}
-        onClearFilters={clearFilters}
+        creatable={false}
+        importable={false}
+        exportable={false}
+        onRefresh={refresh}
+        searchPlaceholder="Tìm theo mã SKU sàn hoặc Master SKU..."
+        onSearch={(val: string) => updateFilter('search', val)}
+        filters={mappingFilters}
+        onFilterChange={(key: string, val: any) => updateFilter(key, val)}
+        onClearFilters={() => refresh()}
         tabs={[
-          { key: 'ALL', label: 'Toàn Bộ SKU Sàn' },
-          { key: 'PENDING', label: 'Chờ Duyệt 1-Click' },
-          { key: 'APPROVED', label: 'Đã Đồng Bộ Master SKU' },
-          { key: 'MANUAL', label: 'Cần Ghép Thủ Công' },
+          { key: 'ALL', label: 'Tất cả' },
+          { key: 'APPROVED', label: 'Đã đồng bộ' },
+          { key: 'PENDING', label: 'Chờ duyệt 1-click' },
+          { key: 'MANUAL', label: 'Cần ghép tay' },
         ]}
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
 
-      {/* Sku Form Modal (Thêm / Sửa kết nối trực tiếp DB) */}
+      {/* Sku Detail Modal */}
+      <SkuDetailModal
+        open={detailModalOpen}
+        item={selectedItem}
+        onClose={() => setDetailModalOpen(false)}
+        onApprove={(id) => {
+          handleApprove(id);
+          setDetailModalOpen(false);
+        }}
+      />
+
+      {/* Sku Add / Edit Form Modal */}
       <SkuFormModal
         open={formModalOpen}
         initialValues={editingItem}
         loading={formLoading}
-        onClose={() => {
-          setFormModalOpen(false);
-          setEditingItem(null);
-        }}
+        onClose={() => setFormModalOpen(false)}
         onSubmit={handleFormSubmit}
       />
 
-      {/* AI Explanation Modal */}
-      <SkuDetailModal
-        open={detailModalOpen}
-        item={selectedItem}
-        onClose={() => {
-          setDetailModalOpen(false);
-          setSelectedItem(null);
-        }}
-        onApprove={handleApprove}
-      />
-
-      {/* AI Live Matching Playground Modal */}
+      {/* AI Playground Modal */}
       <SkuAiPlaygroundModal
         open={aiPlaygroundOpen}
         onClose={() => setAiPlaygroundOpen(false)}
@@ -603,9 +596,9 @@ export const SkuMappingTable: React.FC = () => {
       {/* Batch Approve Confirm Modal */}
       <ConfirmModal
         open={batchModalOpen}
-        title="Xác nhận phê duyệt hàng loạt SKU"
-        content={`Bạn có chắc chắn muốn tự động phê duyệt toàn bộ ${pendingCount} mã hàng có độ tin cậy AI cao (>= 90%) vào danh mục Master SKU không?`}
-        confirmText={`Phê duyệt ${pendingCount} mã`}
+        title="Xác nhận phê duyệt hàng loạt"
+        content={`Bạn có chắc chắn muốn phê duyệt tự động tất cả ${pendingCount} mã SKU đang ở trạng thái Chờ duyệt (Điểm tin cậy AI >= 90%) không?`}
+        confirmText="Xác nhận duyệt"
         loading={batchLoading}
         onConfirm={handleBatchApproveAll}
         onCancel={() => setBatchModalOpen(false)}

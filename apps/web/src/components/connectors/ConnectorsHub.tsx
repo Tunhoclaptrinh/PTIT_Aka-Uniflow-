@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Tag, Space, Tabs } from 'antd';
 import {
   SettingOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
 import { ConnectorConfigModal } from './ConnectorConfigModal';
+import { AddConnectorModal } from './AddConnectorModal';
 import { StatusTag, BaseButton, SearchInput, EmptyState, PageContainer } from '../base';
 import { notify } from '../../utils/notification';
+import { metricsService } from '../../services/metrics.service';
+import { getPartnerLogo } from '../../utils/partnerLogos';
 
-interface ConnectorItem {
+export interface ConnectorItem {
   id: string;
   name: string;
   category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS';
@@ -18,9 +21,12 @@ interface ConnectorItem {
   latency: string;
   brandColor: string;
   description: string;
+  appKey?: string;
+  appSecret?: string;
+  endpoint?: string;
 }
 
-const initialConnectors: ConnectorItem[] = [
+const defaultConnectorsList: ConnectorItem[] = [
   {
     id: 'tiktok',
     name: 'TikTok Shop',
@@ -58,7 +64,7 @@ const initialConnectors: ConnectorItem[] = [
     id: 'sapo',
     name: 'Sapo POS & Omnichannel',
     category: 'POS_ERP',
-    categoryLabel: 'Quản Lý Kho POS',
+    categoryLabel: 'Quản lý kho POS',
     status: 'CONNECTED',
     ordersSynced: 38900,
     latency: '145ms',
@@ -69,7 +75,7 @@ const initialConnectors: ConnectorItem[] = [
     id: 'kiotviet',
     name: 'KiotViet Retail API',
     category: 'POS_ERP',
-    categoryLabel: 'Quản Lý Kho POS',
+    categoryLabel: 'Quản lý kho POS',
     status: 'CONNECTED',
     ordersSynced: 19800,
     latency: '160ms',
@@ -80,7 +86,7 @@ const initialConnectors: ConnectorItem[] = [
     id: 'haravan',
     name: 'Haravan Omnichannel',
     category: 'POS_ERP',
-    categoryLabel: 'Quản Lý Kho POS',
+    categoryLabel: 'Quản lý kho POS',
     status: 'DISCONNECTED',
     ordersSynced: 3400,
     latency: '190ms',
@@ -91,18 +97,18 @@ const initialConnectors: ConnectorItem[] = [
     id: 'ghtk',
     name: 'Giao Hàng Tiết Kiệm (GHTK)',
     category: 'LOGISTICS',
-    categoryLabel: 'Đơn Vị Vận Chuyển',
+    categoryLabel: 'Đơn vị vận chuyển',
     status: 'CONNECTED',
     ordersSynced: 26100,
     latency: '175ms',
     brandColor: '#005D38',
-    description: 'Tạo vận đơn tự động, lấy mã vận đơn (Tracking Code) và in nhãn A6 ngay lập tức',
+    description: 'Tạo vận đơn tự động, lấy mã tracking và in phiếu giao hàng A6 ngay lập tức',
   },
   {
     id: 'ghn',
     name: 'Giao Hàng Nhanh (GHN Express)',
     category: 'LOGISTICS',
-    categoryLabel: 'Đơn Vị Vận Chuyển',
+    categoryLabel: 'Đơn vị vận chuyển',
     status: 'CONNECTED',
     ordersSynced: 18400,
     latency: '150ms',
@@ -113,7 +119,7 @@ const initialConnectors: ConnectorItem[] = [
     id: 'viettelpost',
     name: 'Viettel Post API',
     category: 'LOGISTICS',
-    categoryLabel: 'Đơn Vị Vận Chuyển',
+    categoryLabel: 'Đơn vị vận chuyển',
     status: 'DISCONNECTED',
     ordersSynced: 1200,
     latency: '310ms',
@@ -123,11 +129,40 @@ const initialConnectors: ConnectorItem[] = [
 ];
 
 export const ConnectorsHub: React.FC = () => {
-  const [connectors, setConnectors] = useState<ConnectorItem[]>(initialConnectors);
+  const [connectors, setConnectors] = useState<ConnectorItem[]>(defaultConnectorsList);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [configModalOpen, setConfigModalOpen] = useState<boolean>(false);
+  const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
   const [selectedConnector, setSelectedConnector] = useState<ConnectorItem | null>(null);
+
+  // Sync real metrics from MongoDB Atlas
+  useEffect(() => {
+    const fetchRealData = async () => {
+      try {
+        const metrics = await metricsService.getDashboardMetrics();
+        if (metrics && metrics.channels) {
+          setConnectors((prev) =>
+            prev.map((c) => {
+              if (c.id === 'tiktok' && metrics.channels?.tiktok) {
+                return { ...c, ordersSynced: metrics.channels.tiktok.orderCount || c.ordersSynced };
+              }
+              if (c.id === 'shopee' && metrics.channels?.shopee) {
+                return { ...c, ordersSynced: metrics.channels.shopee.orderCount || c.ordersSynced };
+              }
+              if (c.id === 'lazada' && metrics.channels?.lazada) {
+                return { ...c, ordersSynced: metrics.channels.lazada.orderCount || c.ordersSynced };
+              }
+              return c;
+            })
+          );
+        }
+      } catch (err: any) {
+        console.warn('Lỗi đồng bộ dữ liệu connectors:', err.message);
+      }
+    };
+    fetchRealData();
+  }, []);
 
   const filteredConnectors = connectors.filter((item) => {
     const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;
@@ -149,9 +184,13 @@ export const ConnectorsHub: React.FC = () => {
     notify.success(`Đã cập nhật cấu hình cho ${updatedConnector.name} thành công!`);
   };
 
+  const handleAddConnector = (newConnector: ConnectorItem) => {
+    setConnectors((prev) => [newConnector, ...prev]);
+  };
+
   return (
     <PageContainer
-      title="Kênh Kết Nối"
+      title="Kênh kết nối"
       tooltip="Cấu hình OAuth2, API Keys và Webhook Inbound cho các đối tác Sàn TMĐT, Kho POS và Đơn vị vận chuyển"
       extra={
         <Space size="middle">
@@ -163,25 +202,26 @@ export const ConnectorsHub: React.FC = () => {
           />
           <BaseButton
             variant="primary"
+            size="small"
             icon={<PlusOutlined />}
-            glow
-            onClick={() => notify.info('Tính năng thêm Custom Webhook Connector đang mở cho gói Enterprise!')}
+            onClick={() => setAddModalOpen(true)}
           >
-            Thêm Kết Nối Mới
+            Thêm kết nối mới
           </BaseButton>
         </Space>
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Category Tabs (Clean Text without parentheses) */}
+        {/* Category Tabs */}
         <Tabs
+          size='small'
           activeKey={selectedCategory}
           onChange={setSelectedCategory}
           items={[
-            { key: 'ALL', label: 'Tất Cả Cổng Kết Nối' },
+            { key: 'ALL', label: 'Tất cả cổng kết nối' },
             { key: 'MARKETPLACE', label: 'Sàn TMĐT' },
-            { key: 'POS_ERP', label: 'Quản Lý Kho POS' },
-            { key: 'LOGISTICS', label: 'Đơn Vị Vận Chuyển' },
+            { key: 'POS_ERP', label: 'Quản lý kho POS' },
+            { key: 'LOGISTICS', label: 'Đơn vị vận chuyển' },
           ]}
         />
 
@@ -211,32 +251,50 @@ export const ConnectorsHub: React.FC = () => {
                     bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20 }}
                   >
                     <div>
-                      {/* Top Row: Icon & Status */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                        <div
-                          style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 10,
-                            background: item.brandColor,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#FFFFFF',
-                            fontWeight: 900,
-                            fontSize: 16,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                          }}
-                        >
-                          {item.name.slice(0, 2).toUpperCase()}
-                        </div>
+                      {/* Top Row: Full Bare Logo & Status */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 44, marginBottom: 14 }}>
+                        {(() => {
+                          const partnerLogo = getPartnerLogo(item.id || item.name);
+                          if (partnerLogo) {
+                            return (
+                              <img
+                                src={partnerLogo}
+                                alt={item.name}
+                                style={{
+                                  height: 38,
+                                  maxWidth: 150,
+                                  objectFit: 'contain',
+                                  objectPosition: 'left center',
+                                }}
+                              />
+                            );
+                          }
+                          return (
+                            <div
+                              style={{
+                                height: 36,
+                                padding: '0 12px',
+                                borderRadius: 6,
+                                background: item.brandColor,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: 14,
+                              }}
+                            >
+                              {item.name}
+                            </div>
+                          );
+                        })()}
 
                         <StatusTag status={isConnected ? 'CONNECTED' : 'DISCONNECTED'} />
                       </div>
 
                       {/* Title & Category Tag */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <span style={{ fontSize: 16, fontWeight: 700 }}>{item.name}</span>
+                        <span style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{item.name}</span>
                         <Tag style={{ borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
                           {item.categoryLabel}
                         </Tag>
@@ -259,7 +317,6 @@ export const ConnectorsHub: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Clean white outline button with hover effect */}
                       <BaseButton
                         variant="ghost"
                         block
@@ -271,7 +328,7 @@ export const ConnectorsHub: React.FC = () => {
                           color: '#374151',
                         }}
                       >
-                        Cấu Hình & Kiểm Tra Kết Nối
+                        Cấu hình & kiểm tra kết nối
                       </BaseButton>
                     </div>
                   </Card>
@@ -287,6 +344,13 @@ export const ConnectorsHub: React.FC = () => {
           connector={selectedConnector}
           onClose={() => setConfigModalOpen(false)}
           onSave={handleSaveConfig}
+        />
+
+        {/* Add Connector Modal */}
+        <AddConnectorModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          onAdd={handleAddConnector}
         />
       </div>
     </PageContainer>

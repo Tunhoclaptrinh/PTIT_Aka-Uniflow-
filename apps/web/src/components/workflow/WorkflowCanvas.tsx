@@ -116,8 +116,8 @@ const FlowContent: React.FC = () => {
         type: n.type?.toLowerCase().includes('trigger')
           ? 'trigger'
           : n.type?.toLowerCase().includes('ai')
-          ? 'ai'
-          : 'action',
+            ? 'ai'
+            : 'action',
         data: n.data || { label: n.label, description: n.config?.eventType || 'Đã liên kết cơ sở dữ liệu' },
       }));
       setNodes(mappedNodes);
@@ -316,7 +316,7 @@ const FlowContent: React.FC = () => {
       setDryRunResult(result);
       setDebugDrawerOpen(true);
       notify.success(
-        `Chạy thử nghiệm thành công! Đơn #${result.orderId} ➔ Vận đơn: ${result.waybillCode} (${result.durationMs}ms) ⚡`
+        `Chạy thử nghiệm thành công: Đơn #${result.orderId} -> Vận đơn: ${result.waybillCode} (${result.durationMs}ms)`
       );
       loadAllWorkflows(currentWorkflow._id);
     } catch (err: any) {
@@ -487,6 +487,49 @@ const FlowContent: React.FC = () => {
             </ReactFlow>
           )}
 
+          {/* Floating Category Classification Legend */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 16,
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(8px)',
+              padding: '6px 14px',
+              borderRadius: 8,
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              fontSize: 11,
+              fontWeight: 600,
+              userSelect: 'none',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span style={{ color: '#6B7280' }}>Phân loại khối:</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#ed1c24' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ed1c24' }} /> Sàn TMĐT
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#8B5CF6' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#8B5CF6' }} /> AI Engine
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#D97706' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#D97706' }} /> Kho POS/ERP
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#10B981' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} /> Vận chuyển
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#EC4899' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EC4899' }} /> Logic & Rẽ nhánh
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#3B82F6' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3B82F6' }} /> Cảnh báo & CRM
+            </span>
+          </div>
+
           {/* Empty Canvas Guide State when a new workflow is empty */}
           {nodes.length === 0 && !loading && (
             <div
@@ -516,7 +559,7 @@ const FlowContent: React.FC = () => {
               </div>
               <Space>
                 <BaseButton
-                  variant="brand"
+                  variant="primary"
                   size="small"
                   icon={<PlusOutlined />}
                   onClick={() => setLibraryOpen(true)}

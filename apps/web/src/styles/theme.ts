@@ -67,6 +67,10 @@ export const lightThemeConfig: ThemeConfig = {
     Drawer: {
       colorBgElevated: '#FFFFFF',
     },
+    Switch: {
+      colorPrimary: '#ed1c24',
+      colorPrimaryHover: '#d9141b',
+    },
   },
 };
 
@@ -133,6 +137,10 @@ export const darkThemeConfig: ThemeConfig = {
     },
     Drawer: {
       colorBgElevated: '#0B0F19',
+    },
+    Switch: {
+      colorPrimary: '#ed1c24',
+      colorPrimaryHover: '#d9141b',
     },
   },
 };

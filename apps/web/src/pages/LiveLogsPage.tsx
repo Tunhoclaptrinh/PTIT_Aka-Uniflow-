@@ -14,6 +14,7 @@ import {
   IconButton,
   ActionDrawer,
   PageContainer,
+  FilterConfig,
 } from '../components/base';
 import { notify } from '../utils/notification';
 
@@ -189,9 +190,46 @@ export const LiveLogsPage: React.FC = () => {
     },
   ];
 
+  const logFilters: FilterConfig[] = [
+    {
+      key: 'platform',
+      label: 'Nền tảng',
+      type: 'select',
+      options: [
+        { label: 'TikTok Shop', value: 'TIKTOK' },
+        { label: 'Shopee', value: 'SHOPEE' },
+        { label: 'Lazada', value: 'LAZADA' },
+      ],
+      operators: ['eq', 'ne'],
+    },
+    {
+      key: 'status',
+      label: 'Trạng thái',
+      type: 'select',
+      options: [
+        { label: 'Thành công (SUCCESS)', value: 'SUCCESS' },
+        { label: 'Đang xử lý (PENDING)', value: 'PENDING' },
+        { label: 'Lỗi (FAILED)', value: 'FAILED' },
+      ],
+      operators: ['eq', 'ne'],
+    },
+    {
+      key: 'sourceOrderId',
+      label: 'Mã đơn hàng sàn',
+      type: 'input',
+      operators: ['eq', 'like'],
+    },
+    {
+      key: 'waybillCode',
+      label: 'Mã vận đơn HVC',
+      type: 'input',
+      operators: ['eq', 'like'],
+    },
+  ];
+
   return (
     <PageContainer
-      title="Nhật Ký Sự Kiện"
+      title="Nhật ký sự kiện"
       tooltip="Giám sát toàn bộ lưu lượng đơn hàng TMĐT, phân tích UDM Schema và tự phục hồi lỗi chuyển tuyến"
     >
       <DataTable
@@ -203,12 +241,13 @@ export const LiveLogsPage: React.FC = () => {
         exportable={true}
         exportFilename="uniflow-sync-logs"
         searchFields={['sourceOrderId', 'message', 'platform']}
+        filters={logFilters}
         tabs={[
-          { key: 'ALL', label: 'Tất Cả' },
+          { key: 'ALL', label: 'Tất cả' },
           { key: 'TIKTOK', label: 'TikTok Shop' },
           { key: 'SHOPEE', label: 'Shopee' },
           { key: 'LAZADA', label: 'Lazada' },
-          { key: 'HEALED', label: 'AI Auto-Healed' },
+          { key: 'HEALED', label: 'AI tự phục hồi' },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}

@@ -28,14 +28,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </Space>
       }
       footer={[
-        <BaseButton key="cancel" variant="ghost" onClick={onCancel} disabled={loading}>
+        <BaseButton key="cancel" variant="ghost" size="small" onClick={onCancel} disabled={loading}>
           {cancelText}
         </BaseButton>,
         <BaseButton
           key="confirm"
-          variant={danger ? 'danger' : 'brand'}
+          variant={danger ? 'danger' : 'primary'}
+          size="small"
           loading={loading}
-          glow={!danger}
           onClick={onConfirm}
         >
           {confirmText}

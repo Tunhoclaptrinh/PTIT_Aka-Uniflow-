@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Input, Tag, InputRef } from 'antd';
-import { ArrowRightOutlined, RobotFilled } from '@ant-design/icons';
+import { Input, InputRef } from 'antd';
+import { ArrowRightOutlined } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
 import { notify } from '../../../utils/notification';
 import { useAppConfig } from '../../../context/AppConfigContext';
@@ -30,7 +30,7 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = fals
 
     try {
       await onGenerate(query);
-      notify.success('AI đã phân tích và tạo dựng quy trình thành công trên Canvas! ✨');
+      notify.success('AI đã phân tích và tạo dựng quy trình thành công trên Canvas.');
     } catch (err: any) {
       notify.error('Lỗi khi sinh quy trình bằng AI: ' + err.message);
     } finally {
@@ -45,9 +45,10 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = fals
   };
 
   const samplePrompts = [
-    { label: 'TikTok ➔ Sapo ➔ GHTK', full: 'Đồng bộ đơn TikTok Shop sang Sapo POS và tạo vận đơn GHTK khi đã thanh toán' },
-    { label: 'Shopee ➔ KiotViet ➔ GHN', full: 'Bắt sự kiện Shopee sẵn sàng giao, trừ kho KiotViet và tạo đơn GHN Nhanh' },
-    { label: 'Lazada ➔ Haravan ➔ Viettel Post', full: 'Đồng bộ đơn Lazada sang Haravan ERP và đẩy đơn Viettel Post tự động' },
+    { label: 'TikTok -> Sapo -> GHTK', full: 'Đồng bộ đơn TikTok Shop sang Sapo POS và tạo vận đơn GHTK khi đã thanh toán' },
+    { label: 'Shopee -> KiotViet -> GHN', full: 'Bắt sự kiện Shopee sẵn sàng giao, trừ kho KiotViet và tạo đơn GHN Nhanh' },
+    { label: 'Lazada -> Haravan -> Viettel Post', full: 'Đồng bộ đơn Lazada sang Haravan ERP và đẩy đơn Viettel Post tự động' },
+    { label: 'So sánh cước & Chốt rẻ nhất', full: 'Tự động so sánh cước vận chuyển giữa GHTK, GHN, Viettel Post và tự động chốt hãng rẻ nhất' },
   ];
 
   return (
@@ -59,58 +60,68 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = fals
         transform: 'translateX(-50%)',
         zIndex: 20,
         width: '92%',
-        maxWidth: 820,
-        background: isLight ? 'rgba(255, 255, 255, 0.96)' : 'rgba(17, 24, 39, 0.96)',
+        maxWidth: 780,
+        background: isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(17, 24, 39, 0.98)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderRadius: 14,
-        border: '1px solid var(--border-subtle, #E5E7EB)',
-        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
-        padding: '10px 16px',
+        borderRadius: 12,
+        border: isLight ? '1px solid #E5E7EB' : '1px solid #374151',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+        padding: '10px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
+        gap: 8,
         transition: 'all 0.3s ease',
       }}
     >
-      {/* 1. Quick Prompt Suggestion Tags */}
+      {/* 1. Quick Prompt Suggestion Hashtags */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#8B5CF6', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <RobotFilled /> Gợi ý lời nhắc AI:
-        </span>
         {samplePrompts.map((item, idx) => (
-          <Tag
+          <span
             key={idx}
             onClick={() => handleSelectSample(item.full)}
             style={{
               cursor: 'pointer',
+              fontSize: 12,
+              padding: '2px 8px',
               borderRadius: 6,
-              fontSize: 11,
-              padding: '1px 8px',
-              background: isLight ? '#F3F4F6' : '#1F2937',
-              borderColor: isLight ? '#E5E7EB' : '#374151',
-              color: isLight ? '#374151' : '#D1D5DB',
+              background: isLight ? '#F9FAFB' : '#1F2937',
+              border: isLight ? '1px solid #E5E7EB' : '1px solid #374151',
+              color: isLight ? '#4B5563' : '#D1D5DB',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2,
+              userSelect: 'none',
               transition: 'all 0.2s ease',
             }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#ed1c24';
+              e.currentTarget.style.color = '#ed1c24';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isLight ? '#E5E7EB' : '#374151';
+              e.currentTarget.style.color = isLight ? '#4B5563' : '#D1D5DB';
+            }}
           >
+            <span style={{ color: '#9CA3AF', fontWeight: 600 }}>#</span>
             {item.label}
-          </Tag>
+          </span>
         ))}
       </div>
 
-      {/* 2. Main Prompt Input Bar */}
+      {/* 2. Main Prompt Input & Tooltip Icon Action Button */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <Input
           ref={inputRef}
-          prefix={<RobotFilled style={{ color: '#8B5CF6', fontSize: 15, marginRight: 4 }} />}
+          prefix={<img src="/favicon.svg" alt="UniFlow AI" style={{ height: 24, width: 24, objectFit: 'contain', marginRight: 6 }} />}
           placeholder="Nhập mô tả luồng tự động (Ví dụ: Đồng bộ đơn Shopee sang Sapo và tạo đơn GHN...)"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onPressEnter={() => handleGenerate()}
           style={{
             flex: 1,
-            borderRadius: 8,
-            height: 38,
+            borderRadius: 6,
+            height: 36,
             fontSize: 13,
             background: isLight ? '#FFFFFF' : '#111827',
             borderColor: isLight ? '#E5E7EB' : '#374151',
@@ -120,20 +131,19 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = fals
 
         <BaseButton
           variant="primary"
-          size="middle"
+          tooltip="Tạo luồng tự động bằng AI"
           onClick={() => handleGenerate()}
           loading={loading || localLoading}
           icon={<ArrowRightOutlined />}
           style={{
-            height: 38,
-            padding: '0 16px',
-            fontSize: 13,
-            borderRadius: 8,
+            height: 36,
+            width: 36,
+            minWidth: 36,
+            padding: 0,
+            borderRadius: 6,
             flexShrink: 0,
           }}
-        >
-          Tạo luồng tự động
-        </BaseButton>
+        />
       </div>
     </div>
   );

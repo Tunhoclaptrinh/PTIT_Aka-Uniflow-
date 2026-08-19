@@ -90,6 +90,18 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       : 'TikTok Shop Inbound';
     const triggerDesc = 'Lắng nghe sự kiện đơn hàng thanh toán thành công (SLA < 100ms)';
 
+    // 2.1. Nhận diện luồng So sánh cước & Chốt giá rẻ nhất
+    const isRateCompare =
+      lower.includes('so sánh') ||
+      lower.includes('so sanh') ||
+      lower.includes('giá') ||
+      lower.includes('gia') ||
+      lower.includes('cước') ||
+      lower.includes('cuoc') ||
+      lower.includes('rẻ nhất') ||
+      lower.includes('re nhat') ||
+      lower.includes('chốt');
+
     // 3. Nhận diện AI Processing
     const aiId = `node_ai_${ts}`;
     const isStrict = lower.includes('95%') || lower.includes('nghiêm ngặt');
@@ -118,24 +130,28 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     const isGHTK = !isGHN && !isViettel && !isVNPost;
 
     const carrierId = `node_carrier_${ts}`;
-    const carrierLabel = isGHN
+    const carrierLabel = isRateCompare
+      ? 'Tạo vận đơn hãng rẻ nhất'
+      : isGHN
       ? 'Tạo đơn GHN Nhanh'
       : isViettel
       ? 'Tạo vận đơn Viettel Post'
       : isVNPost
       ? 'Tạo vận đơn VNPost'
       : 'Tạo vận đơn GHTK';
-    const carrierDesc = 'Tự động tạo vận đơn & nhận mã tracking 0-chạm';
+    const carrierDesc = isRateCompare
+      ? 'Tự động xuất mã vận đơn của nhà vận chuyển có cước thấp nhất'
+      : 'Tự động tạo vận đơn & nhận mã tracking 0-chạm';
 
     // 6. Nhận diện thông báo
-    const hasTelegram = lower.includes('telegram') || ollamaParsed?.hasNotify;
+    const hasTelegram = lower.includes('telegram') || ollamaParsed?.hasNotify || isRateCompare;
     const hasZalo = lower.includes('zalo');
 
     const nodes: any[] = [
       {
         id: triggerId,
         type: 'trigger',
-        position: { x: 80, y: 160 },
+        position: { x: 60, y: 160 },
         data: {
           label: triggerLabel,
           description: triggerDesc,
@@ -145,75 +161,141 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       {
         id: aiId,
         type: 'ai',
-        position: { x: 420, y: 160 },
+        position: { x: 360, y: 160 },
         data: {
           label: aiLabel,
           description: aiDesc,
           threshold: isStrict ? 95 : 90,
         },
       },
-      {
+    ];
+
+    const edges: any[] = [
+      { id: `e_${triggerId}_${aiId}`, source: triggerId, target: aiId, animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 } },
+    ];
+
+    if (isRateCompare) {
+      const rateCompareAiId = `node_rate_ai_${ts}`;
+      nodes.push({
+        id: rateCompareAiId,
+        type: 'ai',
+        position: { x: 660, y: 160 },
+        data: {
+          label: 'AI So sánh cước & Chọn hãng rẻ nhất',
+          description: 'Tính toán cước phí realtime giữa GHTK, GHN, Viettel Post',
+          model: 'RATE_OPTIMIZER_AI',
+        },
+      });
+
+      nodes.push({
         id: posId,
         type: 'action',
-        position: { x: 760, y: 60 },
+        position: { x: 960, y: 60 },
         data: {
           label: posLabel,
           description: posDesc,
           category: 'POS',
           warehouseId: 'WH_MAIN_HN',
         },
-      },
-      {
+      });
+
+      nodes.push({
         id: carrierId,
         type: 'action',
-        position: { x: 760, y: 250 },
+        position: { x: 960, y: 260 },
         data: {
           label: carrierLabel,
           description: carrierDesc,
           category: 'LOGISTICS',
           autoPrint: true,
         },
-      },
-    ];
+      });
 
-    const edges: any[] = [
-      { id: `e_${triggerId}_${aiId}`, source: triggerId, target: aiId, animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 } },
-      { id: `e_${aiId}_${posId}`, source: aiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } },
-      { id: `e_${aiId}_${carrierId}`, source: aiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } },
-    ];
+      edges.push({ id: `e_${aiId}_${rateCompareAiId}`, source: aiId, target: rateCompareAiId, animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 } });
+      edges.push({ id: `e_${rateCompareAiId}_${posId}`, source: rateCompareAiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } });
+      edges.push({ id: `e_${rateCompareAiId}_${carrierId}`, source: rateCompareAiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } });
 
-    if (hasTelegram || hasZalo) {
-      const notifyId = `node_notify_${ts}`;
-      const notifyLabel = hasTelegram ? 'Thông báo Telegram Bot' : 'Gửi tin Zalo ZNS';
+      if (hasTelegram) {
+        const notifyId = `node_notify_${ts}`;
+        nodes.push({
+          id: notifyId,
+          type: 'action',
+          position: { x: 1260, y: 160 },
+          data: { label: 'Thông báo Telegram Bot', description: 'Báo cáo số tiền cước tiết kiệm được cho quản lý', category: 'NOTIFY' },
+        });
+        edges.push({
+          id: `e_${carrierId}_${notifyId}`,
+          source: carrierId,
+          target: notifyId,
+          animated: true,
+          style: { stroke: '#3B82F6', strokeWidth: 2 },
+        });
+      }
+    } else {
       nodes.push({
-        id: notifyId,
+        id: posId,
         type: 'action',
-        position: { x: 1080, y: 160 },
-        data: { label: notifyLabel, description: 'Bắn tin cảnh báo đơn hoàn tất tới nhóm vận hành', category: 'NOTIFY' },
+        position: { x: 700, y: 60 },
+        data: {
+          label: posLabel,
+          description: posDesc,
+          category: 'POS',
+          warehouseId: 'WH_MAIN_HN',
+        },
       });
-      edges.push({
-        id: `e_${carrierId}_${notifyId}`,
-        source: carrierId,
-        target: notifyId,
-        animated: true,
-        style: { stroke: '#8B5CF6', strokeWidth: 2 },
+
+      nodes.push({
+        id: carrierId,
+        type: 'action',
+        position: { x: 700, y: 260 },
+        data: {
+          label: carrierLabel,
+          description: carrierDesc,
+          category: 'LOGISTICS',
+          autoPrint: true,
+        },
       });
+
+      edges.push({ id: `e_${aiId}_${posId}`, source: aiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } });
+      edges.push({ id: `e_${aiId}_${carrierId}`, source: aiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } });
+
+      if (hasTelegram || hasZalo) {
+        const notifyId = `node_notify_${ts}`;
+        const notifyLabel = hasTelegram ? 'Thông báo Telegram Bot' : 'Gửi tin Zalo ZNS';
+        nodes.push({
+          id: notifyId,
+          type: 'action',
+          position: { x: 1020, y: 160 },
+          data: { label: notifyLabel, description: 'Bắn tin cảnh báo đơn hoàn tất tới nhóm vận hành', category: 'NOTIFY' },
+        });
+        edges.push({
+          id: `e_${carrierId}_${notifyId}`,
+          source: carrierId,
+          target: notifyId,
+          animated: true,
+          style: { stroke: '#8B5CF6', strokeWidth: 2 },
+        });
+      }
     }
 
     const marketText = isShopee ? 'Shopee' : isLazada ? 'Lazada' : 'TikTok Shop';
     const posText = isKiotViet ? 'KiotViet' : isHaravan ? 'Haravan' : 'Sapo POS';
-    const shipText = isGHN ? 'GHN' : isViettel ? 'Viettel Post' : isVNPost ? 'VNPost' : 'GHTK';
-    const workflowName = `Quy trình ${marketText} ➔ ${posText} ➔ ${shipText}`;
+    const shipText = isRateCompare ? 'So sánh cước & Chốt giá rẻ nhất' : isGHN ? 'GHN' : isViettel ? 'Viettel Post' : isVNPost ? 'VNPost' : 'GHTK';
+    const workflowName = isRateCompare
+      ? `Quy trình ${marketText} ➔ AI So sánh cước & Chốt hãng rẻ nhất`
+      : `Quy trình ${marketText} ➔ ${posText} ➔ ${shipText}`;
 
     const reasoning = ollamaParsed?.reasoning ||
-      `AI đã tự động phân tích: Kênh đầu vào là ${marketText}, chuyển dữ liệu qua AI Hybrid SKU Mapper, đồng bộ tồn kho sang ${posText} và khởi tạo đơn giao hàng ${shipText}.`;
+      (isRateCompare
+        ? `AI đã tự động thiết kế luồng thông minh: Nhận đơn từ ${marketText}, chuyển qua AI đối sánh SKU & bóc tách trọng lượng, sau đó tự động so sánh cước realtime giữa GHTK, GHN, Viettel Post để chọn hãng cước thấp nhất, trừ kho ${posText} và gửi báo cáo Telegram.`
+        : `AI đã tự động phân tích: Kênh đầu vào là ${marketText}, chuyển dữ liệu qua AI Hybrid SKU Mapper, đồng bộ tồn kho sang ${posText} và khởi tạo đơn giao hàng ${shipText}.`);
 
     return {
       name: workflowName,
       description: prompt,
       nodes,
       edges,
-      viewport: { x: 0, y: 0, zoom: 1 },
+      viewport: { x: 0, y: 0, zoom: 0.95 },
       reasoning,
       engineUsed: ollamaParsed ? 'OLLAMA_LLM' : 'LOCAL_NLP_ENGINE',
     };
@@ -280,41 +362,97 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       $set: { updatedAt: new Date() },
     });
 
+    const isRateCompare =
+      workflow.name?.toLowerCase().includes('so sánh') ||
+      workflow.name?.toLowerCase().includes('rẻ nhất') ||
+      workflow.nodes?.some((n: any) => n.data?.label?.toLowerCase().includes('so sánh'));
+
     // 5. Tạo các bước chi tiết cho debugger
-    const steps = [
-      {
-        step: 1,
-        nodeType: 'TRIGGER',
-        name: `Tiếp nhận đơn hàng ${platform}`,
-        status: 'SUCCESS' as const,
-        latencyMs: 16,
-        detail: `Nhận webhook đơn hàng #${randomOrderId}, trạng thái thanh toán thành công`,
-      },
-      {
-        step: 2,
-        nodeType: 'AI_MATCHER',
-        name: 'AI đối sánh mã SKU & thực thể',
-        status: 'SUCCESS' as const,
-        latencyMs: 32,
-        detail: `So khớp "${sourceProductName}" ➔ Master SKU "${targetMasterSku}" với độ tin cậy ${(aiResult.confidenceScore * 100).toFixed(1)}%`,
-      },
-      {
-        step: 3,
-        nodeType: 'POS_ERP',
-        name: 'Trừ tồn kho khả dụng POS',
-        status: 'SUCCESS' as const,
-        latencyMs: 44,
-        detail: `Đã giảm 1 đơn vị tồn kho Master SKU "${targetMasterSku}" tại Kho Tổng Hà Nội`,
-      },
-      {
-        step: 4,
-        nodeType: 'LOGISTICS',
-        name: 'Khởi tạo đơn vận chuyển',
-        status: 'SUCCESS' as const,
-        latencyMs: durationMs - (16 + 32 + 44),
-        detail: `Đã đẩy vận đơn thành công, mã tra cứu vận chuyển: ${waybillCode}`,
-      },
-    ];
+    const steps = isRateCompare
+      ? [
+          {
+            step: 1,
+            nodeType: 'TRIGGER',
+            name: `Tiếp nhận đơn hàng ${platform}`,
+            status: 'SUCCESS' as const,
+            latencyMs: 14,
+            detail: `Nhận webhook đơn hàng #${randomOrderId}, trạng thái thanh toán thành công`,
+          },
+          {
+            step: 2,
+            nodeType: 'AI_MATCHER',
+            name: 'AI đối sánh mã SKU & bóc tách trọng lượng',
+            status: 'SUCCESS' as const,
+            latencyMs: 28,
+            detail: `So khớp "${sourceProductName}" ➔ Master SKU "${targetMasterSku}" (Trọng lượng gói: 350g, Kích thước: 25x15x5cm)`,
+          },
+          {
+            step: 3,
+            nodeType: 'AI_RATE_COMPARE',
+            name: 'AI tính cước đa hãng & Chọn hãng rẻ nhất',
+            status: 'SUCCESS' as const,
+            latencyMs: 38,
+            detail: `So sánh cước realtime: GHTK (22.000đ) | GHN (24.500đ) | Viettel Post (19.500đ) ➔ Đã tự động chốt Viettel Post (Tiết kiệm 5.000đ / 20.4%)`,
+          },
+          {
+            step: 4,
+            nodeType: 'POS_ERP',
+            name: 'Trừ tồn kho khả dụng POS',
+            status: 'SUCCESS' as const,
+            latencyMs: 35,
+            detail: `Đã giảm 1 đơn vị tồn kho Master SKU "${targetMasterSku}" tại Kho Tổng Hà Nội`,
+          },
+          {
+            step: 5,
+            nodeType: 'LOGISTICS',
+            name: 'Khởi tạo vận đơn Viettel Post rẻ nhất',
+            status: 'SUCCESS' as const,
+            latencyMs: 30,
+            detail: `Đã đẩy vận đơn thành công qua Viettel Post API, mã tra cứu: ${waybillCode}`,
+          },
+          {
+            step: 6,
+            nodeType: 'NOTIFY',
+            name: 'Gửi báo cáo tối ưu Telegram Bot',
+            status: 'SUCCESS' as const,
+            latencyMs: 12,
+            detail: `Đã gửi báo cáo chi phí tối ưu đơn #${randomOrderId} vào kênh Telegram Quản Lý Kho`,
+          },
+        ]
+      : [
+          {
+            step: 1,
+            nodeType: 'TRIGGER',
+            name: `Tiếp nhận đơn hàng ${platform}`,
+            status: 'SUCCESS' as const,
+            latencyMs: 16,
+            detail: `Nhận webhook đơn hàng #${randomOrderId}, trạng thái thanh toán thành công`,
+          },
+          {
+            step: 2,
+            nodeType: 'AI_MATCHER',
+            name: 'AI đối sánh mã SKU & thực thể',
+            status: 'SUCCESS' as const,
+            latencyMs: 32,
+            detail: `So khớp "${sourceProductName}" ➔ Master SKU "${targetMasterSku}" với độ tin cậy ${(aiResult.confidenceScore * 100).toFixed(1)}%`,
+          },
+          {
+            step: 3,
+            nodeType: 'POS_ERP',
+            name: 'Trừ tồn kho khả dụng POS',
+            status: 'SUCCESS' as const,
+            latencyMs: 44,
+            detail: `Đã giảm 1 đơn vị tồn kho Master SKU "${targetMasterSku}" tại Kho Tổng Hà Nội`,
+          },
+          {
+            step: 4,
+            nodeType: 'LOGISTICS',
+            name: 'Khởi tạo đơn vận chuyển',
+            status: 'SUCCESS' as const,
+            latencyMs: Math.max(20, durationMs - (16 + 32 + 44)),
+            detail: `Đã đẩy vận đơn thành công, mã tra cứu vận chuyển: ${waybillCode}`,
+          },
+        ];
 
     return {
       success: true,

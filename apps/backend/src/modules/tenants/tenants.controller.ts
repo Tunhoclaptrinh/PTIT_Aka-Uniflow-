@@ -53,9 +53,10 @@ export class TenantsController {
   @Post('test-connector')
   async testConnector(
     @Body('connectorId') connectorId: string,
-    @Body('appKey') appKey?: string
+    @Body('appKey') appKey?: string,
+    @Body('customEndpoint') customEndpoint?: string
   ) {
-    const data = await this.tenantsService.testConnectorConnection(connectorId, appKey);
+    const data = await this.tenantsService.testConnectorConnection(connectorId, appKey, customEndpoint);
     return {
       statusCode: HttpStatus.OK,
       message: 'Kiểm tra kết nối cổng thành công!',

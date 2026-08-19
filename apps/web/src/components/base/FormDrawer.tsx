@@ -56,7 +56,7 @@ export function FormDrawer<T = any>({
           <BaseButton variant="ghost" size="small" onClick={onClose} disabled={loading}>
             {cancelText}
           </BaseButton>
-          <BaseButton variant="brand" size="small" loading={loading} onClick={handleOk}>
+          <BaseButton variant="primary" size="small" loading={loading} onClick={handleOk}>
             {submitText}
           </BaseButton>
         </Space>

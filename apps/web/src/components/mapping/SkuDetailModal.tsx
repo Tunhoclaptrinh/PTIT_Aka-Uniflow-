@@ -216,18 +216,18 @@ export const SkuDetailModal: React.FC<SkuDetailModalProps> = ({
           </Row>
           <Row style={{ paddingTop: 6, paddingBottom: 6, borderBottom: '1px solid #F3F4F6' }}>
             <Col span={6} style={{ color: '#6B7280' }}>Màu sắc</Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ Đen (Black)</span></Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ Đen (BLK)</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> Đen (Black)</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> Đen (BLK)</span></Col>
           </Row>
           <Row style={{ paddingTop: 6, paddingBottom: 6, borderBottom: '1px solid #F3F4F6' }}>
             <Col span={6} style={{ color: '#6B7280' }}>Kích thước</Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ Size L (55-65kg)</span></Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ L</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> Size L (55-65kg)</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> L</span></Col>
           </Row>
           <Row style={{ paddingTop: 6 }}>
             <Col span={6} style={{ color: '#6B7280' }}>Chất liệu</Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ 100% Cotton 2 chiều</span></Col>
-            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600 }}>✓ Cotton Compact</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> 100% Cotton 2 chiều</span></Col>
+            <Col span={9}><span style={{ color: '#10B981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleFilled style={{ fontSize: 12 }} /> Cotton Compact</span></Col>
           </Row>
         </div>
       </div>

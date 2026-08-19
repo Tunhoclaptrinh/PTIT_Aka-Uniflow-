@@ -211,6 +211,7 @@ export interface LiveFeedItem {
   durationMs: number;
   message: string;
   aiHealed?: boolean;
+  rawLog?: any;
   healingDetails?: {
     originalCarrier?: string;
     fallbackCarrier?: string;

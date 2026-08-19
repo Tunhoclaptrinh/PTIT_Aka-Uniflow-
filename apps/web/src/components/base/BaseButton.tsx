@@ -5,7 +5,7 @@ import { BaseButtonProps } from './types';
 
 export const BaseButton: React.FC<BaseButtonProps> = ({
   variant = 'primary',
-  size = 'middle',
+  size = 'small',
   tooltip,
   glow = false,
   children,
@@ -18,14 +18,14 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   const { themeMode } = useAppConfig();
   const isLight = themeMode === 'light';
 
-  // Height and padding sizing matrix
+  // Standardized height and padding sizing matrix (matching table toolbar buttons)
   const sizeStyles: Record<string, { height: number; fontSize: number; padding: string; borderRadius: number }> = {
     small: { height: 32, fontSize: 13, padding: '0 12px', borderRadius: 6 },
-    middle: { height: 38, fontSize: 14, padding: '0 16px', borderRadius: 8 },
-    large: { height: 44, fontSize: 15, padding: '0 22px', borderRadius: 10 },
+    middle: { height: 32, fontSize: 13, padding: '0 14px', borderRadius: 6 },
+    large: { height: 38, fontSize: 14, padding: '0 18px', borderRadius: 8 },
   };
 
-  const currentSize = sizeStyles[size || 'middle'] || sizeStyles.middle;
+  const currentSize = sizeStyles[size || 'small'] || sizeStyles.small;
 
   let customStyle: React.CSSProperties = {
     height: currentSize.height,
@@ -43,21 +43,13 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
     ...style,
   };
 
-  if (variant === 'brand') {
+  if (variant === 'brand' || variant === 'primary') {
     customStyle = {
       ...customStyle,
-      background: 'linear-gradient(135deg, #ed1c24 0%, #fcc20f 100%)',
-      border: 'none',
+      background: '#ed1c24',
+      border: '1px solid #ed1c24',
       color: '#FFFFFF',
-      boxShadow: glow ? '0 4px 14px rgba(237, 28, 36, 0.4)' : '0 2px 8px rgba(237, 28, 36, 0.25)',
-    };
-  } else if (variant === 'primary') {
-    customStyle = {
-      ...customStyle,
-      background: 'linear-gradient(135deg, #ed1c24 0%, #d6141b 100%)',
-      border: 'none',
-      color: '#FFFFFF',
-      boxShadow: glow ? '0 4px 14px rgba(237, 28, 36, 0.35)' : '0 2px 6px rgba(237, 28, 36, 0.2)',
+      boxShadow: glow ? '0 2px 8px rgba(237, 28, 36, 0.3)' : '0 1px 3px rgba(0, 0, 0, 0.08)',
     };
   } else if (variant === 'secondary') {
     customStyle = {
@@ -70,27 +62,27 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   } else if (variant === 'gold') {
     customStyle = {
       ...customStyle,
-      background: 'linear-gradient(135deg, #fcc20f 0%, #e5ab00 100%)',
-      border: 'none',
+      background: '#fcc20f',
+      border: '1px solid #fcc20f',
       color: '#111827',
       fontWeight: 700,
-      boxShadow: glow ? '0 4px 14px rgba(252, 194, 15, 0.4)' : '0 2px 6px rgba(252, 194, 15, 0.25)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
     };
   } else if (variant === 'danger') {
     customStyle = {
       ...customStyle,
-      background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
-      border: 'none',
+      background: '#EF4444',
+      border: '1px solid #EF4444',
       color: '#FFFFFF',
-      boxShadow: '0 2px 6px rgba(239, 68, 68, 0.25)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
     };
   } else if (variant === 'success') {
     customStyle = {
       ...customStyle,
-      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-      border: 'none',
+      background: '#10B981',
+      border: '1px solid #10B981',
       color: '#FFFFFF',
-      boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
     };
   } else if (variant === 'ghost') {
     customStyle = {
