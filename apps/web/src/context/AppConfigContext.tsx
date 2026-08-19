@@ -43,7 +43,7 @@ const defaultUser: AppUserConfig = {
   id: 'usr_ptit_admin_001',
   name: 'Tuan Nguyen',
   role: 'Store Administrator',
-  email: 'tuannguyen.ptit@uniflow.ai',
+  email: 'tuannguyentien16@gmail.com',
 };
 
 const AppConfigContext = createContext<AppConfigContextValue>({

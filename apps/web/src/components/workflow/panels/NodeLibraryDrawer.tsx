@@ -22,7 +22,6 @@ import {
   CodeOutlined,
   AuditOutlined,
   AppstoreAddOutlined,
-  DeleteOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
 import { FormFooter } from '../../base/FormFooter';
@@ -165,14 +164,6 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
     }
   };
 
-  const handleDeleteCustomNode = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const updated = customNodes.filter((c) => c.id !== id);
-    setCustomNodes(updated);
-    localStorage.setItem('uniflow_custom_nodes', JSON.stringify(updated));
-    notify.info('Đã xóa khối tùy chỉnh');
-  };
-
   const nodeCategories = [
     {
       id: 'MARKETPLACE',
@@ -293,7 +284,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
         </div>
       }
       placement="right"
-      width={640}
+      width={900}
       open={open}
       onClose={onClose}
       styles={{
@@ -617,26 +608,17 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                           </div>
                         </div>
 
-                        <Space size={4}>
-                          <BaseButton
-                            variant="ghost"
-                            size="small"
-                            icon={<DeleteOutlined />}
-                            onClick={(e) => handleDeleteCustomNode(item.id, e)}
-                            style={{ color: '#EF4444' }}
-                          />
-                          <BaseButton
-                            variant="primary"
-                            size="small"
-                            icon={<PlusOutlined />}
-                            onClick={() => {
-                              onAddNode(item.type, item.label, item.cat, item.config);
-                              onClose();
-                            }}
-                          >
-                            Thêm vào Canvas
-                          </BaseButton>
-                        </Space>
+                        <BaseButton
+                          variant="primary"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          onClick={() => {
+                            onAddNode(item.type, item.label, item.cat, item.config);
+                            onClose();
+                          }}
+                        >
+                          Thêm
+                        </BaseButton>
                       </div>
                     </Card>
                   ))}

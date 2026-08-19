@@ -12,7 +12,7 @@ export function FormModal<T = any>({
   initialValues,
   loading = false,
   width = 580,
-  submitText = 'Lưu thay đổi',
+  submitText = 'Lưu lại',
   cancelText = 'Hủy bỏ',
   resetText,
   footerAlign = 'center',

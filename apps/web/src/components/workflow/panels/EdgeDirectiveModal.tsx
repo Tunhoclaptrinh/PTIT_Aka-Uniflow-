@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import {
-  Modal,
+  Drawer,
   Form,
   Input,
   Switch,
@@ -12,7 +12,6 @@ import {
   BranchesOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import { BaseButton } from '../../base/BaseButton';
 import { FormFooter } from '../../base/FormFooter';
 import { notify } from '../../../utils/notification';
 
@@ -27,12 +26,12 @@ interface EdgeDirectiveModalProps {
 }
 
 const COLOR_PRESETS = [
-  { label: 'Xanh chuẩn', value: '#2563EB', tag: 'blue' },
-  { label: 'Tím AI', value: '#8B5CF6', tag: 'purple' },
-  { label: 'Xanh lá ĐVVC', value: '#10B981', tag: 'green' },
-  { label: 'Xanh MISA', value: '#0284C7', tag: 'cyan' },
-  { label: 'Cam POS', value: '#D97706', tag: 'orange' },
-  { label: 'Đỏ Webhook', value: '#EF4444', tag: 'red' },
+  { label: 'Xanh chuẩn', value: '#2563EB' },
+  { label: 'Tím AI', value: '#8B5CF6' },
+  { label: 'Xanh lá ĐVVC', value: '#10B981' },
+  { label: 'Xanh MISA', value: '#0284C7' },
+  { label: 'Cam POS', value: '#D97706' },
+  { label: 'Đỏ Webhook', value: '#ed1c24' },
 ];
 
 export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
@@ -48,15 +47,12 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
 
   useEffect(() => {
     if (open && edge) {
-      form.resetFields();
       form.setFieldsValue({
         label: edge.data?.label || edge.label || '',
-        directive: edge.data?.directive || '',
         conditionExpr: edge.data?.conditionExpr || '',
         description: edge.data?.description || '',
-        strokeColor: edge.style?.stroke || (edge.data?.isInternal ? '#10B981' : '#2563EB'),
+        strokeColor: edge.style?.stroke || '#2563EB',
         animated: edge.animated ?? true,
-        priority: edge.data?.priority || 'NORMAL',
       });
     }
   }, [open, edge, form]);
@@ -69,20 +65,18 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
       const updatedData = {
         ...edge.data,
         label: values.label,
-        directive: values.directive || values.label,
         conditionExpr: values.conditionExpr,
         description: values.description,
-        priority: values.priority,
       };
 
       const updatedStyle = {
         ...edge.style,
         stroke: values.strokeColor,
-        strokeWidth: edge.style?.strokeWidth || 2,
+        strokeWidth: 2,
       };
 
       onSave(edge.id, updatedData, updatedStyle, values.animated);
-      notify.success('Đã cập nhật chỉ lệnh & điều kiện đường liên kết thành công!');
+      notify.success('Đã cập nhật cấu hình đường liên kết!');
       onClose();
     } catch (err) {
       console.warn('Validate failed:', err);
@@ -96,16 +90,31 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
   };
 
   return (
-    <Modal
+    <Drawer
       open={open}
-      onCancel={onClose}
-      width={520}
+      onClose={onClose}
+      width={900}
+      placement="right"
+      destroyOnClose
+      styles={{
+        header: {
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
+        },
+        body: {
+          padding: '16px 20px',
+        },
+        footer: {
+          padding: '12px 20px',
+          borderTop: '1px solid var(--border-subtle, #E5E7EB)',
+        },
+      }}
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               borderRadius: 6,
               background: '#F5F3FF',
               color: '#8B5CF6',
@@ -114,10 +123,10 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
               justifyContent: 'center',
             }}
           >
-            <BranchesOutlined style={{ fontSize: 16 }} />
+            <BranchesOutlined style={{ fontSize: 18 }} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111827' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>
               Thiết lập chỉ lệnh & Điều kiện đường liên kết
             </div>
             <div style={{ fontSize: 11, color: '#6B7280', fontWeight: 500 }}>
@@ -129,14 +138,41 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
       footer={
         <FormFooter
           align="center"
-          submitText="Lưu chỉ lệnh"
+          submitText="Lưu lại"
           cancelText="Hủy"
           onCancel={onClose}
           onSubmit={handleFinish}
           extra={
-            <BaseButton variant="danger" size="small" icon={<DeleteOutlined />} onClick={handleDelete}>
-              Xóa đường nối
-            </BaseButton>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={handleDelete}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                color: '#EF4444',
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '5px 10px',
+                borderRadius: 4,
+                transition: 'all 0.15s ease',
+                userSelect: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#DC2626';
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#EF4444';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title="Xóa đường liên kết này khỏi quy trình"
+            >
+              <DeleteOutlined style={{ fontSize: 13, color: '#EF4444' }} />
+              <span>Xóa đường nối</span>
+            </span>
           }
           style={{ marginTop: 0, paddingTop: 14 }}
         />
@@ -227,45 +263,83 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
           <Input.TextArea rows={2} placeholder="Nhập mô tả luồng dữ liệu truyền qua giữa 2 khối..." />
         </Form.Item>
 
-        <Divider style={{ margin: '14px 0' }} />
+        <Divider style={{ margin: '18px 0 14px 0' }} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }}>
-          <Form.Item name="strokeColor" label="Màu sắc đường nối" style={{ marginBottom: 0 }}>
-            <Radio.Group>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {COLOR_PRESETS.map((preset) => (
-                  <Radio.Button
-                    key={preset.value}
-                    value={preset.value}
+        {/* 1. Màu sắc đường nối */}
+        <Form.Item
+          name="strokeColor"
+          label={
+            <div style={{ fontWeight: 600, fontSize: 13, color: '#374151' }}>
+              Màu sắc đường nối (Dây tín hiệu)
+            </div>
+          }
+          style={{ marginBottom: 16 }}
+        >
+          <Radio.Group style={{ width: '100%' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {COLOR_PRESETS.map((preset) => (
+                <Radio.Button
+                  key={preset.value}
+                  value={preset.value}
+                  style={{
+                    height: 34,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    borderRadius: 6,
+                    border: '1px solid #E5E7EB',
+                    fontSize: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  <span
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 11.5,
-                      padding: '0 8px',
-                      height: 28,
-                      lineHeight: '26px',
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: preset.value,
+                      boxShadow: `0 0 6px ${preset.value}80`,
+                      flexShrink: 0,
                     }}
-                  >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: preset.value }} />
-                    <span>{preset.label}</span>
-                  </Radio.Button>
-                ))}
-              </div>
-            </Radio.Group>
-          </Form.Item>
+                  />
+                  <span>{preset.label}</span>
+                </Radio.Button>
+              ))}
+            </div>
+          </Radio.Group>
+        </Form.Item>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
+        {/* 2. Hiệu ứng xung điện chuyển động (Animated Flow) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 14px',
+            background: '#F8FAFC',
+            borderRadius: 8,
+            border: '1px solid #E2E8F0',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>
               Hiệu ứng xung điện chuyển động (Animated Flow)
-            </span>
-            <Form.Item name="animated" valuePropName="checked" noStyle>
-              <Switch checkedChildren="Bật chuyển động" unCheckedChildren="Đứng yên" />
-            </Form.Item>
+            </div>
+            <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+              Dòng hạt chuyển động liên tục trên đường liên kết để trực quan hóa luồng dữ liệu
+            </div>
           </div>
+          <Form.Item name="animated" valuePropName="checked" noStyle>
+            <Switch
+              checkedChildren="Bật"
+              unCheckedChildren="Tắt"
+              style={{ flexShrink: 0 }}
+            />
+          </Form.Item>
         </div>
       </Form>
-    </Modal>
+    </Drawer>
   );
 };
 

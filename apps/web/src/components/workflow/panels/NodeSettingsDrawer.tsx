@@ -181,7 +181,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
       <Drawer
         open={open}
         onClose={onClose}
-        width={540}
+        width={800}
         destroyOnClose
         styles={{
           header: {
@@ -240,11 +240,10 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
           </div>
         }
         footer={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <BaseButton
-              variant="danger"
-              size="small"
-              icon={<ScissorOutlined />}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+            <span
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 if (selectedNode.data?.onUngroup) {
                   selectedNode.data.onUngroup(selectedNode.id);
@@ -253,18 +252,39 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 }
                 onClose();
               }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                color: '#8B5CF6',
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '5px 10px',
+                borderRadius: 4,
+                transition: 'all 0.15s ease',
+                userSelect: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#7C3AED';
+                e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#8B5CF6';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title="Bung tất cả các khối thành viên ra khỏi phân vùng này"
             >
-              Gỡ gộp phân vùng (Bung các khối)
-            </BaseButton>
+              <ScissorOutlined style={{ fontSize: 13, color: '#8B5CF6' }} />
+              <span>Gỡ phân vùng</span>
+            </span>
 
-            <Space size="small">
-              <BaseButton variant="ghost" size="small" onClick={onClose}>
-                Đóng
-              </BaseButton>
-              <BaseButton variant="primary" size="small" icon={<SaveOutlined />} onClick={handleSave}>
-                Lưu ghi chú phân vùng
-              </BaseButton>
-            </Space>
+            <BaseButton variant="ghost" size="small" onClick={onClose} tooltip="Đóng cửa sổ phân vùng" style={{ minWidth: 80 }}>
+              Hủy
+            </BaseButton>
+            <BaseButton variant="primary" size="small" icon={<SaveOutlined />} onClick={handleSave} tooltip="Lưu lại toàn bộ thông số phân vùng" style={{ minWidth: 80 }}>
+              Lưu
+            </BaseButton>
           </div>
         }
       >
@@ -509,7 +529,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
     <Drawer
       open={open}
       onClose={onClose}
-      width={800}
+      width={900}
       destroyOnClose
       styles={{
         header: {
@@ -572,27 +592,54 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         </div>
       }
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <BaseButton
-            variant="danger"
-            size="small"
-            icon={<DeleteOutlined />}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+          <span
+            role="button"
+            tabIndex={0}
             onClick={() => {
               onDeleteNode(selectedNode.id);
               onClose();
             }}
+            style={{
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              color: '#EF4444',
+              fontSize: 13,
+              fontWeight: 600,
+              padding: '5px 10px',
+              borderRadius: 4,
+              transition: 'all 0.15s ease',
+              userSelect: 'none',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#DC2626';
+              e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#EF4444';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            title="Xóa vĩnh viễn khối này khỏi sơ đồ quy trình"
           >
-            Xóa khối
-          </BaseButton>
+            <DeleteOutlined style={{ fontSize: 13, color: '#EF4444' }} />
+            <span>Xóa khối</span>
+          </span>
 
-          <Space size="small">
-            <BaseButton variant="ghost" size="small" onClick={onClose}>
-              Hủy bỏ
-            </BaseButton>
-            <BaseButton variant="primary" size="small" icon={<SaveOutlined />} onClick={handleSave}>
-              Lưu cấu hình
-            </BaseButton>
-          </Space>
+          <BaseButton variant="ghost" size="small" onClick={onClose} tooltip="Đóng cửa sổ cấu hình" style={{ minWidth: 80 }}>
+            Hủy bỏ
+          </BaseButton>
+          <BaseButton
+            variant="primary"
+            size="small"
+            icon={<SaveOutlined />}
+            onClick={handleSave}
+            tooltip="Lưu lại toàn bộ thông số cấu hình khối"
+            style={{ minWidth: 80 }}
+          >
+            Lưu lại
+          </BaseButton>
         </div>
       }
     >
@@ -1260,34 +1307,34 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 {((selectedNode.data?.category || '').toUpperCase() === 'LOGIC' ||
                   (selectedNode.data?.label || '').toLowerCase().includes('rẽ nhánh') ||
                   (selectedNode.data?.label || '').toLowerCase().includes('điều kiện')) && (
-                  <div
-                    style={{
-                      background: '#FDF2F8',
-                      borderRadius: 6,
-                      border: '1px solid #FBCFE8',
-                      padding: '12px 14px',
-                      marginBottom: 16,
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#9D174D', marginBottom: 8 }}>
-                      Cấu hình Phân luồng Rẽ nhánh Đa cổng (Router / Switch)
-                    </div>
-
-                    <Form.Item
-                      label="Chế độ kích hoạt các cổng ra"
-                      name="routingBranchMode"
-                      initialValue="FIRST_MATCHING"
-                      style={{ marginBottom: 0 }}
+                    <div
+                      style={{
+                        background: '#FDF2F8',
+                        borderRadius: 6,
+                        border: '1px solid #FBCFE8',
+                        padding: '12px 14px',
+                        marginBottom: 16,
+                      }}
                     >
-                      <Select
-                        options={[
-                          { label: 'Chỉ kích hoạt Nhánh đầu tiên thỏa mãn (If - Else If)', value: 'FIRST_MATCHING' },
-                          { label: 'Kích hoạt Tất cả các nhánh thỏa mãn (Parallel Multi-Branch)', value: 'ALL_MATCHING' },
-                        ]}
-                      />
-                    </Form.Item>
-                  </div>
-                )}
+                      <div style={{ fontWeight: 700, fontSize: 13, color: '#9D174D', marginBottom: 8 }}>
+                        Cấu hình Phân luồng Rẽ nhánh Đa cổng (Router / Switch)
+                      </div>
+
+                      <Form.Item
+                        label="Chế độ kích hoạt các cổng ra"
+                        name="routingBranchMode"
+                        initialValue="FIRST_MATCHING"
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Select
+                          options={[
+                            { label: 'Chỉ kích hoạt Nhánh đầu tiên thỏa mãn (If - Else If)', value: 'FIRST_MATCHING' },
+                            { label: 'Kích hoạt Tất cả các nhánh thỏa mãn (Parallel Multi-Branch)', value: 'ALL_MATCHING' },
+                          ]}
+                        />
+                      </Form.Item>
+                    </div>
+                  )}
               </Form>
             ),
           },

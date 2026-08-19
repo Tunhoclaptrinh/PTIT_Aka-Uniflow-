@@ -4,9 +4,11 @@ import {
   SettingOutlined,
   PlusOutlined,
   ReloadOutlined,
+  ThunderboltFilled,
 } from '@ant-design/icons';
 import { ConnectorConfigModal } from './ConnectorConfigModal';
 import { AddConnectorModal } from './AddConnectorModal';
+import { AIFlowArchitectDrawer } from '../workflow/panels/AIFlowArchitectDrawer';
 import { StatusTag, BaseButton, SearchInput, EmptyState, PageContainer } from '../base';
 import { notify } from '../../utils/notification';
 import { connectorsService, DbConnectorItem } from '../../services/connectors.service';
@@ -258,6 +260,7 @@ export const ConnectorsHub: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [configModalOpen, setConfigModalOpen] = useState<boolean>(false);
   const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
+  const [architectOpen, setArchitectOpen] = useState<boolean>(false);
   const [selectedConnector, setSelectedConnector] = useState<ConnectorItem | null>(null);
 
   // ── LOAD DỮ LIỆU THỰC SỰ TỪ MONGODB DATABASE ─────────────────────────────────
@@ -370,8 +373,17 @@ export const ConnectorsHub: React.FC = () => {
             placeholder="Tìm kiếm cổng kết nối..."
             value={searchQuery}
             onSearchChange={setSearchQuery}
-            style={{ width: 240 }}
+            style={{ width: 220 }}
           />
+          <BaseButton
+            variant="ghost"
+            size="small"
+            icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+            onClick={() => setArchitectOpen(true)}
+            style={{ fontWeight: 600, color: '#8B5CF6', borderColor: '#DDD6FE' }}
+          >
+            AI Tối ưu hạ tầng
+          </BaseButton>
           <BaseButton
             variant="secondary"
             size="small"
@@ -498,7 +510,7 @@ export const ConnectorsHub: React.FC = () => {
                           )}
 
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: 14.5, color: '#111827' }}>
+                            <div style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--text-primary, #111827)' }}>
                               {connector.name}
                             </div>
                             <Tag
@@ -508,9 +520,9 @@ export const ConnectorsHub: React.FC = () => {
                                 fontSize: 10.5,
                                 padding: '0 6px',
                                 borderRadius: 4,
-                                background: '#F3F4F6',
-                                border: 'none',
-                                color: '#4B5563',
+                                background: 'var(--bg-surface-alt, #F3F4F6)',
+                                border: '1px solid var(--border-subtle, #E5E7EB)',
+                                color: 'var(--text-secondary, #4B5563)',
                               }}
                             >
                               {connector.categoryLabel}
@@ -528,7 +540,7 @@ export const ConnectorsHub: React.FC = () => {
                       <p
                         style={{
                           fontSize: 12.5,
-                          color: '#4B5563',
+                          color: 'var(--text-secondary, #94A3B8)',
                           lineHeight: 1.5,
                           marginBottom: 16,
                           minHeight: 38,
@@ -546,15 +558,15 @@ export const ConnectorsHub: React.FC = () => {
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '8px 12px',
-                          background: '#F9FAFB',
+                          background: 'var(--bg-surface-alt, #F9FAFB)',
                           borderRadius: 8,
-                          border: '1px solid #F3F4F6',
+                          border: '1px solid var(--border-subtle, #F3F4F6)',
                           marginBottom: 14,
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: 11, color: '#6B7280' }}>Đơn đã qua kênh:</div>
-                          <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted, #6B7280)' }}>Đơn đã qua kênh:</div>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary, #111827)' }}>
                             {connector.ordersSynced > 0
                               ? `${connector.ordersSynced.toLocaleString('vi-VN')} đơn`
                               : '0 đơn (Sẵn sàng)'}
@@ -562,12 +574,12 @@ export const ConnectorsHub: React.FC = () => {
                         </div>
 
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 11, color: '#6B7280' }}>Độ trễ phản hồi:</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted, #6B7280)' }}>Độ trễ phản hồi:</div>
                           <div
                             style={{
                               fontWeight: 700,
                               fontSize: 13,
-                              color: connector.latency !== '--' ? '#10B981' : '#6B7280',
+                              color: connector.latency !== '--' ? '#10B981' : 'var(--text-muted, #6B7280)',
                             }}
                           >
                             {connector.latency}
@@ -607,6 +619,12 @@ export const ConnectorsHub: React.FC = () => {
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}
           onAdd={handleAddConnector}
+        />
+
+        {/* Ngăn kéo AI Kiến Trúc & Tối Ưu Hạ Tầng Tự Động Hóa */}
+        <AIFlowArchitectDrawer
+          open={architectOpen}
+          onClose={() => setArchitectOpen(false)}
         />
       </div>
     </PageContainer>

@@ -117,13 +117,13 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
               padding: '12px 14px',
               marginBottom: 10,
               borderRadius: 8,
-              background: item.read ? '#FFFFFF' : '#F9FAFB',
-              border: item.read ? '1px solid #E5E7EB' : '1px solid #D1D5DB',
+              background: item.read ? 'var(--bg-surface-card, #FFFFFF)' : 'var(--bg-surface-alt, #F9FAFB)',
+              border: item.read ? '1px solid var(--border-subtle, #E5E7EB)' : '1px solid var(--border-subtle, #D1D5DB)',
               transition: 'all 0.2s',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <div style={{ fontWeight: item.read ? 500 : 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontWeight: item.read ? 500 : 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-primary, #0F172A)' }}>
                 {item.type === 'AI_HEALING' ? (
                   <ThunderboltFilled style={{ color: '#8B5CF6' }} />
                 ) : (
@@ -131,9 +131,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
                 )}
                 {item.title}
               </div>
-              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{item.time}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted, #9CA3AF)' }}>{item.time}</span>
             </div>
-            <Paragraph style={{ margin: 0, fontSize: 12, color: '#4B5563', lineHeight: 1.4 }}>
+            <Paragraph style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary, #4B5563)', lineHeight: 1.4 }}>
               {item.description}
             </Paragraph>
           </List.Item>

@@ -6,36 +6,63 @@
 @import '../components/base/DataTable/styles.less';
 
 :root {
+  // Brand Identity Colors (PTIT_Aka Standard)
   --color-primary: #ed1c24;
   --color-primary-hover: #d6141b;
+  --color-primary-subtle: rgba(237, 28, 36, 0.08);
   --color-secondary: #fcc20f;
+  --color-secondary-hover: #e5ad08;
+  --color-secondary-subtle: rgba(252, 194, 15, 0.12);
   --color-accent-purple: #8B5CF6;
+  --color-accent-blue: #0284C7;
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+  --color-info: #3B82F6;
 
+  // Surface & Layout Backgrounds
   --bg-root: #F8FAFC;
   --bg-surface-card: #FFFFFF;
   --bg-surface-elevated: #FFFFFF;
+  --bg-surface-alt: #F1F5F9;
+  --bg-surface-subtle: #F8FAFC;
+  
+  // Borders & Dividers
   --border-subtle: #E5E7EB;
+  --border-card: #E2E8F0;
+  --border-divider: #F1F5F9;
 
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
+  // Text Colors
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
 
-  --font-family-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-family-mono: 'JetBrains Mono', monospace;
+  // Typography
+  --font-family-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 [data-theme="dark"] {
+  // Surface & Layout Backgrounds (Dark Mode Slate)
   --bg-root: #0B0F19;
   --bg-surface-card: #111827;
   --bg-surface-elevated: #1F2937;
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  --bg-surface-alt: #1E293B;
+  --bg-surface-subtle: #0F172A;
 
+  // Borders & Dividers
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-divider: rgba(255, 255, 255, 0.05);
+
+  // Text Colors
   --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  // Brand Subtle Variants for Dark Mode
+  --color-primary-subtle: rgba(237, 28, 36, 0.15);
+  --color-secondary-subtle: rgba(252, 194, 15, 0.15);
 }
 
 * {
@@ -228,5 +255,162 @@ html, body, #root {
   .flow-edge-animated {
     stroke-dasharray: 6 3;
     animation: flowDash 0.8s linear infinite;
+  }
+}
+
+// ==============================================================================
+// BASE-STYLE SIDEBAR NAVIGATION SYSTEM (G:\Base Inspired)
+// ==============================================================================
+.base-sidebar-menu.ant-menu {
+  border-right: 0 !important;
+  background: transparent !important;
+  font-family: var(--font-family-sans);
+
+  .ant-menu-item,
+  .ant-menu-submenu-title {
+    margin: 3px 8px !important;
+    width: calc(100% - 16px) !important;
+    border-radius: 6px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    color: #374151;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: #F3F4F6 !important;
+      color: #111827 !important;
+    }
+
+    .anticon {
+      font-size: 15px !important;
+      color: #4B5563;
+      transition: color 0.15s ease;
+    }
+  }
+
+  // Active Selected Item (Pill style pastel Primary Red)
+  .ant-menu-item-selected {
+    background-color: rgba(237, 28, 36, 0.08) !important;
+    color: #ed1c24 !important;
+    font-weight: 700 !important;
+
+    a {
+      color: #ed1c24 !important;
+      font-weight: 700 !important;
+    }
+
+    .anticon {
+      color: #ed1c24 !important;
+    }
+  }
+
+  // Active Submenu Parent
+  .ant-menu-submenu-selected > .ant-menu-submenu-title,
+  .ant-menu-submenu-open > .ant-menu-submenu-title {
+    color: #ed1c24 !important;
+    font-weight: 700 !important;
+
+    .anticon {
+      color: #ed1c24 !important;
+    }
+
+    .ant-menu-submenu-arrow {
+      color: #ed1c24 !important;
+    }
+  }
+
+  // Submenu Child items
+  .ant-menu-sub {
+    background: transparent !important;
+
+    .ant-menu-item {
+      height: 36px !important;
+      line-height: 36px !important;
+      font-size: 13px !important;
+      padding-left: 44px !important;
+      margin: 2px 8px !important;
+
+      &.ant-menu-item-selected {
+        background-color: rgba(237, 28, 36, 0.08) !important;
+        color: #ed1c24 !important;
+        font-weight: 700 !important;
+
+        a {
+          color: #ed1c24 !important;
+          font-weight: 700 !important;
+        }
+      }
+    }
+  }
+}
+
+[data-theme="dark"] {
+  .base-sidebar-menu.ant-menu {
+    .ant-menu-item,
+    .ant-menu-submenu-title {
+      color: #D1D5DB;
+
+      &:hover {
+        background-color: #1F2937 !important;
+        color: #F9FAFB !important;
+      }
+
+      .anticon {
+        color: #9CA3AF;
+      }
+    }
+
+    .ant-menu-item-selected {
+      background-color: rgba(237, 28, 36, 0.18) !important;
+      color: #FCA5A5 !important;
+
+      a {
+        color: #FCA5A5 !important;
+      }
+
+      .anticon {
+        color: #F87171 !important;
+      }
+    }
+
+    .ant-menu-submenu-selected > .ant-menu-submenu-title,
+    .ant-menu-submenu-open > .ant-menu-submenu-title {
+      color: #FCA5A5 !important;
+
+      .anticon,
+      .ant-menu-submenu-arrow {
+        color: #F87171 !important;
+      }
+    }
+
+    .ant-menu-sub .ant-menu-item.ant-menu-item-selected {
+      background-color: rgba(237, 28, 36, 0.18) !important;
+      color: #FCA5A5 !important;
+    }
+  }
+}
+
+// ── REACTFLOW CONTROLS THEME COMPATIBILITY ─────────────────────────────────
+.react-flow__controls {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #E5E7EB) !important;
+
+  .react-flow__controls-button {
+    background: var(--bg-surface-elevated, #FFFFFF) !important;
+    border-bottom: 1px solid var(--border-subtle, #E5E7EB) !important;
+    fill: var(--text-primary, #111827) !important;
+    color: var(--text-primary, #111827) !important;
+
+    svg {
+      fill: currentColor !important;
+    }
+
+    &:hover {
+      background: var(--bg-surface-alt, #F1F5F9) !important;
+    }
   }
 }

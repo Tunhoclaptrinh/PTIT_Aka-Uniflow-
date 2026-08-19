@@ -21,9 +21,15 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
     case 'CONNECTED':
       return (
         <Tag
-          icon={<CheckCircleFilled />}
-          color="success"
-          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}
+          icon={<CheckCircleFilled style={{ color: '#10B981' }} />}
+          style={{
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 11,
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            color: '#10B981',
+          }}
         >
           {label || (normalized === 'AUTO_APPROVED' ? 'Đã duyệt AI' : 'Thành công')}
         </Tag>
@@ -34,9 +40,15 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
     case 'IN_TRANSIT':
       return (
         <Tag
-          icon={<SyncOutlined spin />}
-          color="processing"
-          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}
+          icon={<SyncOutlined spin style={{ color: '#3B82F6' }} />}
+          style={{
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 11,
+            background: 'rgba(59, 130, 246, 0.12)',
+            border: '1px solid rgba(59, 130, 246, 0.25)',
+            color: '#3B82F6',
+          }}
         >
           {label || 'Đang xử lý'}
         </Tag>
@@ -47,9 +59,15 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
     case 'WARNING':
       return (
         <Tag
-          icon={<ClockCircleFilled />}
-          color="warning"
-          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}
+          icon={<ClockCircleFilled style={{ color: '#F59E0B' }} />}
+          style={{
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 11,
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            color: '#F59E0B',
+          }}
         >
           {label || 'Chờ xác nhận'}
         </Tag>
@@ -59,9 +77,15 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
     case 'HEALED':
       return (
         <Tag
-          icon={<ThunderboltFilled />}
-          color="#fcc20f"
-          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11, color: '#000000' }}
+          icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+          style={{
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 11,
+            background: 'rgba(139, 92, 246, 0.12)',
+            border: '1px solid rgba(139, 92, 246, 0.25)',
+            color: '#8B5CF6',
+          }}
         >
           {label || 'AI tự phục hồi'}
         </Tag>
@@ -73,9 +97,15 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
     case 'MANUAL_REQUIRED':
       return (
         <Tag
-          icon={<CloseCircleFilled />}
-          color="error"
-          style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}
+          icon={<CloseCircleFilled style={{ color: '#EF4444' }} />}
+          style={{
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 11,
+            background: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
+            color: '#EF4444',
+          }}
         >
           {label || (normalized === 'MANUAL_REQUIRED' ? 'Cần ghép tay' : 'Thất bại')}
         </Tag>
@@ -83,7 +113,16 @@ export const StatusTag: React.FC<StatusTagProps> = ({ status, text, customLabel 
 
     default:
       return (
-        <Tag style={{ borderRadius: 4, fontWeight: 600, fontSize: 11 }}>
+        <Tag
+          style={{
+            borderRadius: 4,
+            fontWeight: 600,
+            fontSize: 11,
+            background: 'var(--bg-surface-alt, #F8FAFC)',
+            border: '1px solid var(--border-subtle, #E5E7EB)',
+            color: 'var(--text-secondary, #4B5563)',
+          }}
+        >
           {label || status}
         </Tag>
       );

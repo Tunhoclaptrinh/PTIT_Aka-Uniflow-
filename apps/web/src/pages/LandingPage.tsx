@@ -89,6 +89,9 @@ export const LandingPage: React.FC = () => {
   const [spotlightMatrix, setSpotlightMatrix] = useState<number>(0);
   const [spotlightPillar, setSpotlightPillar] = useState<number>(0);
 
+  // ── ACTIVE NAVIGATION STATE & SCROLL SPY ────────────────────────────────
+  const [activeNav, setActiveNav] = useState<'home' | 'demo' | 'pipeline' | 'features' | 'docs'>('home');
+
   // ── AUTO-CYCLING CONNECTORS CONVEYOR ─────────────────────────────────────
   const [conveyorCenter, setConveyorCenter] = useState<number>(1);
 
@@ -129,13 +132,48 @@ export const LandingPage: React.FC = () => {
     return () => clearInterval(sloganTimer);
   }, []);
 
+  const scrollToSection = (id: string) => {
+    if (id === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setActiveNav('home');
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      const navHeight = 70;
+      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - navHeight,
+        behavior: 'smooth',
+      });
+      setActiveNav(id as any);
+    }
+  };
+
   useEffect(() => {
     const onScroll = (e: any) => {
       const target = e.target;
-      const scrollTop = target === document ? window.scrollY : target.scrollTop;
+      const scrollTop = target === document ? window.scrollY : (target?.scrollTop ?? window.scrollY);
       if (scrollTop !== undefined) {
         setScrolled(scrollTop > 20);
       }
+
+      // Scroll spy for navigation items
+      const scrollPosition = (window.scrollY || document.documentElement.scrollTop) + 140;
+      const sections: ('docs' | 'features' | 'pipeline' | 'demo')[] = ['docs', 'features', 'pipeline', 'demo'];
+      
+      let currentSection: 'home' | 'demo' | 'pipeline' | 'features' | 'docs' = 'home';
+      for (const s of sections) {
+        const el = document.getElementById(s);
+        if (el) {
+          const top = el.offsetTop;
+          if (scrollPosition >= top) {
+            currentSection = s;
+            break;
+          }
+        }
+      }
+      setActiveNav(currentSection);
     };
     window.addEventListener('scroll', onScroll, true);
     return () => window.removeEventListener('scroll', onScroll, true);
@@ -167,6 +205,7 @@ export const LandingPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const root = document.getElementById('root');
     if (root) root.scrollTo({ top: 0, behavior: 'smooth' });
+    setActiveNav('home');
   };
 
   // ── SAMPLES FOR CODE EXPLORER ──────────────────────────────────────────
@@ -300,11 +339,56 @@ export function verifyTikTokWebhook(
         </div>
 
         <nav className="nav-links">
-          <a href="#" className="active">Trang chủ</a>
-          <a href="#demo">Mô phỏng</a>
-          <a href="#pipeline">Quy trình</a>
-          <a href="#features">Tính năng cốt lõi</a>
-          <a href="#docs">Tài liệu API</a>
+          <a
+            href="#home"
+            className={activeNav === 'home' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('home');
+            }}
+          >
+            Trang chủ
+          </a>
+          <a
+            href="#demo"
+            className={activeNav === 'demo' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('demo');
+            }}
+          >
+            Mô phỏng
+          </a>
+          <a
+            href="#pipeline"
+            className={activeNav === 'pipeline' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('pipeline');
+            }}
+          >
+            Quy trình
+          </a>
+          <a
+            href="#features"
+            className={activeNav === 'features' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('features');
+            }}
+          >
+            Tính năng cốt lõi
+          </a>
+          <a
+            href="#docs"
+            className={activeNav === 'docs' ? 'active' : ''}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('docs');
+            }}
+          >
+            Tài liệu API
+          </a>
           <Link to="/workflows">Canvas</Link>
           <Link to="/connectors">Kết nối</Link>
         </nav>
@@ -363,7 +447,7 @@ export function verifyTikTokWebhook(
       {/* ══════════════════════════════════════════════════════════════════
           1. FIRST FOLD: 100VH HERO CONTAINER
       ══════════════════════════════════════════════════════════════════ */}
-      <div className="lp-first-fold">
+      <div className="lp-first-fold" id="home">
         {/* Hero Content Section */}
         <section className="lp-hero">
           <div className="hero-badge">
@@ -1329,11 +1413,16 @@ export function verifyTikTokWebhook(
                 </div>
               </div>
               <p className="footer-brand-desc">
-                Nền tảng tự động hóa đa kênh TMĐT 0-chạm, tích hợp AI Agent và iPaaS Enterprise cho thị trường Việt Nam.
+                Nền tảng tự động hóa đa kênh TMĐT 0-chạm. Kết nối vô hình, vận hành thông minh.
               </p>
-              <a href="mailto:contact.uniflow.aka@gmail.com" className="footer-email">
-                contact.uniflow.aka@gmail.com
-              </a>
+              <div className="footer-contact-box">
+                <a href="mailto:tuannguyentien16@gmail.com" className="footer-email">
+                  tuannguyentien16@gmail.com
+                </a>
+                <div className="footer-hotline">
+                  Hotline / Zalo: <a href="tel:0945650883">0945 650 883</a>
+                </div>
+              </div>
               {/* Tech Stack Badges */}
               <div className="footer-tech-badges">
                 {['Node.js', 'MongoDB', 'Redis', 'K8s', 'Qdrant'].map(t => (
@@ -1396,7 +1485,7 @@ export function verifyTikTokWebhook(
                 Về đội ngũ
               </div>
               <p className="footer-team-desc">
-                Đội ngũ sinh viên <strong className="footer-team-highlight">PTIT_Aka</strong> kiến tạo trải nghiệm tự động hóa TMĐT bằng công nghệ AI tiên phong.
+                Đội ngũ sinh viên <strong className="footer-team-highlight">PTIT_Aka</strong> kiến tạo giải pháp tự động hóa TMĐT với tôn chỉ: <em>Kết nối vô hình, vận hành thông minh</em>.
               </p>
               <div className="footer-team-badge">UNIFLOW PTIT_Aka DEVELOPMENT TEAM</div>
 
@@ -1406,7 +1495,7 @@ export function verifyTikTokWebhook(
                   <BranchesOutlined />
                   GitHub
                 </a>
-                <a href="mailto:contact.uniflow.aka@gmail.com" className="footer-social-btn">
+                <a href="mailto:tuannguyentien16@gmail.com" className="footer-social-btn">
                   <ApiFilled />
                   Contact
                 </a>
@@ -1425,7 +1514,7 @@ export function verifyTikTokWebhook(
           <div className="footer-bottom">
             <div className="footer-bottom-left">
               <span>© 2026 UniFlow AI · PTIT_Aka. </span>
-              <span className="footer-bottom-sub">Kiến tạo vận hành TMĐT bằng công nghệ AI.</span>
+              <span className="footer-bottom-sub">Kết nối vô hình, vận hành thông minh.</span>
             </div>
             <div className="footer-bottom-right">
               <a href="/privacy" className="footer-legal-link">Chính sách bảo mật</a>

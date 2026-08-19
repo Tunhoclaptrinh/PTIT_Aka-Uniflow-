@@ -14,7 +14,7 @@
     border-radius: 12px;
     border: 1px solid var(--border-subtle, #E5E7EB);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    background: #FFFFFF;
+    background: var(--bg-surface-card, #FFFFFF);
     overflow: hidden;
   }
 }
@@ -82,7 +82,7 @@
 .total-count-badge {
   padding: 5px 12px;
   border-radius: 6px;
-  background: var(--bg-root, #F8FAFC);
+  background: var(--bg-surface-alt, #F8FAFC);
   border: 1px solid var(--border-subtle, #E5E7EB);
   font-size: 12px;
   font-weight: 600;
@@ -106,22 +106,23 @@
   }
 
   .ant-table-thead > tr > th {
-    background: #F9FAFB;
+    background: var(--bg-surface-alt, #F9FAFB);
     font-weight: 700;
-    color: #4B5563;
+    color: var(--text-secondary, #4B5563);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    border-bottom: 1px solid #E5E7EB;
+    border-bottom: 1px solid var(--border-subtle, #E5E7EB);
   }
 
   .ant-table-tbody > tr > td {
-    border-bottom: 1px solid #F3F4F6;
+    border-bottom: 1px solid var(--border-divider, #F3F4F6);
     padding: 14px 16px;
+    color: var(--text-primary, #111827);
   }
 
   .ant-table-tbody > tr:hover > td {
-    background: rgba(237, 28, 36, 0.02) !important;
+    background: rgba(237, 28, 36, 0.04) !important;
   }
 }
 
@@ -135,15 +136,15 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid #E5E7EB;
-  background: #FFFFFF;
-  color: #6B7280;
+  border: 1px solid var(--border-subtle, #E5E7EB);
+  background: var(--bg-surface-card, #FFFFFF);
+  color: var(--text-muted, #6B7280);
   transition: all 0.2s ease;
 
   &:hover {
     border-color: @primary-aka-red;
     color: @primary-aka-red;
-    background: rgba(237, 28, 36, 0.04) !important;
+    background: rgba(237, 28, 36, 0.08) !important;
   }
 }
 
@@ -156,14 +157,14 @@
 .active-filters-section {
   flex: 1;
   padding: 16px;
-  background: #F9FAFB;
+  background: var(--bg-surface-alt, #F9FAFB);
   border-radius: 8px;
 }
 
 .filter-condition-item {
-  background: #FFFFFF;
+  background: var(--bg-surface-card, #FFFFFF);
   border-radius: 8px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--border-subtle, #E5E7EB);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -182,5 +183,5 @@
   justify-content: center;
   padding-top: 16px;
   margin-top: 16px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-subtle, #E5E7EB);
 }

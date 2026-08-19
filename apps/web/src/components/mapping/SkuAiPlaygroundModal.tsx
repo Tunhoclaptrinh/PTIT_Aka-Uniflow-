@@ -154,11 +154,11 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               size="small"
               style={{
                 borderRadius: 10,
-                border: '1px solid #E5E7EB',
-                background: '#F8FAFC',
+                border: '1px solid var(--border-subtle, #E5E7EB)',
+                background: 'var(--bg-surface-card, #F8FAFC)',
               }}
               title={
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary, #374151)' }}>
                   1. SẢN PHẨM SÀN TMĐT (NGUỒN)
                 </span>
               }
@@ -178,7 +178,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>
-                  <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 600 }}>Mã SKU Sàn:</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary, #6B7280)', fontWeight: 600 }}>Mã SKU Sàn:</span>
                   <Input
                     size="small"
                     value={sourceSku}
@@ -187,7 +187,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
                   />
                 </div>
                 <div>
-                  <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 600 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary, #6B7280)', fontWeight: 600 }}>
                     Tiêu đề thô từ Sàn TMĐT:
                   </span>
                   <Input.TextArea
@@ -208,11 +208,11 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               size="small"
               style={{
                 borderRadius: 10,
-                border: '1px solid #E5E7EB',
-                background: '#F8FAFC',
+                border: '1px solid var(--border-subtle, #E5E7EB)',
+                background: 'var(--bg-surface-card, #F8FAFC)',
               }}
               title={
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary, #374151)' }}>
                   2. MASTER SKU TRONG KHO POS (ĐÍCH)
                 </span>
               }
@@ -231,7 +231,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>
-                  <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 600 }}>Master SKU:</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary, #6B7280)', fontWeight: 600 }}>Master SKU:</span>
                   <Input
                     size="small"
                     value={targetMasterSku}
@@ -240,7 +240,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
                   />
                 </div>
                 <div>
-                  <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 600 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary, #6B7280)', fontWeight: 600 }}>
                     Tên sản phẩm chuẩn trong kho:
                   </span>
                   <Input.TextArea
@@ -280,9 +280,9 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
         {analysisResult && (
           <div
             style={{
-              background: '#FFFFFF',
+              background: 'var(--bg-surface-card, #FFFFFF)',
               borderRadius: 12,
-              border: '1px solid #E5E7EB',
+              border: '1px solid var(--border-subtle, #E5E7EB)',
               padding: 16,
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
             }}
@@ -297,12 +297,12 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               }}
             >
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary, #6B7280)' }}>
                   ĐIỂM TIN CẬY HYBRID (0.7 × VECTOR + 0.3 × NLP)
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 900, color: '#ed1c24', fontFamily: 'JetBrains Mono' }}>
                   {percent}%{' '}
-                  <span style={{ fontSize: 13, color: '#6B7280', fontWeight: 600 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted, #6B7280)', fontWeight: 600 }}>
                     ({analysisResult.confidenceScore.toFixed(4)})
                   </span>
                 </div>
@@ -324,7 +324,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
             <Progress
               percent={percent}
               strokeColor="#ed1c24"
-              trailColor="#E5E7EB"
+              trailColor="var(--border-subtle, #E5E7EB)"
               showInfo={false}
               size={['100%', 8]}
             />
@@ -334,16 +334,16 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               <Col span={12}>
                 <div
                   style={{
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface-alt, #F8FAFC)',
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: '1px solid #E5E7EB',
+                    border: '1px solid var(--border-subtle, #E5E7EB)',
                   }}
                 >
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#6366F1', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <AimOutlined /> Vector Cosine (Qdrant 1536-dim)
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'JetBrains Mono', marginTop: 2 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'JetBrains Mono', marginTop: 2, color: 'var(--text-primary, #0F172A)' }}>
                     {(analysisResult.vectorCosine * 100).toFixed(1)}%
                   </div>
                 </div>
@@ -352,16 +352,16 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
               <Col span={12}>
                 <div
                   style={{
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface-alt, #F8FAFC)',
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: '1px solid #E5E7EB',
+                    border: '1px solid var(--border-subtle, #E5E7EB)',
                   }}
                 >
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <TagOutlined /> NER Attributes (Gemini 1.5 Flash)
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'JetBrains Mono', marginTop: 2 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, fontFamily: 'JetBrains Mono', marginTop: 2, color: 'var(--text-primary, #0F172A)' }}>
                     {(analysisResult.nerScore * 100).toFixed(1)}%
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
 
             {/* NER Extraction Matrix */}
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary, #374151)', marginBottom: 8 }}>
                 Đối Soát Thuộc Tính Thực Thể NER:
               </div>
               <Row gutter={[8, 8]}>
@@ -378,14 +378,14 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
                   <Col span={6} key={key}>
                     <div
                       style={{
-                        background: '#F9FAFB',
-                        border: '1px solid #E5E7EB',
+                        background: 'var(--bg-surface-alt, #F9FAFB)',
+                        border: '1px solid var(--border-subtle, #E5E7EB)',
                         borderRadius: 6,
                         padding: '6px 8px',
                         fontSize: 11,
                       }}
                     >
-                      <div style={{ color: '#6B7280', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>
+                      <div style={{ color: 'var(--text-muted, #6B7280)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>
                         {key === 'category' ? 'Loại' : key === 'color' ? 'Màu' : key === 'size' ? 'Size' : 'Vải'}
                       </div>
                       <div style={{ color: val.match ? '#10B981' : '#EF4444', fontWeight: 700, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -403,14 +403,15 @@ export const SkuAiPlaygroundModal: React.FC<SkuAiPlaygroundModalProps> = ({
                 marginTop: 14,
                 padding: '10px 12px',
                 borderRadius: 8,
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
                 fontSize: 12,
-                color: '#92400E',
+                color: '#F59E0B',
                 lineHeight: 1.5,
               }}
             >
-              <strong>Giải thích thuật toán AI:</strong> {analysisResult.reasoning}
+              <strong style={{ color: '#F59E0B' }}>Giải thích thuật toán AI:</strong>{' '}
+              <span style={{ color: 'var(--text-primary, #92400E)' }}>{analysisResult.reasoning}</span>
             </div>
           </div>
         )}

@@ -143,8 +143,8 @@ export const DashboardPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-surface-card, #FFFFFF)',
+              border: '1px solid var(--border-card, #E2E8F0)',
               borderRadius: 6,
               padding: '4px 10px',
               fontSize: 11.5,
@@ -155,10 +155,10 @@ export const DashboardPage: React.FC = () => {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
               Atlas Online (24ms)
             </span>
-            <span style={{ color: '#E2E8F0' }}>|</span>
+            <span style={{ color: 'var(--border-subtle, #E2E8F0)' }}>|</span>
             <span style={{ color: '#8B5CF6', fontWeight: 600 }}>AI Gateway Ready</span>
-            <span style={{ color: '#E2E8F0' }}>|</span>
-            <span style={{ color: '#64748B' }}>{lastRefreshed}</span>
+            <span style={{ color: 'var(--border-subtle, #E2E8F0)' }}>|</span>
+            <span style={{ color: 'var(--text-muted, #64748B)' }}>{lastRefreshed}</span>
           </div>
 
           <BaseButton
@@ -190,8 +190,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} sm={12} lg={6}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -201,26 +201,26 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Tổng đơn đã đồng bộ</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748B)' }}>Tổng đơn đã đồng bộ</span>
                 <span
                   style={{
                     fontSize: 10.5,
                     fontWeight: 700,
                     color: '#059669',
-                    background: '#ECFDF5',
+                    background: 'rgba(16, 185, 129, 0.1)',
                     padding: '1px 6px',
                     borderRadius: 4,
-                    border: '1px solid #A7F3D0',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
                   }}
                 >
                   +18.4% Tháng này
                 </span>
               </div>
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary, #0F172A)', lineHeight: 1.1 }}>
                   {(metrics?.totalSyncedOrders || 28520).toLocaleString('vi-VN')}
                 </div>
-                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                <div style={{ color: 'var(--text-muted, #94A3B8)', fontSize: 11, marginTop: 4 }}>
                   Tự động 100% qua UDM Pipeline
                 </div>
               </div>
@@ -231,8 +231,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} sm={12} lg={6}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -242,26 +242,26 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Độ trễ trung bình (E2E)</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748B)' }}>Độ trễ trung bình (E2E)</span>
                 <span
                   style={{
                     fontSize: 10.5,
                     fontWeight: 700,
                     color: '#059669',
-                    background: '#ECFDF5',
+                    background: 'rgba(16, 185, 129, 0.1)',
                     padding: '1px 6px',
                     borderRadius: 4,
-                    border: '1px solid #A7F3D0',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
                   }}
                 >
                   P99 &lt; 200ms
                 </span>
               </div>
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary, #0F172A)', lineHeight: 1.1 }}>
                   {formatLatency(metrics?.averageLatencyMs || 142)}
                 </div>
-                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                <div style={{ color: 'var(--text-muted, #94A3B8)', fontSize: 11, marginTop: 4 }}>
                   Inbound ➔ POS Kho ➔ Vận đơn
                 </div>
               </div>
@@ -272,8 +272,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} sm={12} lg={6}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -283,26 +283,26 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Tỷ lệ thành công luồng</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748B)' }}>Tỷ lệ thành công luồng</span>
                 <span
                   style={{
                     fontSize: 10.5,
                     fontWeight: 700,
                     color: '#059669',
-                    background: '#ECFDF5',
+                    background: 'rgba(16, 185, 129, 0.1)',
                     padding: '1px 6px',
                     borderRadius: 4,
-                    border: '1px solid #A7F3D0',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
                   }}
                 >
                   SLA 99.8%
                 </span>
               </div>
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary, #0F172A)', lineHeight: 1.1 }}>
                   {metrics?.successRate || '99.8%'}
                 </div>
-                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                <div style={{ color: 'var(--text-muted, #94A3B8)', fontSize: 11, marginTop: 4 }}>
                   Tự động phục hồi AI failover
                 </div>
               </div>
@@ -313,8 +313,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} sm={12} lg={6}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -324,26 +324,26 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Chi phí tiết kiệm</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748B)' }}>Chi phí tiết kiệm</span>
                 <span
                   style={{
                     fontSize: 10.5,
                     fontWeight: 700,
                     color: '#2563EB',
-                    background: '#EFF6FF',
+                    background: 'rgba(37, 99, 235, 0.1)',
                     padding: '1px 6px',
                     borderRadius: 4,
-                    border: '1px solid #BFDBFE',
+                    border: '1px solid rgba(37, 99, 235, 0.25)',
                   }}
                 >
                   ~{metrics?.hoursSaved || 180} Giờ
                 </span>
               </div>
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary, #0F172A)', lineHeight: 1.1 }}>
                   {formatVND(metrics?.costSavedVND || 41350000, true)}
                 </div>
-                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                <div style={{ color: 'var(--text-muted, #94A3B8)', fontSize: 11, marginTop: 4 }}>
                   Tiết kiệm 95% thao tác nhân sự
                 </div>
               </div>
@@ -357,8 +357,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} lg={14}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -368,7 +368,7 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Phân bổ lưu lượng kênh TMĐT</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary, #0F172A)' }}>Phân bổ lưu lượng kênh TMĐT</span>
                 <Link to="/connectors" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
                   Kênh kết nối <ArrowRightOutlined style={{ fontSize: 10 }} />
                 </Link>
@@ -382,29 +382,29 @@ export const DashboardPage: React.FC = () => {
                     alignItems: 'center',
                     gap: 10,
                     padding: '6px 8px',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface-alt, #F8FAFC)',
                     borderRadius: 4,
-                    border: '1px solid #F1F5F9',
+                    border: '1px solid var(--border-subtle, #F1F5F9)',
                   }}
                 >
                   <img src={getPartnerLogo('tiktok') || ''} alt="TikTok" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
                   <div style={{ width: 95, flexShrink: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>TikTok Shop</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>TikTok Shop</div>
                   </div>
                   <div style={{ flex: 1, padding: '0 6px' }}>
                     <Progress
                       percent={metrics?.channelBreakdown?.tiktok?.percent || metrics?.channels?.tiktok?.percentage || 46}
                       strokeColor="#0F172A"
-                      trailColor="#E2E8F0"
+                      trailColor="var(--border-subtle, #E2E8F0)"
                       showInfo={false}
                       strokeWidth={5}
                     />
                   </div>
                   <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
-                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>
                       {(metrics?.channelBreakdown?.tiktok?.count || metrics?.channels?.tiktok?.orderCount || 51).toLocaleString('vi-VN')} đơn
                     </span>
-                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(46%)</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--text-muted, #64748B)', marginLeft: 4 }}>(46%)</span>
                   </div>
                 </div>
 
@@ -415,29 +415,29 @@ export const DashboardPage: React.FC = () => {
                     alignItems: 'center',
                     gap: 10,
                     padding: '6px 8px',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface-alt, #F8FAFC)',
                     borderRadius: 4,
-                    border: '1px solid #F1F5F9',
+                    border: '1px solid var(--border-subtle, #F1F5F9)',
                   }}
                 >
                   <img src={getPartnerLogo('shopee') || ''} alt="Shopee" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
                   <div style={{ width: 95, flexShrink: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>Shopee Open</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>Shopee Open</div>
                   </div>
                   <div style={{ flex: 1, padding: '0 6px' }}>
                     <Progress
                       percent={metrics?.channelBreakdown?.shopee?.percent || metrics?.channels?.shopee?.percentage || 45}
                       strokeColor="#EE4D2D"
-                      trailColor="#E2E8F0"
+                      trailColor="var(--border-subtle, #E2E8F0)"
                       showInfo={false}
                       strokeWidth={5}
                     />
                   </div>
                   <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
-                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>
                       {(metrics?.channelBreakdown?.shopee?.count || metrics?.channels?.shopee?.orderCount || 50).toLocaleString('vi-VN')} đơn
                     </span>
-                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(45%)</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--text-muted, #64748B)', marginLeft: 4 }}>(45%)</span>
                   </div>
                 </div>
 
@@ -448,29 +448,29 @@ export const DashboardPage: React.FC = () => {
                     alignItems: 'center',
                     gap: 10,
                     padding: '6px 8px',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface-alt, #F8FAFC)',
                     borderRadius: 4,
-                    border: '1px solid #F1F5F9',
+                    border: '1px solid var(--border-subtle, #F1F5F9)',
                   }}
                 >
                   <img src={getPartnerLogo('lazada') || ''} alt="Lazada" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
                   <div style={{ width: 95, flexShrink: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>Lazada Mall</div>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>Lazada Mall</div>
                   </div>
                   <div style={{ flex: 1, padding: '0 6px' }}>
                     <Progress
                       percent={metrics?.channelBreakdown?.lazada?.percent || metrics?.channels?.lazada?.percentage || 9}
                       strokeColor="#0F146D"
-                      trailColor="#E2E8F0"
+                      trailColor="var(--border-subtle, #E2E8F0)"
                       showInfo={false}
                       strokeWidth={5}
                     />
                   </div>
                   <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
-                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: 'var(--text-primary, #0F172A)' }}>
                       {(metrics?.channelBreakdown?.lazada?.count || metrics?.channels?.lazada?.orderCount || 9).toLocaleString('vi-VN')} đơn
                     </span>
-                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(9%)</span>
+                    <span style={{ fontSize: 10.5, color: 'var(--text-muted, #64748B)', marginLeft: 4 }}>(9%)</span>
                   </div>
                 </div>
               </div>
@@ -481,8 +481,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} lg={10}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: '100%',
@@ -492,7 +492,7 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Sức khỏe ánh xạ SKU AI</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary, #0F172A)' }}>Sức khỏe ánh xạ SKU AI</span>
                 <Link to="/mapping" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
                   Quản lý SKU <ArrowRightOutlined style={{ fontSize: 10 }} />
                 </Link>
@@ -524,14 +524,14 @@ export const DashboardPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
                   <div
                     style={{
-                      background: '#F0FDF4',
-                      border: '1px solid #BBF7D0',
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.2)',
                       padding: '6px 8px',
                       borderRadius: 4,
                       textAlign: 'center',
                     }}
                   >
-                    <div style={{ color: '#15803D', fontSize: 10.5, fontWeight: 600 }}>Tự động duyệt</div>
+                    <div style={{ color: '#10B981', fontSize: 10.5, fontWeight: 600 }}>Tự động duyệt</div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: '#10B981', marginTop: 1 }}>
                       {(metrics?.skuHealth?.autoApproved || 7).toLocaleString('vi-VN')}
                     </div>
@@ -539,30 +539,30 @@ export const DashboardPage: React.FC = () => {
 
                   <div
                     style={{
-                      background: '#FFFBEB',
-                      border: '1px solid #FDE68A',
+                      background: 'rgba(245, 158, 11, 0.08)',
+                      border: '1px solid rgba(245, 158, 11, 0.2)',
                       padding: '6px 8px',
                       borderRadius: 4,
                       textAlign: 'center',
                     }}
                   >
-                    <div style={{ color: '#B45309', fontSize: 10.5, fontWeight: 600 }}>Chờ duyệt</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#D97706', marginTop: 1 }}>
+                    <div style={{ color: '#F59E0B', fontSize: 10.5, fontWeight: 600 }}>Chờ duyệt</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#F59E0B', marginTop: 1 }}>
                       {(metrics?.skuHealth?.pendingReview || 5).toLocaleString('vi-VN')}
                     </div>
                   </div>
 
                   <div
                     style={{
-                      background: '#FEF2F2',
-                      border: '1px solid #FECACA',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
                       padding: '6px 8px',
                       borderRadius: 4,
                       textAlign: 'center',
                     }}
                   >
-                    <div style={{ color: '#B91C1C', fontSize: 10.5, fontWeight: 600 }}>Ghép tay</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#DC2626', marginTop: 1 }}>
+                    <div style={{ color: '#EF4444', fontSize: 10.5, fontWeight: 600 }}>Ghép tay</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#EF4444', marginTop: 1 }}>
                       {(metrics?.skuHealth?.manualRequired || 1).toLocaleString('vi-VN')}
                     </div>
                   </div>
@@ -578,8 +578,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} lg={14}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: 340,
@@ -589,22 +589,22 @@ export const DashboardPage: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Nhật ký luồng xử lý đơn</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary, #0F172A)' }}>Nhật ký luồng xử lý đơn</span>
                   <span
                     style={{
                       fontSize: 10.5,
-                      background: isConnected ? '#ECFDF5' : '#F1F5F9',
-                      color: isConnected ? '#059669' : '#64748B',
+                      background: isConnected ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-surface-alt, #F1F5F9)',
+                      color: isConnected ? '#059669' : 'var(--text-secondary, #64748B)',
                       padding: '1px 6px',
                       borderRadius: 4,
                       fontWeight: 600,
-                      border: `1px solid ${isConnected ? '#A7F3D0' : '#E2E8F0'}`,
+                      border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.25)' : 'var(--border-subtle, #E2E8F0)'}`,
                     }}
                   >
                     {isConnected ? '● WebSocket Live' : '● Live Polling'}
                   </span>
                 </div>
-                <span style={{ fontSize: 11, color: '#94A3B8' }}>{events.length} sự kiện gần nhất</span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted, #94A3B8)' }}>{events.length} sự kiện gần nhất</span>
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 2 }}>
@@ -634,15 +634,15 @@ export const DashboardPage: React.FC = () => {
                           justifyContent: 'space-between',
                           padding: '5px 8px',
                           borderRadius: 4,
-                          background: '#F8FAFC',
-                          border: '1px solid #F1F5F9',
+                          background: 'var(--bg-surface-alt, #F8FAFC)',
+                          border: '1px solid var(--border-subtle, #F1F5F9)',
                           cursor: evt.rawLog ? 'pointer' : 'default',
                           transition: 'all 0.12s ease',
                           fontSize: 11.5,
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
-                          <span style={{ fontSize: 10.5, color: '#94A3B8', fontFamily: 'monospace', flexShrink: 0 }}>
+                          <span style={{ fontSize: 10.5, color: 'var(--text-muted, #94A3B8)', fontFamily: 'monospace', flexShrink: 0 }}>
                             {evt.timestamp}
                           </span>
                           {platformLogo ? (
@@ -652,7 +652,7 @@ export const DashboardPage: React.FC = () => {
                             style={{
                               fontWeight: 700,
                               fontSize: 11,
-                              color: '#0F172A',
+                              color: 'var(--text-primary, #0F172A)',
                               fontFamily: 'monospace',
                               flexShrink: 0,
                             }}
@@ -661,7 +661,7 @@ export const DashboardPage: React.FC = () => {
                           </span>
                           <span
                             style={{
-                              color: '#475569',
+                              color: 'var(--text-secondary, #475569)',
                               fontSize: 11,
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -684,9 +684,9 @@ export const DashboardPage: React.FC = () => {
                               fontWeight: 600,
                               padding: '1px 5px',
                               borderRadius: 3,
-                              background: isHealed ? '#F5F3FF' : isSuccess ? '#ECFDF5' : '#FEF2F2',
-                              color: isHealed ? '#7C3AED' : isSuccess ? '#059669' : '#DC2626',
-                              border: `1px solid ${isHealed ? '#DDD6FE' : isSuccess ? '#A7F3D0' : '#FECACA'}`,
+                              background: isHealed ? 'rgba(139, 92, 246, 0.1)' : isSuccess ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                              color: isHealed ? '#8B5CF6' : isSuccess ? '#10B981' : '#EF4444',
+                              border: `1px solid ${isHealed ? 'rgba(139, 92, 246, 0.25)' : isSuccess ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
                             }}
                           >
                             {isHealed ? 'AI Fix' : isSuccess ? 'Thành công' : 'Lỗi'}
@@ -704,8 +704,8 @@ export const DashboardPage: React.FC = () => {
           <Col xs={24} lg={10}>
             <div
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                background: 'var(--bg-surface-card, #FFFFFF)',
+                border: '1px solid var(--border-card, #E2E8F0)',
                 borderRadius: 6,
                 padding: '12px 14px',
                 height: 340,
@@ -714,7 +714,7 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Quy trình tự động hóa</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary, #0F172A)' }}>Quy trình tự động hóa</span>
                 <Link to="/workflows" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
                   Mở Canvas <ArrowRightOutlined style={{ fontSize: 10 }} />
                 </Link>
@@ -732,9 +732,9 @@ export const DashboardPage: React.FC = () => {
                       <div
                         key={wf._id}
                         style={{
-                          background: '#F8FAFC',
+                          background: 'var(--bg-surface-alt, #F8FAFC)',
                           borderRadius: 4,
-                          border: '1px solid #F1F5F9',
+                          border: '1px solid var(--border-subtle, #F1F5F9)',
                           padding: '5px 8px',
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -747,7 +747,7 @@ export const DashboardPage: React.FC = () => {
                             style={{
                               fontWeight: 600,
                               fontSize: 11.5,
-                              color: '#0F172A',
+                              color: 'var(--text-primary, #0F172A)',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -759,7 +759,7 @@ export const DashboardPage: React.FC = () => {
                           </div>
                           <div
                             style={{
-                              color: '#64748B',
+                              color: 'var(--text-muted, #64748B)',
                               fontSize: 10.5,
                               marginTop: 1,
                               whiteSpace: 'nowrap',
@@ -777,9 +777,9 @@ export const DashboardPage: React.FC = () => {
                               fontWeight: 700,
                               padding: '1px 5px',
                               borderRadius: 3,
-                              background: wf.isActive ? '#ECFDF5' : '#F1F5F9',
-                              color: wf.isActive ? '#059669' : '#64748B',
-                              border: `1px solid ${wf.isActive ? '#A7F3D0' : '#E2E8F0'}`,
+                              background: wf.isActive ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-surface-card, #F1F5F9)',
+                              color: wf.isActive ? '#10B981' : 'var(--text-secondary, #64748B)',
+                              border: `1px solid ${wf.isActive ? 'rgba(16, 185, 129, 0.25)' : 'var(--border-subtle, #E2E8F0)'}`,
                             }}
                           >
                             {(wf.executionCount || 0).toLocaleString('vi-VN')} đơn

@@ -91,17 +91,31 @@ export const LiveLogsPage: React.FC = () => {
       ],
       onFilter: (value: any, record: SyncLogItem) => record.platform.includes(value),
       render: (plat: string) => {
-        let color = '#000000';
-        let text = 'TikTok Shop';
-        if (plat.includes('SHOPEE')) {
-          color = '#EE4D2D';
-          text = 'Shopee';
-        } else if (plat.includes('LAZADA')) {
-          color = '#0F146D';
-          text = 'Lazada';
-        }
+        const isTikTok = plat.includes('TIKTOK');
+        const isShopee = plat.includes('SHOPEE');
+        const text = isTikTok ? 'TikTok Shop' : isShopee ? 'Shopee' : 'Lazada';
         return (
-          <Tag color={color} style={{ borderRadius: 4, fontWeight: 700, fontSize: 11 }}>
+          <Tag
+            style={{
+              borderRadius: 4,
+              fontWeight: 700,
+              fontSize: 11,
+              padding: '1px 6px',
+              background: isTikTok
+                ? 'rgba(148, 163, 184, 0.15)'
+                : isShopee
+                  ? 'rgba(238, 77, 45, 0.15)'
+                  : 'rgba(59, 130, 246, 0.15)',
+              border: `1px solid ${
+                isTikTok
+                  ? 'rgba(148, 163, 184, 0.3)'
+                  : isShopee
+                    ? 'rgba(238, 77, 45, 0.3)'
+                    : 'rgba(59, 130, 246, 0.3)'
+              }`,
+              color: isTikTok ? 'var(--text-primary, #F8FAFC)' : isShopee ? '#FB923C' : '#60A5FA',
+            }}
+          >
             {text}
           </Tag>
         );
@@ -132,7 +146,7 @@ export const LiveLogsPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <StatusTag status={record.aiHealed ? 'HEALED' : 'SUCCESS'} />
             <Tooltip title={cleanMsg}>
-              <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
+              <span style={{ fontSize: 13, color: 'var(--text-primary, #374151)', lineHeight: 1.4 }}>
                 {cleanMsg}
               </span>
             </Tooltip>

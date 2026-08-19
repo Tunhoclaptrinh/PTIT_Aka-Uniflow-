@@ -70,10 +70,10 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             style={{
               textAlign: 'center',
               padding: '24px 16px',
-              color: '#9CA3AF',
-              background: '#FFFFFF',
+              color: 'var(--text-muted, #94A3B8)',
+              background: 'var(--bg-surface-card, #FFFFFF)',
               borderRadius: 8,
-              border: '2px dashed #E5E7EB',
+              border: '2px dashed var(--border-subtle, #E5E7EB)',
             }}
           >
             <p style={{ margin: 0, fontSize: 13 }}>Chưa có điều kiện lọc nào được chọn.</p>
@@ -111,10 +111,10 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    background: '#FFFFFF',
+                    background: 'var(--bg-surface-card, #FFFFFF)',
                     padding: '8px 12px',
                     borderRadius: 8,
-                    border: '1px solid #E5E7EB',
+                    border: '1px solid var(--border-subtle, #E5E7EB)',
                   }}
                 >
                   <Checkbox
@@ -221,7 +221,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
               style={{ width: '100%', borderStyle: 'dashed', background: '#FFFFFF', color: '#4B5563' }}
               icon={<PlusOutlined />}
             >
-              + Thêm điều kiện lọc
+              Thêm điều kiện lọc
             </BaseButton>
           </Dropdown>
         </div>

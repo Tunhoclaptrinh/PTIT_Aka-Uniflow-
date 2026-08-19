@@ -81,11 +81,6 @@ export const GroupNode: React.FC<any> = ({ id, data, selected }) => {
           <Tag color="purple" style={{ margin: 0, fontSize: 10, fontWeight: 700, borderRadius: 4 }}>
             CỤM ĐÃ THU GỌN ({childNodesCount} KHỐI)
           </Tag>
-          <Tooltip title="Mở rộng">
-            <span onClick={toggleExpand} style={{ cursor: 'pointer', color: '#8B5CF6', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-              <ExpandAltOutlined />
-            </span>
-          </Tooltip>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>

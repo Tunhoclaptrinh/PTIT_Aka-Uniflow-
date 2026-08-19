@@ -18,7 +18,7 @@ export const ActionDrawer: React.FC<ActionDrawerProps> = ({
   width = 460,
   onClose,
   onSubmit,
-  submitText = 'Lưu thay đổi',
+  submitText = 'Lưu lại',
   submitLoading = false,
   children,
 }) => {

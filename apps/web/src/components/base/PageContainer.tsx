@@ -92,7 +92,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 
       {/* Sub Tabs */}
       {tabs && tabs.length > 0 && (
-        <div style={{ background: '#FFFFFF', padding: '0 16px', borderRadius: 8, border: '1px solid #E5E7EB' }}>
+        <div style={{ background: 'var(--bg-surface-card, #FFFFFF)', padding: '0 16px', borderRadius: 8, border: '1px solid var(--border-subtle, #E5E7EB)' }}>
           <Tabs
             activeKey={activeTabKey}
             onChange={onTabChange}

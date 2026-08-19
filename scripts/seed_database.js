@@ -1,7 +1,7 @@
 /**
  * Script nạp dữ liệu khởi tạo mở rộng (Rich Real Multi-Tenant Seed Data) cho UniFlow AI
  * Nạp dữ liệu cách ly riêng biệt cho 2 tài khoản thực tế:
- * 1. Admin Master (admin@uniflow.vn / Admin@123456) -> Tenant: Thời Trang An Khang (PTIT_Aka)
+ * 1. Admin (admin@uniflow.vn / Admin@123456) -> Tenant: Thời Trang An Khang (PTIT_Aka)
  * 2. Demo Merchant (demo@uniflow.vn / Demo@123456) -> Tenant: Mỹ Phẩm & Skincare GlowTech
  */
 
@@ -89,7 +89,7 @@ async function seed() {
         _id: new ObjectId('66c0e812a1b2c3d4e5f60010'),
         email: 'admin@uniflow.vn',
         password: adminPasswordHash,
-        name: 'Admin Master (PTIT_Aka)',
+        name: 'Admin (PTIT_Aka)',
         phone: '0988888888',
         role: 'ADMIN',
         tenantId: tenant1Id,

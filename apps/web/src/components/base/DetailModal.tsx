@@ -58,41 +58,61 @@ export const DetailModal: React.FC<DetailModalProps> = ({
         </div>
       }
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            {onDelete && record && (
-              <BaseButton
-                variant="danger"
-                size="small"
-                icon={<DeleteOutlined />}
-                onClick={() => {
-                  onDelete(record);
-                  onClose();
-                }}
-              >
-                Xóa
-              </BaseButton>
-            )}
-          </div>
-          <Space size="middle">
-            <BaseButton variant="ghost" size="small" onClick={onClose}>
-              Đóng
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+          {onDelete && record && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                onDelete(record);
+                onClose();
+              }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                color: '#EF4444',
+                fontSize: 13,
+                fontWeight: 600,
+                padding: '5px 10px',
+                borderRadius: 4,
+                transition: 'all 0.15s ease',
+                userSelect: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#DC2626';
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#EF4444';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title={`Xóa ${entityName}`}
+            >
+              <DeleteOutlined style={{ fontSize: 13, color: '#EF4444' }} />
+              <span>Xóa</span>
+            </span>
+          )}
+
+          <BaseButton variant="ghost" size="small" onClick={onClose} style={{ minWidth: 80 }}>
+            Đóng
+          </BaseButton>
+          {extraActions}
+          {onEdit && record && (
+            <BaseButton
+              variant="primary"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                onEdit(record);
+                onClose();
+              }}
+              style={{ minWidth: 80 }}
+            >
+              Chỉnh sửa
             </BaseButton>
-            {extraActions}
-            {onEdit && record && (
-              <BaseButton
-                variant="primary"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  onEdit(record);
-                  onClose();
-                }}
-              >
-                Chỉnh sửa
-              </BaseButton>
-            )}
-          </Space>
+          )}
         </div>
       }
       width={width}

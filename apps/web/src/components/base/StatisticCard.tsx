@@ -149,7 +149,7 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
     return (
       <div
         style={{
-          background: item.backgroundColor || '#F8FAFC',
+          background: item.backgroundColor || 'var(--bg-surface-card, #FFFFFF)',
           borderRadius: 8,
           padding: '12px 16px',
           border: '1px solid var(--border-subtle, #E5E7EB)',
@@ -171,7 +171,7 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
               {iconElement}
             </span>
           )}
-          <div style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary, #374151)', fontWeight: 600 }}>
             {item.title}
           </div>
         </div>
@@ -180,7 +180,7 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
           style={{
             fontSize: 22,
             fontWeight: 800,
-            color: item.valueColor || '#111827',
+            color: item.valueColor || 'var(--text-primary, #111827)',
             fontFamily: "'Plus Jakarta Sans', sans-serif",
             lineHeight: 1,
             marginLeft: 12,

@@ -12,7 +12,7 @@ import {
   Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card, Space, Spin, Select, Switch, Drawer, Timeline, Tag, Modal, Form, Input, Radio, Tooltip } from 'antd';
+import { Card, Space, Spin, Select, Switch, Drawer, Timeline, Tag, Modal, Form, Input, Radio } from 'antd';
 import {
   PlayCircleOutlined,
   SaveOutlined,
@@ -26,6 +26,8 @@ import {
   AppstoreOutlined,
   ScissorOutlined,
   EyeOutlined,
+  CompressOutlined,
+  ExpandOutlined,
 } from '@ant-design/icons';
 import { TriggerNode } from './nodes/TriggerNode';
 import { AINode } from './nodes/AINode';
@@ -577,7 +579,11 @@ const FlowContent: React.FC = () => {
     const selectedNodes = nodes.filter((n) => n.selected && n.type !== 'group' && !n.parentId);
 
     if (selectedNodes.length === 0) {
-      notify.warning('Vui lòng chọn các khối trên Canvas (hoặc dùng nút Quét vùng) để tạo phân vùng gom nhóm!');
+      notify.warning('Mẹo: Giữ phím Shift và click các khối (hoặc dùng nút Quét vùng Snipping) để chọn từ 2 khối trở lên trước khi Gom nhóm!');
+      return;
+    }
+    if (selectedNodes.length === 1) {
+      notify.warning('Vui lòng chọn từ 2 khối trở lên để tạo phân vùng gom nhóm!');
       return;
     }
     _createGroupFromNodes(selectedNodes);
@@ -698,17 +704,35 @@ const FlowContent: React.FC = () => {
     loadAllWorkflows();
   }, []);
 
-  const handleNodeClick = (_: any, node: any) => {
+  const handleNodeClick = (event: React.MouseEvent, node: any) => {
+    // Nếu đang giữ Shift hoặc Ctrl/Cmd (đang chọn nhiều khối) -> không tự động mở ngăn kéo
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    // Nếu đang có 2 khối trở lên được chọn -> không bật drawer làm phiền
+    const selectedCount = nodes.filter((n) => n.selected).length;
+    if (selectedCount >= 2) {
+      return;
+    }
     setSelectedNode(node);
     setSettingsOpen(true);
   };
 
   const handleAddNode = (type: string, label: string, category?: string, customData?: any) => {
     const id = `node_${Date.now()}`;
+    const viewport = getViewport();
+    const zoom = viewport.zoom || 1;
+    // Đặt khối mới ở góc trên bên trái của viewport hiện tại (cách mép 80px), tự so le nhẹ khi thêm nhiều khối liên tiếp
+    const cascadeOffset = (nodes.length % 6) * 32;
+    const nodePosition = {
+      x: (-viewport.x + 80 + cascadeOffset) / zoom,
+      y: (-viewport.y + 80 + cascadeOffset) / zoom,
+    };
+
     const newNode = {
       id,
       type,
-      position: { x: 200 + nodes.length * 280, y: 150 + (nodes.length % 2 === 0 ? 0 : 60) },
+      position: nodePosition,
       data: {
         label,
         description: customData?.desc || 'Khối chức năng mới',
@@ -1177,124 +1201,133 @@ const FlowContent: React.FC = () => {
           {/* Nhóm 1: Thao tác sơ đồ & Khối */}
           {!isOverviewMode && (
             <>
-              <Tooltip title="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => setLibraryOpen(true)}
-                  style={{ width: 32, height: 32, padding: 0 }}
-                />
-              </Tooltip>
+              {/* Nút Thêm khối: Primary có chữ hiển thị rõ ràng */}
+              <BaseButton
+                variant="primary"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={() => setLibraryOpen(true)}
+                tooltip="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)"
+                style={{ fontWeight: 600, padding: '0 12px' }}
+              >
+                Thêm khối
+              </BaseButton>
 
-              <Tooltip title="Quét vùng gom nhóm (Kéo chuột bao quanh các khối kiểu Windows Snipping)">
-                <BaseButton
-                  variant={isSnipMode ? 'primary' : 'ghost'}
-                  size="small"
-                  icon={<ScissorOutlined style={{ color: isSnipMode ? '#FFFFFF' : '#8B5CF6' }} />}
-                  onClick={() => {
-                    const nextMode = !isSnipMode;
-                    setIsSnipMode(nextMode);
-                    if (nextMode) {
-                      notify.info('Đã bật chế độ Quét vùng gom nhóm: Kéo chuột bao quanh các khối trên bản đồ như chụp ảnh màn hình!');
-                    }
-                  }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    padding: 0,
-                    ...(isSnipMode ? { background: '#8B5CF6', borderColor: '#8B5CF6' } : {}),
-                  }}
-                />
-              </Tooltip>
+              {/* Nút Thu nhỏ / Mở rộng khối: Icon-only kèm tooltip chuẩn */}
+              <BaseButton
+                variant={isCompactNodes ? 'primary' : 'ghost'}
+                size="small"
+                icon={isCompactNodes ? <ExpandOutlined /> : <CompressOutlined />}
+                onClick={handleToggleCompactNodes}
+                tooltip={isCompactNodes ? 'Mở rộng hiển thị đầy đủ thông số khối' : 'Thu nhỏ khối 1 dòng để bao quát sơ đồ'}
+                style={{
+                  width: 32,
+                  height: 32,
+                  padding: 0,
+                  ...(isCompactNodes ? { background: '#3B82F6', borderColor: '#3B82F6' } : {}),
+                }}
+              />
 
-              <Tooltip title="Gom nhóm các khối đang chọn trên bản đồ">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<AppstoreOutlined style={{ color: '#8B5CF6' }} />}
-                  onClick={handleGroupSelectedNodes}
-                  style={{ width: 32, height: 32, padding: 0 }}
-                />
-              </Tooltip>
+              <BaseButton
+                tooltip="Quét vùng gom nhóm (Kéo chuột bao quanh các khối kiểu Windows Snipping)"
+                variant={isSnipMode ? 'primary' : 'ghost'}
+                size="small"
+                icon={<ScissorOutlined style={{ color: isSnipMode ? '#FFFFFF' : '#8B5CF6' }} />}
+                onClick={() => {
+                  const nextMode = !isSnipMode;
+                  setIsSnipMode(nextMode);
+                  if (nextMode) {
+                    notify.info('Đã bật chế độ Quét vùng gom nhóm: Kéo chuột bao quanh các khối trên bản đồ như chụp ảnh màn hình!');
+                  }
+                }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  padding: 0,
+                  ...(isSnipMode ? { background: '#8B5CF6', borderColor: '#8B5CF6' } : {}),
+                }}
+              />
 
-              <Tooltip title="Tư vấn kiến trúc AI & Gợi ý gom nhóm">
-                <BaseButton
-                  variant="ghost"
-                  size="small"
-                  icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
-                  onClick={() => setArchitectOpen(true)}
-                  style={{ width: 32, height: 32, padding: 0 }}
-                />
-              </Tooltip>
+              <BaseButton
+                tooltip="Gom nhóm các khối đang chọn trên bản đồ"
+                variant="ghost"
+                size="small"
+                icon={<AppstoreOutlined style={{ color: '#8B5CF6' }} />}
+                onClick={handleGroupSelectedNodes}
+                style={{ width: 32, height: 32, padding: 0 }}
+              />
+
+              <BaseButton
+                tooltip="Tư vấn kiến trúc AI & Gợi ý gom nhóm"
+                variant="ghost"
+                size="small"
+                icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+                onClick={() => setArchitectOpen(true)}
+                style={{ width: 32, height: 32, padding: 0 }}
+              />
             </>
           )}
 
           <div style={{ width: 1, height: 20, background: '#E5E7EB', margin: '0 4px' }} />
 
           {/* Xem toàn bộ workflows */}
-          <Tooltip title={isOverviewMode ? 'Thoát chế độ xem toàn bộ' : 'Xem toàn bộ quy trình trên 1 canvas'}>
-            <BaseButton
-              variant={isOverviewMode ? 'primary' : 'ghost'}
-              size="small"
-              icon={<EyeOutlined style={{ color: isOverviewMode ? '#FFFFFF' : '#10B981' }} />}
-              onClick={handleShowAllWorkflows}
-              style={{
-                width: 32, height: 32, padding: 0,
-                ...(isOverviewMode ? { background: '#10B981', borderColor: '#10B981' } : {}),
-              }}
-            />
-          </Tooltip>
+          <BaseButton
+            tooltip={isOverviewMode ? 'Thoát chế độ xem toàn bộ' : 'Xem toàn bộ quy trình trên 1 canvas'}
+            variant={isOverviewMode ? 'primary' : 'ghost'}
+            size="small"
+            icon={<EyeOutlined style={{ color: isOverviewMode ? '#FFFFFF' : '#10B981' }} />}
+            onClick={handleShowAllWorkflows}
+            style={{
+              width: 32, height: 32, padding: 0,
+              ...(isOverviewMode ? { background: '#10B981', borderColor: '#10B981' } : {}),
+            }}
+          />
 
           {/* Nhóm 2: Quản lý quy trình & Thực thi */}
-          <Tooltip title="Tạo quy trình xử lý đơn hàng mới">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<ApartmentOutlined />}
-              onClick={() => {
-                createForm.resetFields();
-                createForm.setFieldsValue({
-                  name: 'Quy trình xử lý đơn hàng mới',
-                  creationMode: 'blank',
-                });
-                setCreateModalOpen(true);
-              }}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+          <BaseButton
+            tooltip="Tạo quy trình xử lý đơn hàng mới"
+            variant="ghost"
+            size="small"
+            icon={<ApartmentOutlined />}
+            onClick={() => {
+              createForm.resetFields();
+              createForm.setFieldsValue({
+                name: 'Quy trình xử lý đơn hàng mới',
+                creationMode: 'blank',
+              });
+              setCreateModalOpen(true);
+            }}
+            style={{ width: 32, height: 32, padding: 0 }}
+          />
 
-          <Tooltip title="Làm mới dữ liệu từ cơ sở dữ liệu MongoDB Atlas">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<ReloadOutlined />}
-              onClick={() => loadAllWorkflows(currentWorkflow?._id)}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+          <BaseButton
+            tooltip="Làm mới dữ liệu từ cơ sở dữ liệu MongoDB Atlas"
+            variant="ghost"
+            size="small"
+            icon={<ReloadOutlined />}
+            onClick={() => loadAllWorkflows(currentWorkflow?._id)}
+            style={{ width: 32, height: 32, padding: 0 }}
+          />
 
-          <Tooltip title="Chạy thử nghiệm mô phỏng 0-chạm qua Backend API">
-            <BaseButton
-              variant="ghost"
-              size="small"
-              icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
-              loading={testing}
-              onClick={handleTestRun}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+          <BaseButton
+            tooltip="Chạy thử nghiệm mô phỏng 0-chạm qua Backend API"
+            variant="ghost"
+            size="small"
+            icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
+            loading={testing}
+            onClick={handleTestRun}
+            style={{ width: 32, height: 32, padding: 0 }}
+          />
 
-          <Tooltip title="Lưu quy trình vào cơ sở dữ liệu MongoDB Atlas">
-            <BaseButton
-              variant="primary"
-              size="small"
-              icon={<SaveOutlined />}
-              loading={saving}
-              onClick={handleSave}
-              style={{ width: 32, height: 32, padding: 0 }}
-            />
-          </Tooltip>
+          <BaseButton
+            tooltip="Lưu quy trình vào cơ sở dữ liệu MongoDB Atlas"
+            variant="primary"
+            size="small"
+            icon={<SaveOutlined />}
+            loading={saving}
+            onClick={handleSave}
+            style={{ width: 32, height: 32, padding: 0 }}
+          />
         </div>
       }
     >
@@ -1303,31 +1336,29 @@ const FlowContent: React.FC = () => {
         style={{
           borderRadius: 12,
           border: '1px solid var(--border-subtle, #E5E7EB)',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-          height: 'calc(100vh - 180px)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
+          background: 'var(--bg-surface-card, #FFFFFF)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
           overflow: 'hidden',
         }}
-        bodyStyle={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}
+        bodyStyle={{ padding: 0, height: 'calc(100vh - 150px)', display: 'flex', flexDirection: 'column' }}
       >
-        {/* 1. Canvas Control Bar */}
+        {/* 1. Header Toolbar Control: Workflow Selector & Status */}
         <div
           style={{
-            padding: '8px 16px',
-            borderBottom: '1px solid #E5E7EB',
-            background: '#FFFFFF',
+            padding: '10px 16px',
+            borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
+            background: 'var(--bg-surface-elevated, #FAFAFA)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: 12,
-            zIndex: 5,
           }}
         >
-          <Space size="middle">
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Chọn quy trình:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 320, maxWidth: '75%' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary, #94A3B8)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Chọn quy trình:
+            </span>
             {isOverviewMode ? (
               <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <EyeOutlined /> Đang xem toàn bộ {workflowsList.length} quy trình
@@ -1342,7 +1373,7 @@ const FlowContent: React.FC = () => {
                   const wf = workflowsList.find((w) => w._id === val);
                   if (wf) selectWorkflow(wf);
                 }}
-                style={{ width: 320 }}
+                style={{ flex: 1, minWidth: 280, maxWidth: 640 }}
                 options={workflowsList.map((w) => ({
                   label: `${w.name} ${w.isActive ? '(Đang chạy)' : '(Bản nháp)'}`,
                   value: w._id,
@@ -1351,41 +1382,58 @@ const FlowContent: React.FC = () => {
             )}
 
             {currentWorkflow && (
-              <Space size={6}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 <Switch
                   checked={currentWorkflow?.isActive}
                   onChange={handleToggleActive}
                 />
-                <span style={{ fontSize: 12, color: currentWorkflow?.isActive ? '#10B981' : '#6B7280', fontWeight: 600 }}>
+                <span style={{ fontSize: 12, color: currentWorkflow?.isActive ? '#10B981' : 'var(--text-muted, #64748B)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                   {currentWorkflow?.isActive ? 'Kích hoạt 0-chạm' : 'Bản nháp'}
                 </span>
-              </Space>
+              </div>
             )}
 
-            <BaseButton
-              variant="secondary"
-              size="small"
-              onClick={handleToggleCompactNodes}
-              style={{ fontSize: 12 }}
-            >
-              {isCompactNodes ? 'Mở rộng khối' : 'Thu nhỏ khối (1 dòng)'}
-            </BaseButton>
-
+            {/* Nút Xóa ngăn cách bởi một gạch dọc, hiện khít & sắc nét */}
             {currentWorkflow && (
-              <BaseButton
-                variant="ghost"
-                size="small"
-                icon={<DeleteOutlined style={{ color: '#EF4444' }} />}
-                onClick={() => setDeleteModalOpen(true)}
-              >
-                Xóa
-              </BaseButton>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <span style={{ color: 'var(--border-subtle, rgba(255, 255, 255, 0.2))', fontSize: 13, userSelect: 'none' }}>|</span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setDeleteModalOpen(true)}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    color: '#EF4444',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    padding: '3px 6px',
+                    borderRadius: 4,
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#DC2626';
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#EF4444';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  title="Xóa quy trình này"
+                >
+                  <DeleteOutlined style={{ fontSize: 13, color: '#EF4444' }} />
+                  <span>Xóa</span>
+                </span>
+              </div>
             )}
-          </Space>
+          </div>
 
-          <div style={{ fontSize: 12, color: '#6B7280' }}>
-            Số khối hiện tại: <strong style={{ color: '#111827', marginRight: 12 }}>{nodes.length}</strong>
-            Đã xử lý tự động: <strong style={{ color: '#ed1c24', fontSize: 13 }}>{currentWorkflow?.executionCount || 0}</strong> đơn hàng
+          <div style={{ fontSize: 12.5, color: 'var(--text-secondary, #94A3B8)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Số khối hiện tại: <strong style={{ color: 'var(--text-primary, #F9FAFB)', marginRight: 12, fontWeight: 700 }}>{nodes.length}</strong>
+            Đã xử lý tự động: <strong style={{ color: '#ed1c24', fontSize: 13.5, fontWeight: 800 }}>{(currentWorkflow?.executionCount || 0).toLocaleString('vi-VN')}</strong> đơn hàng
           </div>
         </div>
 
@@ -1476,33 +1524,113 @@ const FlowContent: React.FC = () => {
             </div>
           )}
 
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Spin tip="Đang tải dữ liệu quy trình từ MongoDB Atlas..." size="large" />
-            </div>
-          ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeClick={handleNodeClick}
-              onEdgeClick={(_evt, edge) => handleOpenEdgeModal(edge.id)}
-              onNodeDragStop={handleNodeDragStop}
-              fitView
-              elevateEdgesOnSelect
-              elevateNodesOnSelect={false}
+          {/* Container ReactFlow có hiệu ứng xám màu (Greyscale) khi tắt vận hành 0-chạm */}
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              filter: (!isOverviewMode && currentWorkflow && !currentWorkflow.isActive) ? 'grayscale(92%) opacity(0.82)' : 'none',
+              transition: 'filter 0.35s ease, opacity 0.35s ease',
+            }}
+          >
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <Spin tip="Đang tải dữ liệu quy trình từ MongoDB Atlas..." size="large" />
+              </div>
+            ) : (
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onNodeClick={handleNodeClick}
+                onNodeDoubleClick={(_evt, node) => {
+                  setSelectedNode(node);
+                  setSettingsOpen(true);
+                }}
+                onEdgeClick={(_evt, edge) => handleOpenEdgeModal(edge.id)}
+                onNodeDragStop={handleNodeDragStop}
+                selectionOnDrag={!isSnipMode}
+                fitView
+                elevateEdgesOnSelect
+                elevateNodesOnSelect={false}
+              >
+                <Background
+                  variant={BackgroundVariant.Dots}
+                  gap={16}
+                  size={1.5}
+                />
+                <Controls style={{ left: 16, bottom: 16 }} />
+              </ReactFlow>
+            )}
+          </div>
+
+          {/* Huy hiệu cảnh báo trạng thái Bản nháp (Đang tắt 0-chạm) */}
+          {!isOverviewMode && currentWorkflow && !currentWorkflow.isActive && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 14,
+                left: 16,
+                zIndex: 10,
+                background: 'rgba(241, 245, 249, 0.94)',
+                backdropFilter: 'blur(8px)',
+                color: '#64748B',
+                padding: '6px 14px',
+                borderRadius: 20,
+                border: '1px solid #CBD5E1',
+                fontSize: 12,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                pointerEvents: 'none',
+              }}
             >
-              <Background
-                variant={BackgroundVariant.Dots}
-                gap={16}
-                size={1.5}
-              />
-              <Controls style={{ left: 16, bottom: 16 }} />
-            </ReactFlow>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#94A3B8' }} />
+              <span>Đang ở chế độ Bản nháp (Tắt 0-chạm - Luồng không tự động chạy)</span>
+            </div>
+          )}
+
+          {/* Floating Multi-Selection Action Toolbar khi chọn từ 2 khối trở lên */}
+          {nodes.filter((n) => n.selected && n.type !== 'group').length >= 2 && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 24,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 100,
+                background: 'rgba(15, 23, 42, 0.94)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                padding: '8px 18px',
+                borderRadius: 24,
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <span>
+                🎯 Đang chọn <strong>{nodes.filter((n) => n.selected && n.type !== 'group').length}</strong> khối
+              </span>
+              <BaseButton
+                variant="brand"
+                size="small"
+                icon={<AppstoreOutlined />}
+                onClick={handleGroupSelectedNodes}
+                style={{ fontWeight: 700, borderRadius: 16 }}
+              >
+                Gom nhóm phân vùng
+              </BaseButton>
+            </div>
           )}
 
           {/* Floating Category Classification Legend */}
@@ -1515,19 +1643,19 @@ const FlowContent: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              background: 'rgba(255, 255, 255, 0.94)',
+              background: 'var(--bg-surface-elevated, rgba(255, 255, 255, 0.94))',
               backdropFilter: 'blur(8px)',
               padding: '6px 14px',
               borderRadius: 8,
-              border: '1px solid #E5E7EB',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              border: '1px solid var(--border-subtle, #E5E7EB)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
               fontSize: 11,
               fontWeight: 600,
               userSelect: 'none',
               flexWrap: 'wrap',
             }}
           >
-            <span style={{ color: '#6B7280' }}>Phân loại khối:</span>
+            <span style={{ color: 'var(--text-muted, #6B7280)' }}>Phân loại khối:</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#ed1c24' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ed1c24' }} /> Sàn TMĐT
             </span>
@@ -1560,19 +1688,19 @@ const FlowContent: React.FC = () => {
                 zIndex: 10,
                 pointerEvents: 'auto',
                 maxWidth: 480,
-                background: 'rgba(255, 255, 255, 0.94)',
+                background: 'var(--bg-surface-elevated, rgba(255, 255, 255, 0.94))',
                 backdropFilter: 'blur(12px)',
                 padding: '24px 32px',
                 borderRadius: 14,
-                border: '1px dashed #D1D5DB',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)',
+                border: '1px dashed var(--border-subtle, #D1D5DB)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
               }}
             >
               <ApartmentOutlined style={{ fontSize: 38, color: '#ed1c24', marginBottom: 10 }} />
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 6 }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary, #111827)', marginBottom: 6 }}>
                 Quy trình chưa có khối xử lý nào
               </div>
-              <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary, #6B7280)', marginBottom: 16, lineHeight: 1.5 }}>
                 Sử dụng thanh lời nhắc AI bên dưới để sinh toàn bộ luồng tự động, hoặc bấm nút dưới đây để chọn từng khối chức năng.
               </div>
               <Space>
@@ -1715,7 +1843,7 @@ const FlowContent: React.FC = () => {
             </div>
           }
           placement="right"
-          width={500}
+          width={600}
           open={debugDrawerOpen}
           onClose={() => setDebugDrawerOpen(false)}
         >

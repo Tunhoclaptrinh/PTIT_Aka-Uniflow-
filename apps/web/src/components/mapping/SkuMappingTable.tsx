@@ -241,29 +241,29 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'Tổng SKU sàn TMĐT',
       value: totalCount,
-      backgroundColor: '#F8FAFC',
-      valueColor: '#1E293B',
+      backgroundColor: 'var(--bg-surface-alt, #F8FAFC)',
+      valueColor: 'var(--text-primary, #1E293B)',
       onClick: () => handleTabChange('ALL'),
     },
     {
       title: 'Đã khớp tự động (AI)',
       value: approvedCount,
-      backgroundColor: '#ECFDF5',
-      valueColor: '#059669',
+      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+      valueColor: '#10B981',
       onClick: () => handleTabChange('APPROVED'),
     },
     {
       title: 'Chờ duyệt 1-click',
       value: pendingCount,
-      backgroundColor: '#FFFBEB',
-      valueColor: '#D97706',
+      backgroundColor: 'rgba(245, 158, 11, 0.08)',
+      valueColor: '#F59E0B',
       onClick: () => handleTabChange('PENDING'),
     },
     {
       title: 'Cần gán thủ công',
       value: manualCount,
-      backgroundColor: '#FEF2F2',
-      valueColor: '#DC2626',
+      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+      valueColor: '#EF4444',
       onClick: () => handleTabChange('MANUAL'),
     },
   ];
@@ -341,22 +341,22 @@ export const SkuMappingTable: React.FC = () => {
                   fontWeight: 600,
                   fontSize: 11,
                   padding: '1px 6px',
-                  background: isTikTok ? '#F8FAFC' : isShopee ? '#FFF7ED' : '#EEF2FF',
-                  border: `1px solid ${isTikTok ? '#CBD5E1' : isShopee ? '#FFEDD5' : '#E0E7FF'}`,
-                  color: isTikTok ? '#0F172A' : isShopee ? '#EA580C' : '#4338CA',
+                  background: isTikTok ? 'rgba(148, 163, 184, 0.15)' : isShopee ? 'rgba(238, 77, 45, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                  border: `1px solid ${isTikTok ? 'rgba(148, 163, 184, 0.3)' : isShopee ? 'rgba(238, 77, 45, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                  color: isTikTok ? 'var(--text-primary, #F8FAFC)' : isShopee ? '#FB923C' : '#60A5FA',
                 }}
               >
                 {isTikTok ? 'TikTok Shop' : isShopee ? 'Shopee' : 'Lazada'}
               </Tag>
-              <span style={{ fontFamily: 'JetBrains Mono', color: '#DC2626', fontWeight: 700, fontSize: 12.5 }}>
+              <span style={{ fontFamily: 'JetBrains Mono', color: '#EF4444', fontWeight: 700, fontSize: 12.5 }}>
                 {record.sourceSkuCode}
               </span>
             </Space>
-            <div style={{ fontSize: 13, marginTop: 4, fontWeight: 600, color: '#1E293B' }}>
+            <div style={{ fontSize: 13, marginTop: 4, fontWeight: 600, color: 'var(--text-primary, #F9FAFB)' }}>
               {record.sourceProductName}
             </div>
             {record.sourceVariationText && (
-              <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>
+              <div style={{ color: 'var(--text-secondary, #94A3B8)', fontSize: 11.5, marginTop: 2 }}>
                 Phân loại: {record.sourceVariationText}
               </div>
             )}
@@ -384,18 +384,18 @@ export const SkuMappingTable: React.FC = () => {
                   fontWeight: 600,
                   fontSize: 11,
                   padding: '1px 6px',
-                  background: isSapo ? '#EFF6FF' : '#F0FDF4',
-                  border: `1px solid ${isSapo ? '#DBEAFE' : '#DCFCE7'}`,
-                  color: isSapo ? '#2563EB' : '#16A34A',
+                  background: isSapo ? 'rgba(37, 99, 235, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                  border: `1px solid ${isSapo ? 'rgba(37, 99, 235, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+                  color: isSapo ? '#60A5FA' : '#34D399',
                 }}
               >
                 {record.targetPosPlatform || 'SAPO'}
               </Tag>
-              <span style={{ fontFamily: 'JetBrains Mono', color: '#059669', fontWeight: 700, fontSize: 12.5 }}>
+              <span style={{ fontFamily: 'JetBrains Mono', color: '#10B981', fontWeight: 700, fontSize: 12.5 }}>
                 {record.targetMasterSku}
               </span>
             </Space>
-            <div style={{ fontSize: 13, marginTop: 4, color: '#334155' }}>
+            <div style={{ fontSize: 13, marginTop: 4, color: 'var(--text-primary, #F9FAFB)' }}>
               {record.targetProductName}
             </div>
           </div>
@@ -421,14 +421,14 @@ export const SkuMappingTable: React.FC = () => {
         return (
           <div style={{ width: '100%', maxWidth: 150 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 11.5, color: '#64748B' }}>Vector Cosine + NER</span>
+              <span style={{ fontSize: 11.5, color: 'var(--text-secondary, #94A3B8)' }}>Vector Cosine + NER</span>
               <span style={{ fontWeight: 700, color: strokeColor, fontSize: 12 }}>{percent}%</span>
             </div>
             <Progress
               percent={percent}
               showInfo={false}
               strokeColor={strokeColor}
-              trailColor="#E2E8F0"
+              trailColor="var(--border-subtle, #334155)"
               size="small"
             />
           </div>
@@ -452,18 +452,18 @@ export const SkuMappingTable: React.FC = () => {
             <Tag
               style={{
                 borderRadius: 4,
-                fontWeight: 600,
-                fontSize: 12,
-                padding: '1px 8px',
-                background: '#F0FDF4',
-                border: '1px solid #86EFAC',
-                color: '#15803D',
+                fontWeight: 700,
+                fontSize: 11.5,
+                padding: '2px 8px',
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                color: '#10B981',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
               }}
             >
-              <CheckCircleFilled style={{ color: '#16A34A', fontSize: 12 }} />
+              <CheckCircleFilled style={{ color: '#10B981', fontSize: 12 }} />
               <span>Tự động duyệt</span>
             </Tag>
           );
@@ -473,18 +473,18 @@ export const SkuMappingTable: React.FC = () => {
             <Tag
               style={{
                 borderRadius: 4,
-                fontWeight: 600,
-                fontSize: 12,
-                padding: '1px 8px',
-                background: '#FFFBEB',
-                border: '1px solid #FCD34D',
-                color: '#B45309',
+                fontWeight: 700,
+                fontSize: 11.5,
+                padding: '2px 8px',
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                color: '#F59E0B',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
               }}
             >
-              <ThunderboltFilled style={{ color: '#D97706', fontSize: 12 }} />
+              <ThunderboltFilled style={{ color: '#F59E0B', fontSize: 12 }} />
               <span>Chờ duyệt</span>
             </Tag>
           );
@@ -493,12 +493,12 @@ export const SkuMappingTable: React.FC = () => {
           <Tag
             style={{
               borderRadius: 4,
-              fontWeight: 600,
-              fontSize: 12,
-              padding: '1px 8px',
-              background: '#FEF2F2',
-              border: '1px solid #FCA5A5',
-              color: '#B91C1C',
+              fontWeight: 700,
+              fontSize: 11.5,
+              padding: '2px 8px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              color: '#EF4444',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 4,
@@ -540,12 +540,10 @@ export const SkuMappingTable: React.FC = () => {
 
             {/* 2. Menu gom gọn toàn bộ các thao tác còn lại (Chi tiết, Sửa, Xóa) */}
             <Dropdown menu={{ items: getActionMenuItems(record) }} trigger={['click']} placement="bottomRight">
-              <span>
-                <IconButton
-                  icon={<MenuOutlined />}
-                  tooltip="Tùy chọn khác"
-                />
-              </span>
+              <IconButton
+                icon={<MenuOutlined />}
+                tooltip="Tùy chọn khác"
+              />
             </Dropdown>
           </Space>
         );
@@ -719,9 +717,8 @@ export const SkuMappingTable: React.FC = () => {
         content={
           pendingSelectedCount === selectedRowKeys.length
             ? `Bạn có chắc chắn muốn phê duyệt liên kết cho ${pendingSelectedCount} mã SKU chờ duyệt đã chọn vào MongoDB Atlas không?`
-            : `Bạn đã chọn ${selectedRowKeys.length} mục. Hệ thống sẽ tiến hành phê duyệt ${pendingSelectedCount} mục đang ở trạng thái Chờ duyệt. ${
-                manualSelectedCount > 0 ? `(${manualSelectedCount} mục Cần ghép tay sẽ được giữ nguyên để gán thủ công).` : ''
-              }`
+            : `Bạn đã chọn ${selectedRowKeys.length} mục. Hệ thống sẽ tiến hành phê duyệt ${pendingSelectedCount} mục đang ở trạng thái Chờ duyệt. ${manualSelectedCount > 0 ? `(${manualSelectedCount} mục Cần ghép tay sẽ được giữ nguyên để gán thủ công).` : ''
+            }`
         }
         confirmText={`Phê duyệt ${pendingSelectedCount} mục`}
         cancelText="Hủy bỏ"

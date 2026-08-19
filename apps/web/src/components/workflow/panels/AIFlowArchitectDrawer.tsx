@@ -4,10 +4,10 @@ import {
   Tag,
   Input,
   Avatar,
-  Divider,
   Tabs,
   Space,
   Tooltip,
+  Modal,
 } from 'antd';
 import {
   SendOutlined,
@@ -77,6 +77,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
   const [demoRunning, setDemoRunning] = useState(true);
   const [demoStep, setDemoStep] = useState(1);
   const [applying, setApplying] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
   // Load real metrics from backend
   useEffect(() => {
@@ -121,7 +122,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
     {
       id: '1',
       sender: 'agent',
-      text: `Xin chào! Tôi là **AI Flow Architect** – Trợ lý kiến trúc quy trình tự động hóa của UniFlow.\n\nTôi đã quét toàn bộ hạ tầng cổng kết nối hiện có của bạn:\n- **Sàn TMĐT**: TikTok Shop & Shopee Open Platform v2 (SLA < 35ms)\n- **Kho POS**: Sapo POS (Kho Tổng Hà Nội) – Sẵn sàng trừ tồn kho tức thì\n- **ĐVVC Đa hãng**: Viettel Post, GHTK, GHN – Sẵn sàng so sánh cước realtime\n- **Kế toán & HĐĐT**: MISA meInvoice – Ký số HSM theo Nghị định 117/2025\n\nBạn có thể nhấn nút **"Áp dụng Quy trình Tối ưu"** bên tab Tự động phân tích, hoặc trò chuyện trực tiếp để tôi tùy biến luồng theo nhu cầu!`,
+      text: `Xin chào! Tôi là **AI Flow Architect** – Chuyên gia thiết kế & tối ưu kiến trúc quy trình tự động hóa UniFlow.\n\nTôi đã rà soát toàn bộ ma trận hạ tầng kết nối khả dụng của doanh nghiệp bạn:\n- ⚡ **TikTok Shop & Shopee**: Đã kích hoạt Inbound Webhook thời gian thực (Độ trễ SLA < 32ms)\n- 📦 **Sapo POS (Kho Tổng HN)**: Sẵn sàng trừ tồn kho tức thì qua cơ chế Khóa tồn kho Optimistic Locking\n- 🚚 **Viettel Post, GHTK, GHN**: Tự động so sánh cước realtime & chốt hãng có biểu phí tối ưu theo từng đơn\n- 📑 **MISA meInvoice**: Sẵn sàng phát hành HĐĐT ký số HSM tự động (Thuế GTGT 1% theo Nghị định 117/2025)\n\nBạn có thể nhấn nút **"Áp dụng Quy trình Tối ưu"** ở tab Phân tích hoặc chọn các gợi ý bên dưới để tôi hỗ trợ ngay!`,
     },
   ]);
 
@@ -215,7 +216,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
         </div>
       }
       placement="right"
-      width={680}
+      width={900}
       open={open}
       onClose={onClose}
       styles={{
@@ -228,12 +229,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
         items={[
           {
             key: 'auto_architect',
-            label: (
-              <Space size={4}>
-                <RocketFilled style={{ color: '#8B5CF6' }} />
-                <span>Phân tích hạ tầng & Tạo quy trình tối ưu</span>
-              </Space>
-            ),
+            label: 'Phân tích hạ tầng & Tạo quy trình tối ưu',
             children: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 4 }}>
                 {/* 1. KHẢO SÁT HẠ TẦNG KẾT NỐI KHẢ DỤNG THỰC TẾ */}
@@ -296,7 +292,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   </div>
                 </div>
 
-                {/* 2. HOẠT ẢNH DÒNG CHẢY 0-CHẠM TƯƠNG TÁC (ANIMATION FROM LANDING PAGE) */}
+                {/* 2. HOẠT ẢNH DÒNG CHẢY 0-CHẠM TƯƠNG TÁC */}
                 <div
                   style={{
                     background: '#0F172A',
@@ -367,8 +363,8 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                               border: isActive
                                 ? `1.5px solid ${item.color}`
                                 : isDone
-                                ? '1.5px solid #10B981'
-                                : '1px solid #334155',
+                                  ? '1.5px solid #10B981'
+                                  : '1px solid #334155',
                               boxShadow: isActive ? `0 0 12px ${item.color}55` : 'none',
                               display: 'flex',
                               alignItems: 'center',
@@ -417,26 +413,59 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                     })}
                   </div>
 
-                  {/* Terminal Log Output */}
+                  {/* Terminal Log Output (Cố định chiều cao, dòng chưa chạy mờ mờ, dòng đang chạy sáng rực) */}
                   <div
                     style={{
-                      marginTop: 10,
+                      marginTop: 12,
                       background: '#020617',
-                      borderRadius: 6,
-                      padding: '8px 10px',
+                      borderRadius: 8,
+                      padding: '10px 12px',
                       fontFamily: 'JetBrains Mono, Consolas, monospace',
-                      fontSize: 11,
+                      fontSize: 11.5,
                       border: '1px solid #1E293B',
-                      maxHeight: 110,
-                      overflowY: 'auto',
+                      height: 160,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)',
                     }}
                   >
-                    {demoLogs.slice(0, demoStep).map((log, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: 8, lineHeight: 1.6 }}>
-                        <span style={{ color: '#64748B' }}>[{log.t}]</span>
-                        <span style={{ color: log.color }}>{log.msg}</span>
-                      </div>
-                    ))}
+                    {demoLogs.map((log, idx) => {
+                      const stepNum = idx + 1;
+                      const isActive = demoStep === stepNum;
+                      const isPast = demoStep > stepNum;
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            lineHeight: 1.5,
+                            opacity: isActive ? 1 : isPast ? 0.72 : 0.2,
+                            transition: 'all 0.35s ease',
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: isActive ? 'rgba(16, 185, 129, 0.14)' : 'transparent',
+                          }}
+                        >
+                          <span style={{ color: isActive ? '#38BDF8' : '#64748B', fontWeight: 600 }}>
+                            [{log.t}]
+                          </span>
+                          <span
+                            style={{
+                              color: isActive ? '#34D399' : isPast ? '#94A3B8' : '#64748B',
+                              fontWeight: isActive ? 700 : 500,
+                              textShadow: isActive ? '0 0 10px rgba(52, 211, 153, 0.75)' : 'none',
+                            }}
+                          >
+                            {isActive ? '➔ ' : isPast ? '✓ ' : '○ '}
+                            {log.msg}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -485,42 +514,53 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                       <strong>Chu kỳ kiểm chuẩn tự động:</strong> Hãy <strong>quay lại sau 24 giờ</strong> (hoặc sau khi phát sinh tối thiểu 50 đơn hàng thực tế) để AI tiếp tục đánh giá độ trễ API, hiệu chỉnh tỷ lệ khớp SKU và tối ưu hóa chi phí vận chuyển theo lưu lượng thực tế!
                     </div>
                   </div>
+                </div>
 
-                  {/* ACTION APPLY BUTTON */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                    <BaseButton
-                      variant="primary"
-                      icon={<RocketFilled />}
-                      loading={applying}
-                      onClick={handleApplyOptimizedWorkflow}
-                      style={{ height: 38, padding: '0 20px', fontWeight: 600 }}
-                    >
-                      Áp dụng Quy trình Tối ưu vào Canvas ngay
-                    </BaseButton>
-                  </div>
+                {/* FLOATING ACTION APPLY BUTTON LƠ LỬNG Ở DƯỚI (KHÔNG CẦN CUỘN MỚI THẤY) */}
+                <div
+                  style={{
+                    position: 'sticky',
+                    bottom: -12,
+                    background: 'linear-gradient(to top, #F8FAFC 85%, rgba(248, 250, 252, 0.4) 100%)',
+                    padding: '12px 0 6px 0',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    zIndex: 20,
+                  }}
+                >
+                  <BaseButton
+                    variant="primary"
+                    icon={<RocketFilled />}
+                    loading={applying}
+                    onClick={() => setConfirmModalOpen(true)}
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 13.5,
+                      borderRadius: 8,
+                      boxShadow: '0 4px 14px rgba(237, 28, 36, 0.35)',
+                      marginBottom: 16
+                    }}
+                  >
+                    Áp dụng Quy trình Tối ưu vào Canvas ngay
+                  </BaseButton>
                 </div>
               </div>
             ),
           },
           {
             key: 'assistant',
-            label: (
-              <Space size={4}>
-                <ThunderboltFilled style={{ color: '#3B82F6' }} />
-                <span>Trợ lý AI Architect (Chat)</span>
-              </Space>
-            ),
+            label: 'Trợ lý AI Architect (Chat)',
             children: (
               <div
                 style={{
-                  height: 520,
+                  height: 'calc(100vh - 180px)',
                   background: '#FFFFFF',
                   borderRadius: 8,
                   border: '1px solid #E2E8F0',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
-                  padding: 12,
+                  padding: 14,
                   marginTop: 4,
                 }}
               >
@@ -574,6 +614,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   </div>
                 </div>
 
+                {/* Chat Messages */}
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
                   {messages.map((m) => {
                     const isUser = m.sender === 'user';
@@ -625,7 +666,26 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   )}
                 </div>
 
-                <Divider style={{ margin: '10px 0' }} />
+                {/* Gợi ý lời nhắc nhanh (Quick Prompt Pills) */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0 6px 0' }}>
+                  {[
+                    '# Tối ưu chi phí Viettel Post (-20.4%)',
+                    '# Rẽ nhánh đơn nặng > 5kg đi kho riêng',
+                    '# Tự động xuất HĐĐT MISA meInvoice VAT 1%',
+                    '# Gom nhóm phân vùng xử lý đa kho POS',
+                  ].map((pill) => (
+                    <Tag
+                      key={pill}
+                      color="purple"
+                      style={{ cursor: 'pointer', fontSize: 11, borderRadius: 4, padding: '2px 8px' }}
+                      onClick={() => {
+                        setInputText(pill);
+                      }}
+                    >
+                      {pill}
+                    </Tag>
+                  ))}
+                </div>
 
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                   <TextArea
@@ -657,6 +717,78 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
           },
         ]}
       />
+      <Modal
+        open={confirmModalOpen}
+        onCancel={() => setConfirmModalOpen(false)}
+        footer={null}
+        width={640}
+        centered
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+            <RocketFilled style={{ color: '#ED1C24' }} />
+            Xác nhận Áp dụng Quy trình Tự động hóa 0-Chạm Tối ưu
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
+          {/* Mô tả các hoạt động */}
+          <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12.5, color: '#334155', lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: 6 }}>
+              ⚙️ Các tác vụ tự động hóa sẽ được thiết lập & kích hoạt ngay:
+            </div>
+            <div style={{ marginBottom: 4 }}>• <strong>Định tuyến Đa sàn</strong>: Tiếp nhận song song TikTok Shop & Shopee Open Platform v2 qua Inbound Webhook chuẩn HMAC-SHA256.</div>
+            <div style={{ marginBottom: 4 }}>• <strong>AI Vector & NER So khớp</strong>: Tự động nhận diện Master SKU với độ tin cậy trên 95% và phân loại biến thể.</div>
+            <div style={{ marginBottom: 4 }}>• <strong>Cụm So Sánh Cước Thông Minh</strong>: Tự động so sánh cước realtime giữa Viettel Post, GHTK, GHN và chốt hãng rẻ nhất (tiết kiệm đến 20.4%).</div>
+            <div>• <strong>Đồng bộ Kho POS & Kế toán</strong>: Trừ tồn kho Sapo POS tức thì và phát hành HĐĐT MISA meInvoice VAT 1% theo Nghị định 117/2025.</div>
+          </div>
+
+          {/* Giải thích hệ thống đang hoạt động */}
+          <div style={{ background: '#EFF6FF', borderRadius: 8, border: '1px solid #BFDBFE', padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <InfoCircleOutlined style={{ color: '#2563EB', fontSize: 15, marginTop: 2, flexShrink: 0 }} />
+            <div style={{ fontSize: 12, color: '#1E40AF', lineHeight: 1.5 }}>
+              <strong>Hệ thống đang hoạt động theo thời gian thực:</strong> Quy trình sẽ sẵn sàng tiếp nhận và điều phối đơn hàng 0-chạm ngay sau khi áp dụng. Hãy quay lại sau 24 giờ (hoặc sau tối thiểu 50 đơn hàng thực tế) để AI tiếp tục đánh giá và tối ưu hóa chi phí!
+            </div>
+          </div>
+
+          {/* Khung Hỗ trợ & Tư vấn chuyên sâu */}
+          <div style={{ background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', padding: '12px 14px' }}>
+            <div style={{ fontSize: 12, color: '#92400E', lineHeight: 1.6 }}>
+              💡 Nếu bạn thấy quy trình chưa thực sự tối ưu cho mô hình kinh doanh đặc thù hoặc muốn nhận tư vấn chuyên sâu riêng từ đội ngũ kỹ sư giải pháp UniFlow, vui lòng liên hệ trực tiếp:
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, marginTop: 8, fontSize: 12.5, fontWeight: 600 }}>
+              <div style={{ color: '#047857', display: 'flex', alignItems: 'center', gap: 6 }}>
+                📞 Hotline / Zalo: <a href="tel:0945650883" style={{ color: '#047857', textDecoration: 'underline' }}>0945 650 883</a>
+              </div>
+              <div style={{ color: '#B45309', display: 'flex', alignItems: 'center', gap: 6 }}>
+                ✉️ Email chuyên gia: <a href="mailto:tuannguyentien16@gmail.com" style={{ color: '#B45309', textDecoration: 'underline' }}>tuannguyentien16@gmail.com</a>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Buttons căn giữa */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 }}>
+            <BaseButton
+              variant="secondary"
+              onClick={() => setConfirmModalOpen(false)}
+              style={{ minWidth: 100 }}
+            >
+              Hủy bỏ
+            </BaseButton>
+            <BaseButton
+              variant="primary"
+              icon={<RocketFilled />}
+              loading={applying}
+              onClick={() => {
+                setConfirmModalOpen(false);
+                handleApplyOptimizedWorkflow();
+              }}
+              style={{ minWidth: 180, fontWeight: 700 }}
+            >
+              Xác nhận Áp dụng ngay
+            </BaseButton>
+          </div>
+        </div>
+      </Modal>
     </Drawer>
   );
 };

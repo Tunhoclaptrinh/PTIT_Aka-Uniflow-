@@ -320,9 +320,9 @@ export const CopilotAgentPage: React.FC = () => {
         style={{
           height: 'calc(100vh - 160px)',
           minHeight: 620,
-          background: '#FFFFFF',
+          background: 'var(--bg-surface-card, #FFFFFF)',
           borderRadius: 12,
-          border: '1px solid #E5E7EB',
+          border: '1px solid var(--border-subtle, #E5E7EB)',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
           overflow: 'hidden',
         }}
@@ -334,8 +334,8 @@ export const CopilotAgentPage: React.FC = () => {
           max="48%"
           collapsible
           style={{
-            background: '#FAFAFA',
-            borderBottom: '1px solid #E5E7EB',
+            background: 'var(--bg-surface-alt, #FAFAFA)',
+            borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
             padding: '10px 14px',
             overflowY: 'auto',
             display: 'flex',
@@ -343,8 +343,8 @@ export const CopilotAgentPage: React.FC = () => {
             gap: 8,
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle, #E5E7EB)', paddingBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-primary, #374151)' }}>
               <AppstoreOutlined style={{ color: '#ed1c24' }} />
               <span>NGĂN CÔNG CỤ & TÁC VỤ HAY DÙNG (KÉO THẢ THANH PHÂN CHIA ĐỂ CO GIÃN)</span>
             </div>
@@ -358,9 +358,9 @@ export const CopilotAgentPage: React.FC = () => {
             {/* Ngăn 1: Cửa sổ Mini-Window tích hợp */}
             <div
               style={{
-                background: '#FFFFFF',
+                background: 'var(--bg-surface-card, #FFFFFF)',
                 borderRadius: 8,
-                border: '1px solid #E5E7EB',
+                border: '1px solid var(--border-subtle, #E5E7EB)',
                 padding: '8px 10px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -368,7 +368,7 @@ export const CopilotAgentPage: React.FC = () => {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary, #6B7280)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <EyeOutlined style={{ color: '#2563EB' }} />
                 <span>1. Cửa sổ Mini-Window</span>
               </div>
@@ -415,9 +415,9 @@ export const CopilotAgentPage: React.FC = () => {
             {/* Ngăn 2: Kế toán, Thuế & Bảng tính */}
             <div
               style={{
-                background: '#FFFFFF',
+                background: 'var(--bg-surface-card, #FFFFFF)',
                 borderRadius: 8,
-                border: '1px solid #E5E7EB',
+                border: '1px solid var(--border-subtle, #E5E7EB)',
                 padding: '8px 10px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -425,7 +425,7 @@ export const CopilotAgentPage: React.FC = () => {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary, #6B7280)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <DollarCircleFilled style={{ color: '#0284C7' }} />
                 <span>2. Kế toán, Thuế & Báo cáo</span>
               </div>
@@ -472,9 +472,9 @@ export const CopilotAgentPage: React.FC = () => {
             {/* Ngăn 3: Tác vụ Agent 0-Chạm */}
             <div
               style={{
-                background: '#FFFFFF',
+                background: 'var(--bg-surface-card, #FFFFFF)',
                 borderRadius: 8,
-                border: '1px solid #E5E7EB',
+                border: '1px solid var(--border-subtle, #E5E7EB)',
                 padding: '8px 10px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -482,7 +482,7 @@ export const CopilotAgentPage: React.FC = () => {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary, #6B7280)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <ThunderboltFilled style={{ color: '#ed1c24' }} />
                 <span>3. Tác vụ Agent 0-Chạm</span>
               </div>
@@ -517,7 +517,7 @@ export const CopilotAgentPage: React.FC = () => {
             flexDirection: 'column',
             padding: '12px 16px',
             overflow: 'hidden',
-            background: '#FFFFFF',
+            background: 'var(--bg-surface-card, #FFFFFF)',
           }}
         >
           {/* Scrollable Messages Thread (ONLY this area scrolls) */}
@@ -549,8 +549,8 @@ export const CopilotAgentPage: React.FC = () => {
                     size={36}
                     src={isUser ? undefined : '/favicon.svg'}
                     style={{
-                      backgroundColor: isUser ? '#ed1c24' : '#FFFFFF',
-                      border: isUser ? 'none' : '1px solid #E5E7EB',
+                      backgroundColor: isUser ? '#ed1c24' : 'var(--bg-surface-card, #FFFFFF)',
+                      border: isUser ? 'none' : '1px solid var(--border-subtle, #E5E7EB)',
                       padding: isUser ? 0 : 4,
                       flexShrink: 0,
                     }}
@@ -564,9 +564,9 @@ export const CopilotAgentPage: React.FC = () => {
                       style={{
                         padding: '12px 16px',
                         borderRadius: isUser ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-                        background: isUser ? '#ed1c24' : '#F9FAFB',
-                        color: isUser ? '#FFFFFF' : '#1F2937',
-                        border: isUser ? 'none' : '1px solid #E5E7EB',
+                        background: isUser ? '#ed1c24' : 'var(--bg-surface-alt, #F9FAFB)',
+                        color: isUser ? '#FFFFFF' : 'var(--text-primary, #1F2937)',
+                        border: isUser ? 'none' : '1px solid var(--border-subtle, #E5E7EB)',
                         fontSize: 13.5,
                         lineHeight: 1.6,
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
@@ -944,9 +944,9 @@ export const CopilotAgentPage: React.FC = () => {
             {/* Unified Input Box Frame */}
             <div
               style={{
-                border: isInputFocused ? '1.5px solid #ed1c24' : '1px solid #D1D5DB',
+                border: isInputFocused ? '1.5px solid #ed1c24' : '1px solid var(--border-subtle, #D1D5DB)',
                 borderRadius: 12,
-                background: '#FFFFFF',
+                background: 'var(--bg-surface-card, #FFFFFF)',
                 padding: '8px 12px 6px',
                 boxShadow: isInputFocused ? '0 0 0 3px rgba(237, 28, 36, 0.08)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
                 transition: 'all 0.2s ease',
@@ -977,6 +977,8 @@ export const CopilotAgentPage: React.FC = () => {
                   padding: '2px 0',
                   fontSize: 13.5,
                   resize: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-primary, #111827)',
                 }}
               />
 
@@ -999,8 +1001,8 @@ export const CopilotAgentPage: React.FC = () => {
                           gap: 4,
                           padding: '4px 8px',
                           borderRadius: 6,
-                          background: '#F3F4F6',
-                          color: '#4B5563',
+                          background: 'var(--bg-surface-alt, #F3F4F6)',
+                          color: 'var(--text-secondary, #4B5563)',
                           fontSize: 12,
                           cursor: 'pointer',
                           transition: 'background 0.2s ease',
