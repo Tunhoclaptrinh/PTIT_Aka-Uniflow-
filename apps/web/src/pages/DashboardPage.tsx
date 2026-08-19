@@ -1,18 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Row, Col, Space, Progress, Tag, Timeline } from 'antd';
+import { Row, Col, Space, Progress, Tag } from 'antd';
 import {
-  SyncOutlined,
-  ThunderboltOutlined,
-  CheckCircleOutlined,
-  DollarOutlined,
   ReloadOutlined,
-  BranchesOutlined,
-  ShoppingOutlined,
-  CheckCircleFilled,
   PlayCircleOutlined,
   CodeOutlined,
-  RiseOutlined,
   ArrowRightOutlined,
+  CopyOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { metricsService, DashboardMetrics, SyncLogItem } from '../services/metrics.service';
@@ -21,17 +14,14 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useWebSocketStream } from '../hooks/useWebSocketStream';
 import { LiveFeedItem, PlatformType, WebhookProcessingStatus } from '@uniflow/shared-types';
 import {
-  BaseCard,
   BaseButton,
-  StatisticCard,
-  StatusTag,
-  BadgeStatus,
   PageContainer,
   ActionDrawer,
   EmptyState,
 } from '../components/base';
 import { formatVND, formatLatency } from '../utils/formatters';
 import { notify } from '../utils/notification';
+import { getPartnerLogo } from '../utils/partnerLogos';
 
 export const DashboardPage: React.FC = () => {
   const { user, tenant } = useAuthStore();
@@ -39,6 +29,7 @@ export const DashboardPage: React.FC = () => {
   const [workflows, setWorkflows] = useState<WorkflowData[]>([]);
   const [loading, setLoading] = useState(true);
   const [dryRunning, setDryRunning] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<string>(new Date().toLocaleTimeString('vi-VN'));
 
   // Selected Log Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -51,7 +42,7 @@ export const DashboardPage: React.FC = () => {
     try {
       const [m, logs, wfs] = await Promise.all([
         metricsService.getMetrics(),
-        metricsService.getLogs(15),
+        metricsService.getLogs(20),
         workflowService.getAllWorkflows(),
       ]);
       if (m) setMetrics(m);
@@ -71,6 +62,7 @@ export const DashboardPage: React.FC = () => {
         }));
         setEvents(mappedEvents);
       }
+      setLastRefreshed(new Date().toLocaleTimeString('vi-VN'));
     } catch (err: any) {
       console.warn('Lỗi tải dữ liệu dashboard:', err.message);
     } finally {
@@ -106,10 +98,9 @@ export const DashboardPage: React.FC = () => {
       notify.loading('Đang chạy mô phỏng luồng 0-chạm qua Backend & AI...', 'quickDryRun');
       const res = await workflowService.dryRun(wfId);
       notify.success(
-        `Chạy mô phỏng thành công: Đơn #${res.orderId} -> Vận đơn: ${res.waybillCode} (${res.durationMs || res.latencyMs}ms)`
+        `Mô phỏng thành công: Đơn #${res.orderId} ➔ Vận đơn: ${res.waybillCode} (${res.durationMs || res.latencyMs}ms)`
       );
 
-      // Thêm log mô phỏng trực tiếp vào live feed
       const newLiveItem: LiveFeedItem = {
         id: res.logId || `log_${Date.now()}`,
         timestamp: new Date().toLocaleTimeString('vi-VN'),
@@ -117,7 +108,7 @@ export const DashboardPage: React.FC = () => {
         platform: PlatformType.TIKTOK_SHOP,
         sourceOrderId: res.orderId,
         message: res.message,
-        durationMs: res.durationMs || 185,
+        durationMs: res.durationMs || 175,
         status: WebhookProcessingStatus.COMPLETED,
         aiHealed: false,
       };
@@ -131,18 +122,44 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleCopyPayload = () => {
+    if (selectedLog) {
+      navigator.clipboard.writeText(JSON.stringify(selectedLog.rawPayload || selectedLog.payload || selectedLog, null, 2));
+      notify.success('Đã sao chép gói tin JSON vào clipboard!');
+    }
+  };
+
   const tenantDisplayName = tenant?.name || user?.name || 'Doanh Nghiệp Omnichannel';
 
   return (
     <PageContainer
-      title="Tổng quan"
-      tooltip={`Hệ thống điều khiển vận hành đơn hàng đa kênh • ${tenantDisplayName}`}
+      title="Tổng quan vận hành"
+      tooltip={`Báo cáo điều phối đơn hàng và hiệu năng tự động hóa thời gian thực • ${tenantDisplayName}`}
       extra={
-        <Space size="middle">
-          <Space size="small" style={{ marginRight: 8 }}>
-            <BadgeStatus status="success" text="Atlas Online" />
-            <BadgeStatus status="success" text="Redis 24h" />
-          </Space>
+        <Space size={8} wrap>
+          {/* Real-time Infrastructure Status Badge */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: 6,
+              padding: '4px 10px',
+              fontSize: 11.5,
+              height: 32,
+            }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#10B981', fontWeight: 600 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
+              Atlas Online (24ms)
+            </span>
+            <span style={{ color: '#E2E8F0' }}>|</span>
+            <span style={{ color: '#8B5CF6', fontWeight: 600 }}>AI Gateway Ready</span>
+            <span style={{ color: '#E2E8F0' }}>|</span>
+            <span style={{ color: '#64748B' }}>{lastRefreshed}</span>
+          </div>
 
           <BaseButton
             variant="secondary"
@@ -161,239 +178,549 @@ export const DashboardPage: React.FC = () => {
             loading={dryRunning}
             onClick={handleQuickDryRun}
           >
-            Chạy thử đơn mẫu
+            Chạy thử đơn mẫu 0-chạm
           </BaseButton>
         </Space>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* ── 1. KPI CARDS ────────────────────────── */}
-        <Row gutter={[16, 16]}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* ── 1. KPI MATRIX CARDS (4 CHỈ SỐ CỐT LÕI - KHÍT & TỐI GIẢN) ────────── */}
+        <Row gutter={[10, 10]}>
+          {/* Card 1: Total Synced */}
           <Col xs={24} sm={12} lg={6}>
-            <StatisticCard
-              title="Tổng đơn đã đồng bộ"
-              value={metrics?.totalSyncedOrders || 28520}
-              icon={<SyncOutlined style={{ color: '#ed1c24' }} />}
-              trend={{ value: '+18.4%', isIncrease: true, label: 'Tháng này' }}
-              subText="Tự động 100% qua UDM Pipeline"
-            />
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Tổng đơn đã đồng bộ</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#059669',
+                    background: '#ECFDF5',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    border: '1px solid #A7F3D0',
+                  }}
+                >
+                  +18.4% Tháng này
+                </span>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                  {(metrics?.totalSyncedOrders || 28520).toLocaleString('vi-VN')}
+                </div>
+                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                  Tự động 100% qua UDM Pipeline
+                </div>
+              </div>
+            </div>
           </Col>
 
+          {/* Card 2: End-to-End Latency */}
           <Col xs={24} sm={12} lg={6}>
-            <StatisticCard
-              title="Độ trễ trung bình (E2E)"
-              value={formatLatency(metrics?.averageLatencyMs || 142)}
-              icon={<ThunderboltOutlined style={{ color: '#F59E0B' }} />}
-              tag={{ text: 'P99 < 200ms', color: '#10B981' }}
-              subText="Inbound ➔ POS Kho ➔ Vận đơn"
-            />
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Độ trễ trung bình (E2E)</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#059669',
+                    background: '#ECFDF5',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    border: '1px solid #A7F3D0',
+                  }}
+                >
+                  P99 &lt; 200ms
+                </span>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                  {formatLatency(metrics?.averageLatencyMs || 142)}
+                </div>
+                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                  Inbound ➔ POS Kho ➔ Vận đơn
+                </div>
+              </div>
+            </div>
           </Col>
 
+          {/* Card 3: Success Rate */}
           <Col xs={24} sm={12} lg={6}>
-            <StatisticCard
-              title="Tỷ lệ thành công"
-              value={`${metrics?.successRate || '99.8%'}`}
-              icon={<CheckCircleOutlined style={{ color: '#10B981' }} />}
-              tag={{ text: 'Chuẩn SLA 99.8%', color: '#10B981' }}
-              subText="Tự động phát hiện lỗi và chuyển tuyến"
-            />
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Tỷ lệ thành công luồng</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#059669',
+                    background: '#ECFDF5',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    border: '1px solid #A7F3D0',
+                  }}
+                >
+                  SLA 99.8%
+                </span>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                  {metrics?.successRate || '99.8%'}
+                </div>
+                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                  Tự động phục hồi AI failover
+                </div>
+              </div>
+            </div>
           </Col>
 
+          {/* Card 4: Cost & Time Saved */}
           <Col xs={24} sm={12} lg={6}>
-            <StatisticCard
-              title="Chi phí nhân sự tiết kiệm"
-              value={formatVND(metrics?.costSavedVND || 41350000, true)}
-              icon={<DollarOutlined style={{ color: '#8B5CF6' }} />}
-              trend={{ value: `${metrics?.hoursSaved || 180} Giờ`, isIncrease: true, label: 'Tiết kiệm 95% thao tác' }}
-              subText="Ước tính theo khối lượng đơn tự động"
-            />
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#64748B' }}>Chi phí tiết kiệm</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#2563EB',
+                    background: '#EFF6FF',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    border: '1px solid #BFDBFE',
+                  }}
+                >
+                  ~{metrics?.hoursSaved || 180} Giờ
+                </span>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                  {formatVND(metrics?.costSavedVND || 41350000, true)}
+                </div>
+                <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 4 }}>
+                  Tiết kiệm 95% thao tác nhân sự
+                </div>
+              </div>
+            </div>
           </Col>
         </Row>
 
-        {/* ── 2. MID GRID: CHANNEL BREAKDOWN & AI SKU HEALTH ───────────────── */}
-        <Row gutter={[16, 16]}>
-          {/* Card 1: Channel Traffic Share */}
-          <Col xs={24} lg={12}>
-            <BaseCard
-              title={
-                <Space size={8}>
-                  <RiseOutlined style={{ color: '#ed1c24' }} />
-                  <span>Phân bổ lưu lượng theo sàn TMĐT</span>
-                </Space>
-              }
-              subtitle="Tỷ lệ đơn hàng tiếp nhận và xử lý qua Webhook"
+        {/* ── 2. MID ROW (PHÂN BỔ KÊNH TMĐT & SỨC KHỎE SKU AI - CĂN THẲNG HÀNG 100%) ── */}
+        <Row gutter={[10, 10]} align="stretch">
+          {/* Card 1: Channel Traffic Share (Span 14) */}
+          <Col xs={24} lg={14}>
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '4px 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Phân bổ lưu lượng kênh TMĐT</span>
+                <Link to="/connectors" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
+                  Kênh kết nối <ArrowRightOutlined style={{ fontSize: 10 }} />
+                </Link>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flex: 1, justifyContent: 'center' }}>
                 {/* TikTok Shop */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space size="small">
-                      <Tag color="#000000" style={{ fontWeight: 700, borderRadius: 4 }}>TikTok Shop</Tag>
-                      <span style={{ fontSize: 12, color: '#6B7280' }}>Webhook Inbound</span>
-                    </Space>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
-                      {metrics?.channelBreakdown?.tiktok?.count || metrics?.channels?.tiktok?.orderCount || 12840} đơn ({metrics?.channelBreakdown?.tiktok?.percent || metrics?.channels?.tiktok?.percentage || 45}%)
-                    </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '6px 8px',
+                    background: '#F8FAFC',
+                    borderRadius: 4,
+                    border: '1px solid #F1F5F9',
+                  }}
+                >
+                  <img src={getPartnerLogo('tiktok') || ''} alt="TikTok" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                  <div style={{ width: 95, flexShrink: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>TikTok Shop</div>
                   </div>
-                  <Progress
-                    percent={metrics?.channelBreakdown?.tiktok?.percent || metrics?.channels?.tiktok?.percentage || 45}
-                    strokeColor="#111827"
-                    trailColor="#F3F4F6"
-                    showInfo={false}
-                  />
+                  <div style={{ flex: 1, padding: '0 6px' }}>
+                    <Progress
+                      percent={metrics?.channelBreakdown?.tiktok?.percent || metrics?.channels?.tiktok?.percentage || 46}
+                      strokeColor="#0F172A"
+                      trailColor="#E2E8F0"
+                      showInfo={false}
+                      strokeWidth={5}
+                    />
+                  </div>
+                  <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                      {(metrics?.channelBreakdown?.tiktok?.count || metrics?.channels?.tiktok?.orderCount || 51).toLocaleString('vi-VN')} đơn
+                    </span>
+                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(46%)</span>
+                  </div>
                 </div>
 
                 {/* Shopee */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space size="small">
-                      <Tag color="#EE4D2D" style={{ fontWeight: 700, borderRadius: 4 }}>Shopee</Tag>
-                      <span style={{ fontSize: 12, color: '#6B7280' }}>Open API v2</span>
-                    </Space>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
-                      {metrics?.channelBreakdown?.shopee?.count || metrics?.channels?.shopee?.orderCount || 9980} đơn ({metrics?.channelBreakdown?.shopee?.percent || metrics?.channels?.shopee?.percentage || 35}%)
-                    </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '6px 8px',
+                    background: '#F8FAFC',
+                    borderRadius: 4,
+                    border: '1px solid #F1F5F9',
+                  }}
+                >
+                  <img src={getPartnerLogo('shopee') || ''} alt="Shopee" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                  <div style={{ width: 95, flexShrink: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>Shopee Open</div>
                   </div>
-                  <Progress
-                    percent={metrics?.channelBreakdown?.shopee?.percent || metrics?.channels?.shopee?.percentage || 35}
-                    strokeColor="#EE4D2D"
-                    trailColor="#F3F4F6"
-                    showInfo={false}
-                  />
+                  <div style={{ flex: 1, padding: '0 6px' }}>
+                    <Progress
+                      percent={metrics?.channelBreakdown?.shopee?.percent || metrics?.channels?.shopee?.percentage || 45}
+                      strokeColor="#EE4D2D"
+                      trailColor="#E2E8F0"
+                      showInfo={false}
+                      strokeWidth={5}
+                    />
+                  </div>
+                  <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                      {(metrics?.channelBreakdown?.shopee?.count || metrics?.channels?.shopee?.orderCount || 50).toLocaleString('vi-VN')} đơn
+                    </span>
+                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(45%)</span>
+                  </div>
                 </div>
 
                 {/* Lazada */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <Space size="small">
-                      <Tag color="#0F146D" style={{ fontWeight: 700, borderRadius: 4 }}>Lazada</Tag>
-                      <span style={{ fontSize: 12, color: '#6B7280' }}>REST Webhook</span>
-                    </Space>
-                    <span style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
-                      {metrics?.channelBreakdown?.lazada?.count || metrics?.channels?.lazada?.orderCount || 5700} đơn ({metrics?.channelBreakdown?.lazada?.percent || metrics?.channels?.lazada?.percentage || 20}%)
-                    </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '6px 8px',
+                    background: '#F8FAFC',
+                    borderRadius: 4,
+                    border: '1px solid #F1F5F9',
+                  }}
+                >
+                  <img src={getPartnerLogo('lazada') || ''} alt="Lazada" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                  <div style={{ width: 95, flexShrink: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>Lazada Mall</div>
                   </div>
-                  <Progress
-                    percent={metrics?.channelBreakdown?.lazada?.percent || metrics?.channels?.lazada?.percentage || 20}
-                    strokeColor="#0F146D"
-                    trailColor="#F3F4F6"
-                    showInfo={false}
-                  />
+                  <div style={{ flex: 1, padding: '0 6px' }}>
+                    <Progress
+                      percent={metrics?.channelBreakdown?.lazada?.percent || metrics?.channels?.lazada?.percentage || 9}
+                      strokeColor="#0F146D"
+                      trailColor="#E2E8F0"
+                      showInfo={false}
+                      strokeWidth={5}
+                    />
+                  </div>
+                  <div style={{ width: 85, textAlign: 'right', flexShrink: 0 }}>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: '#0F172A' }}>
+                      {(metrics?.channelBreakdown?.lazada?.count || metrics?.channels?.lazada?.orderCount || 9).toLocaleString('vi-VN')} đơn
+                    </span>
+                    <span style={{ fontSize: 10.5, color: '#64748B', marginLeft: 4 }}>(9%)</span>
+                  </div>
                 </div>
               </div>
-            </BaseCard>
+            </div>
           </Col>
 
-          {/* Card 2: AI SKU Health */}
-          <Col xs={24} lg={12}>
-            <BaseCard
-              title={
-                <Space size={8}>
-                  <ShoppingOutlined style={{ color: '#8B5CF6' }} />
-                  <span>Sức khỏe ánh xạ SKU AI</span>
-                </Space>
-              }
-              subtitle="Khớp nối sản phẩm sàn TMĐT và Master SKU kho POS"
-              extra={
-                <Link to="/mapping">
-                  <BaseButton variant="ghost" size="small">
-                    Quản lý SKU <ArrowRightOutlined />
-                  </BaseButton>
-                </Link>
-              }
+          {/* Card 2: AI SKU Health (Span 10) */}
+          <Col xs={24} lg={10}>
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Sức khỏe ánh xạ SKU AI</span>
+                <Link to="/mapping" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
+                  Quản lý SKU <ArrowRightOutlined style={{ fontSize: 10 }} />
+                </Link>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, justifyContent: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ color: '#6B7280', fontSize: 12 }}>Tỷ lệ khớp tự động (Match Rate)</div>
-                    <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', lineHeight: 1.2 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ color: '#64748B', fontSize: 11.5 }}>Tỷ lệ khớp tự động:</span>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>
                       {metrics?.skuHealth?.matchRate || '98.5%'}
-                    </div>
+                    </span>
                   </div>
-                  <Tag color="#10B981" style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      background: '#F5F3FF',
+                      color: '#7C3AED',
+                      padding: '2px 6px',
+                      borderRadius: 3,
+                      fontWeight: 600,
+                      border: '1px solid #DDD6FE',
+                    }}
+                  >
                     Vector Cosine + NER
-                  </Tag>
+                  </span>
                 </div>
 
-                <Row gutter={[8, 8]}>
-                  <Col span={8}>
-                    <div
-                      style={{
-                        background: '#F9FAFB',
-                        border: '1px solid #E5E7EB',
-                        borderTop: '3px solid #10B981',
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        textAlign: 'center',
-                      }}
-                    >
-                      <div style={{ color: '#6B7280', fontSize: 11, fontWeight: 600 }}>Tự động duyệt</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#10B981', marginTop: 2 }}>
-                        {metrics?.skuHealth?.autoApproved || 4120}
-                      </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                  <div
+                    style={{
+                      background: '#F0FDF4',
+                      border: '1px solid #BBF7D0',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ color: '#15803D', fontSize: 10.5, fontWeight: 600 }}>Tự động duyệt</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#10B981', marginTop: 1 }}>
+                      {(metrics?.skuHealth?.autoApproved || 7).toLocaleString('vi-VN')}
                     </div>
-                  </Col>
-                  <Col span={8}>
-                    <div
-                      style={{
-                        background: '#F9FAFB',
-                        border: '1px solid #E5E7EB',
-                        borderTop: '3px solid #F59E0B',
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        textAlign: 'center',
-                      }}
-                    >
-                      <div style={{ color: '#6B7280', fontSize: 11, fontWeight: 600 }}>Chờ duyệt (≥90%)</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#D97706', marginTop: 2 }}>
-                        {metrics?.skuHealth?.pendingReview || 86}
-                      </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#FFFBEB',
+                      border: '1px solid #FDE68A',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ color: '#B45309', fontSize: 10.5, fontWeight: 600 }}>Chờ duyệt</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#D97706', marginTop: 1 }}>
+                      {(metrics?.skuHealth?.pendingReview || 5).toLocaleString('vi-VN')}
                     </div>
-                  </Col>
-                  <Col span={8}>
-                    <div
-                      style={{
-                        background: '#F9FAFB',
-                        border: '1px solid #E5E7EB',
-                        borderTop: '3px solid #EF4444',
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        textAlign: 'center',
-                      }}
-                    >
-                      <div style={{ color: '#6B7280', fontSize: 11, fontWeight: 600 }}>Cần ghép tay</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#DC2626', marginTop: 2 }}>
-                        {metrics?.skuHealth?.manualRequired || 14}
-                      </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#FEF2F2',
+                      border: '1px solid #FECACA',
+                      padding: '6px 8px',
+                      borderRadius: 4,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div style={{ color: '#B91C1C', fontSize: 10.5, fontWeight: 600 }}>Ghép tay</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#DC2626', marginTop: 1 }}>
+                      {(metrics?.skuHealth?.manualRequired || 1).toLocaleString('vi-VN')}
                     </div>
-                  </Col>
-                </Row>
+                  </div>
+                </div>
               </div>
-            </BaseCard>
+            </div>
           </Col>
         </Row>
 
-        {/* ── 3. BOTTOM GRID: ACTIVE WORKFLOWS & LIVE EVENT STREAM ─────────── */}
-        <Row gutter={[16, 16]}>
-          {/* Card 1: Active Workflows */}
-          <Col xs={24} lg={10}>
-            <BaseCard
-              title={
-                <Space size={8}>
-                  <BranchesOutlined style={{ color: '#ed1c24' }} />
-                  <span>Quy trình tự động hóa</span>
-                </Space>
-              }
-              subtitle="Các luồng đồng bộ đang kích hoạt"
-              extra={
-                <Link to="/workflows">
-                  <BaseButton variant="ghost" size="small">
-                    Mở Canvas <ArrowRightOutlined />
-                  </BaseButton>
-                </Link>
-              }
+        {/* ── 3. BOTTOM ROW (TERMINAL SỰ KIỆN LIVE & QUY TRÌNH KÍCH HOẠT - CĂN THẲNG HÀNG 100%) ── */}
+        <Row gutter={[10, 10]} align="stretch">
+          {/* Card 1: Live Terminal Event Stream (Span 14) */}
+          <Col xs={24} lg={14}>
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: 340,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Nhật ký luồng xử lý đơn</span>
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      background: isConnected ? '#ECFDF5' : '#F1F5F9',
+                      color: isConnected ? '#059669' : '#64748B',
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      fontWeight: 600,
+                      border: `1px solid ${isConnected ? '#A7F3D0' : '#E2E8F0'}`,
+                    }}
+                  >
+                    {isConnected ? '● WebSocket Live' : '● Live Polling'}
+                  </span>
+                </div>
+                <span style={{ fontSize: 11, color: '#94A3B8' }}>{events.length} sự kiện gần nhất</span>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 2 }}>
+                {events.length === 0 ? (
+                  <EmptyState
+                    title="Chưa có sự kiện nào"
+                    description="Các đơn hàng mới tiếp nhận từ Webhook sẽ hiển thị tại đây"
+                  />
+                ) : (
+                  events.map((evt) => {
+                    const isSuccess = evt.status === WebhookProcessingStatus.COMPLETED;
+                    const isHealed = evt.aiHealed;
+                    const platformLogo = getPartnerLogo(evt.platform || '');
+
+                    return (
+                      <div
+                        key={evt.id}
+                        onClick={() => {
+                          if (evt.rawLog) {
+                            setSelectedLog(evt.rawLog);
+                            setDrawerOpen(true);
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          borderRadius: 4,
+                          background: '#F8FAFC',
+                          border: '1px solid #F1F5F9',
+                          cursor: evt.rawLog ? 'pointer' : 'default',
+                          transition: 'all 0.12s ease',
+                          fontSize: 11.5,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+                          <span style={{ fontSize: 10.5, color: '#94A3B8', fontFamily: 'monospace', flexShrink: 0 }}>
+                            {evt.timestamp}
+                          </span>
+                          {platformLogo ? (
+                            <img src={platformLogo} alt="" style={{ width: 13, height: 13, objectFit: 'contain', flexShrink: 0 }} />
+                          ) : null}
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 11,
+                              color: '#0F172A',
+                              fontFamily: 'monospace',
+                              flexShrink: 0,
+                            }}
+                          >
+                            #{evt.sourceOrderId}
+                          </span>
+                          <span
+                            style={{
+                              color: '#475569',
+                              fontSize: 11,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              flex: 1,
+                            }}
+                            title={evt.message}
+                          >
+                            {evt.message}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                          <span style={{ fontSize: 10.5, color: '#10B981', fontWeight: 600 }}>
+                            {evt.durationMs || 140}ms
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: '1px 5px',
+                              borderRadius: 3,
+                              background: isHealed ? '#F5F3FF' : isSuccess ? '#ECFDF5' : '#FEF2F2',
+                              color: isHealed ? '#7C3AED' : isSuccess ? '#059669' : '#DC2626',
+                              border: `1px solid ${isHealed ? '#DDD6FE' : isSuccess ? '#A7F3D0' : '#FECACA'}`,
+                            }}
+                          >
+                            {isHealed ? 'AI Fix' : isSuccess ? 'Thành công' : 'Lỗi'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </Col>
+
+          {/* Card 2: Active Workflows (Span 10) */}
+          <Col xs={24} lg={10}>
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: 6,
+                padding: '12px 14px',
+                height: 340,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Quy trình tự động hóa</span>
+                <Link to="/workflows" style={{ fontSize: 11.5, fontWeight: 600, color: '#8B5CF6' }}>
+                  Mở Canvas <ArrowRightOutlined style={{ fontSize: 10 }} />
+                </Link>
+              </div>
+
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 2 }}>
                 {workflows && workflows.length > 0 ? (
                   workflows.map((wf) => {
                     const triggerNode = wf.nodes?.find((n: any) => n.type === 'trigger');
@@ -405,27 +732,58 @@ export const DashboardPage: React.FC = () => {
                       <div
                         key={wf._id}
                         style={{
-                          background: '#F9FAFB',
-                          borderRadius: 6,
-                          border: '1px solid #E5E7EB',
-                          padding: '10px 12px',
+                          background: '#F8FAFC',
+                          borderRadius: 4,
+                          border: '1px solid #F1F5F9',
+                          padding: '5px 8px',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
+                          fontSize: 11.5,
                         }}
                       >
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
+                        <div style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: 11.5,
+                              color: '#0F172A',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                            title={wf.name}
+                          >
+                            <span style={{ color: wf.isActive ? '#10B981' : '#94A3B8', marginRight: 4 }}>●</span>
                             {wf.name}
                           </div>
-                          <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>
+                          <div
+                            style={{
+                              color: '#64748B',
+                              fontSize: 10.5,
+                              marginTop: 1,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             {source} ➔ {target}
                           </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <Tag color={wf.isActive ? 'success' : 'default'} style={{ margin: 0, fontWeight: 600, fontSize: 11 }}>
-                            {wf.executionCount || 0} lần chạy
-                          </Tag>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: '1px 5px',
+                              borderRadius: 3,
+                              background: wf.isActive ? '#ECFDF5' : '#F1F5F9',
+                              color: wf.isActive ? '#059669' : '#64748B',
+                              border: `1px solid ${wf.isActive ? '#A7F3D0' : '#E2E8F0'}`,
+                            }}
+                          >
+                            {(wf.executionCount || 0).toLocaleString('vi-VN')} đơn
+                          </span>
                         </div>
                       </div>
                     );
@@ -437,92 +795,7 @@ export const DashboardPage: React.FC = () => {
                   />
                 )}
               </div>
-            </BaseCard>
-          </Col>
-
-          {/* Card 2: Live Event Stream */}
-          <Col xs={24} lg={14}>
-            <BaseCard
-              title={
-                <Space size={8}>
-                  <ThunderboltOutlined style={{ color: '#ed1c24' }} />
-                  <span>Luồng xử lý đơn thời gian thực</span>
-                  <BadgeStatus
-                    status={isConnected ? 'success' : 'processing'}
-                    text={isConnected ? 'WebSocket' : 'Polling'}
-                  />
-                </Space>
-              }
-              subtitle="Nhật ký xử lý đơn hàng tức thì từ các sàn TMĐT"
-            >
-              <div style={{ maxHeight: 360, overflowY: 'auto', paddingRight: 6 }}>
-                {events.length === 0 ? (
-                  <EmptyState
-                    title="Chưa có sự kiện nào"
-                    description="Các đơn hàng mới tiếp nhận từ Webhook sẽ hiển thị tại đây"
-                  />
-                ) : (
-                  <Timeline
-                    items={events.map((evt) => {
-                      const isSuccess = evt.status === WebhookProcessingStatus.COMPLETED;
-                      const isHealed = evt.aiHealed;
-
-                      return {
-                        color: isHealed ? '#8B5CF6' : isSuccess ? '#10B981' : '#EF4444',
-                        dot: isHealed ? (
-                          <ThunderboltOutlined style={{ fontSize: 14, color: '#8B5CF6' }} />
-                        ) : isSuccess ? (
-                          <CheckCircleFilled style={{ fontSize: 14, color: '#10B981' }} />
-                        ) : undefined,
-                        children: (
-                          <div
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: 6,
-                              background: '#F9FAFB',
-                              border: '1px solid #E5E7EB',
-                              marginBottom: 8,
-                              cursor: evt.rawLog ? 'pointer' : 'default',
-                            }}
-                            onClick={() => {
-                              if (evt.rawLog) {
-                                setSelectedLog(evt.rawLog);
-                                setDrawerOpen(true);
-                              }
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Space size="small">
-                                <Tag
-                                  color={
-                                    evt.platform === PlatformType.TIKTOK_SHOP
-                                      ? '#000000'
-                                      : evt.platform === PlatformType.SHOPEE
-                                      ? '#EE4D2D'
-                                      : '#0F146D'
-                                  }
-                                  style={{ fontWeight: 700, borderRadius: 4, fontSize: 10 }}
-                                >
-                                  {evt.platform}
-                                </Tag>
-                                <span style={{ fontWeight: 600, fontSize: 12, color: '#111827' }}>
-                                  #{evt.sourceOrderId}
-                                </span>
-                              </Space>
-                              <span style={{ fontSize: 11, color: '#9CA3AF' }}>{evt.timestamp}</span>
-                            </div>
-
-                            <div style={{ color: '#4B5563', fontSize: 12, marginTop: 4, lineHeight: 1.4 }}>
-                              {evt.message}
-                            </div>
-                          </div>
-                        ),
-                      };
-                    })}
-                  />
-                )}
-              </div>
-            </BaseCard>
+            </div>
           </Col>
         </Row>
 
@@ -534,50 +807,62 @@ export const DashboardPage: React.FC = () => {
             setDrawerOpen(false);
             setSelectedLog(null);
           }}
-          width={480}
+          width={620}
         >
           {selectedLog && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ background: '#F9FAFB', padding: 12, borderRadius: 8, border: '1px solid #E5E7EB' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Nền tảng:</span>
-                  <Tag style={{ fontWeight: 700 }}>{selectedLog.platform}</Tag>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ background: '#F8FAFC', padding: 10, borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <span style={{ color: '#64748B', fontSize: 11.5 }}>Nền tảng tiếp nhận:</span>
+                  <Tag style={{ fontWeight: 700, margin: 0, fontSize: 11 }}>{selectedLog.platform}</Tag>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Trạng thái:</span>
-                  <StatusTag status={selectedLog.status as any} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <span style={{ color: '#64748B', fontSize: 11.5 }}>Trạng thái xử lý:</span>
+                  <span style={{ fontWeight: 700, color: '#10B981', fontSize: 11.5 }}>
+                    {selectedLog.status}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Độ trễ xử lý:</span>
-                  <span style={{ fontWeight: 600, color: '#10B981', fontSize: 12 }}>
+                  <span style={{ color: '#64748B', fontSize: 11.5 }}>Độ trễ toàn trình (E2E):</span>
+                  <span style={{ fontWeight: 700, color: '#10B981', fontSize: 11.5 }}>
                     {selectedLog.durationMs}ms
                   </span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#111827' }}>
-                  Thông điệp xử lý:
+                <div style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 5, color: '#0F172A' }}>
+                  Thông điệp điều phối UDM:
                 </div>
-                <div style={{ padding: '10px 12px', background: '#F3F4F6', borderRadius: 6, fontSize: 12, color: '#374151' }}>
+                <div style={{ padding: '8px 10px', background: '#F1F5F9', borderRadius: 4, fontSize: 11.5, color: '#334155', lineHeight: 1.4 }}>
                   {selectedLog.message}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <CodeOutlined /> Dữ liệu gói tin thô (Payload JSON):
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <span style={{ fontWeight: 600, fontSize: 12.5, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <CodeOutlined /> Gói tin thô UDM Schema (Payload JSON):
+                  </span>
+                  <BaseButton
+                    variant="secondary"
+                    size="small"
+                    icon={<CopyOutlined />}
+                    onClick={handleCopyPayload}
+                  >
+                    Sao chép
+                  </BaseButton>
                 </div>
                 <pre
                   style={{
                     background: '#0F172A',
                     color: '#38BDF8',
-                    padding: 12,
-                    borderRadius: 6,
-                    fontSize: 11,
+                    padding: 10,
+                    borderRadius: 4,
+                    fontSize: 10.5,
                     fontFamily: 'JetBrains Mono, monospace',
                     overflowX: 'auto',
-                    maxHeight: 280,
+                    maxHeight: 260,
                   }}
                 >
                   {JSON.stringify(selectedLog.rawPayload || selectedLog.payload || selectedLog, null, 2)}
