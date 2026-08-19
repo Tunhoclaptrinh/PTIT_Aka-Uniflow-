@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: uniflow-backend
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: |
+      npm install --include=dev
+      npm run build:packages
+      npm run build --workspace=apps/backend
+    startCommand: |
+      npm run start:prod --workspace=apps/backend
+    envVars:
+      - key: NODE_ENV
+        value: development
+      - key: PORT
+        value: 3000
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: AI_ENGINE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false
