@@ -328,6 +328,8 @@ export const DataTable = <T extends Record<string, any>>({
             </BaseButton>
           )}
 
+          {extra}
+
           {showBatchBtn && (
             <Badge count={activeSelectedRowKeys.length}>
               <Dropdown menu={batchActionsMenu} trigger={['click']}>
@@ -337,8 +339,6 @@ export const DataTable = <T extends Record<string, any>>({
               </Dropdown>
             </Badge>
           )}
-
-          {extra}
         </Space>
 
         {/* Right Search, Filters & Stats (Aligned 32px height) */}

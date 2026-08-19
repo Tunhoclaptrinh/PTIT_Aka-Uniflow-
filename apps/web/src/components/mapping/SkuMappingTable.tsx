@@ -29,6 +29,7 @@ import { notify } from '../../utils/notification';
 
 export const SkuMappingTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState('ALL');
+  const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
 
   // useCRUD Hook kết nối 100% với MongoDB Atlas API
   const {
@@ -59,7 +60,8 @@ export const SkuMappingTable: React.FC = () => {
   const [editingItem, setEditingItem] = useState<Partial<SKUMappingItem> | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
-  // Batch Approve Modal state
+  // Batch Modals state
+  const [batchApproveModalOpen, setBatchApproveModalOpen] = useState(false);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [batchLoading, setBatchLoading] = useState(false);
 
@@ -76,14 +78,35 @@ export const SkuMappingTable: React.FC = () => {
     }
   };
 
+  // Phê duyệt các hàng đã được chọn (tích chọn)
+  const handleBatchApproveSelected = async () => {
+    if (selectedRowKeys.length === 0) return;
+    setBatchLoading(true);
+    try {
+      await mappingService.bulkApprove(selectedRowKeys);
+      notify.success(`Đã phê duyệt thành công ${selectedRowKeys.length} mã SKU đã chọn vào Database!`);
+      setSelectedRowKeys([]);
+      setBatchApproveModalOpen(false);
+      refresh();
+    } catch (err: any) {
+      notify.error('Lỗi khi phê duyệt hàng loạt: ' + err.message);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  // Phê duyệt tất cả các mục chờ duyệt
   const handleBatchApproveAll = async () => {
     setBatchLoading(true);
     try {
-      const pendingItems = data.filter((d) => d.mappingStatus === 'PENDING_REVIEW');
-      for (const item of pendingItems) {
-        await mappingService.approveMapping(item._id);
+      const pendingIds = data
+        .filter((d) => d.mappingStatus === 'PENDING_REVIEW')
+        .map((d) => d._id);
+
+      if (pendingIds.length > 0) {
+        await mappingService.bulkApprove(pendingIds);
       }
-      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingItems.length} mã SKU thành công.`);
+      notify.success(`Đã tự động phê duyệt hàng loạt ${pendingIds.length} mã SKU thành công.`);
       setBatchModalOpen(false);
       refresh();
     } catch (err: any) {
@@ -97,6 +120,7 @@ export const SkuMappingTable: React.FC = () => {
     const success = await batchDelete(keys);
     if (success) {
       notify.success(`Đã xóa thành công ${keys.length} cấu hình ánh xạ SKU từ MongoDB Atlas!`);
+      setSelectedRowKeys([]);
     }
   };
 
@@ -104,6 +128,8 @@ export const SkuMappingTable: React.FC = () => {
     const success = await remove(id);
     if (success) {
       notify.success('Đã xóa thành công cấu hình ánh xạ SKU!');
+      setSelectedRowKeys((prev) => prev.filter((k) => k !== id));
+      refresh();
     }
   };
 
@@ -158,16 +184,6 @@ export const SkuMappingTable: React.FC = () => {
     setDetailModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await remove(id);
-      notify.success('Đã xóa liên kết ánh xạ SKU thành công!');
-      refresh();
-    } catch (err: any) {
-      notify.error('Lỗi khi xóa: ' + err.message);
-    }
-  };
-
   const handleTabChange = (key: string) => {
     setActiveTab(key);
     if (key === 'ALL') {
@@ -181,8 +197,9 @@ export const SkuMappingTable: React.FC = () => {
     }
   };
 
-  const pendingCount = data.filter((d) => d.mappingStatus === 'PENDING_REVIEW').length;
+  // KPI Header Stats
   const approvedCount = data.filter((d) => d.mappingStatus === 'AUTO_APPROVED').length;
+  const pendingCount = data.filter((d) => d.mappingStatus === 'PENDING_REVIEW').length;
   const manualCount = data.filter((d) => d.mappingStatus === 'MANUAL_REQUIRED').length;
   const totalCount = total || data.length || 0;
 
@@ -191,99 +208,69 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'Tổng SKU sàn TMĐT',
       value: totalCount,
-      backgroundColor: '#FFF1F0',
-      valueColor: '#cf1322',
+      backgroundColor: '#F8FAFC',
+      valueColor: '#1E293B',
       onClick: () => handleTabChange('ALL'),
     },
     {
-      title: 'Đã đồng bộ Master SKU',
+      title: 'Đã khớp tự động (AI)',
       value: approvedCount,
-      backgroundColor: '#E6F7FF',
-      valueColor: '#096dd9',
+      backgroundColor: '#ECFDF5',
+      valueColor: '#059669',
       onClick: () => handleTabChange('APPROVED'),
     },
     {
-      title: 'Chờ duyệt 1-click (AI >= 90%)',
+      title: 'Chờ duyệt 1-click',
       value: pendingCount,
-      backgroundColor: '#FFF7E6',
-      valueColor: '#d46b08',
+      backgroundColor: '#FFFBEB',
+      valueColor: '#D97706',
       onClick: () => handleTabChange('PENDING'),
     },
     {
-      title: 'Cần ghép thủ công',
+      title: 'Cần gán thủ công',
       value: manualCount,
-      backgroundColor: '#FFF0F6',
-      valueColor: '#c41d7f',
+      backgroundColor: '#FEF2F2',
+      valueColor: '#DC2626',
       onClick: () => handleTabChange('MANUAL'),
     },
   ];
 
+  // Filters for Search and Selection
   const mappingFilters: FilterConfig[] = [
     {
       key: 'sourcePlatform',
-      label: 'Nền tảng sàn',
+      label: 'Sàn thương mại',
       type: 'select',
       options: [
         { label: 'TikTok Shop', value: 'TIKTOK_SHOP' },
         { label: 'Shopee', value: 'SHOPEE' },
         { label: 'Lazada', value: 'LAZADA' },
       ],
-      operators: ['eq', 'ne', 'in'],
     },
     {
       key: 'targetPosPlatform',
-      label: 'Phần mềm kho POS',
+      label: 'Kho POS đích',
       type: 'select',
       options: [
-        { label: 'Sapo', value: 'SAPO' },
+        { label: 'Sapo POS', value: 'SAPO' },
         { label: 'KiotViet', value: 'KIOTVIET' },
       ],
-      operators: ['eq', 'ne'],
-    },
-    {
-      key: 'mappingStatus',
-      label: 'Trạng thái đối soát',
-      type: 'select',
-      options: [
-        { label: 'Tự động duyệt', value: 'AUTO_APPROVED' },
-        { label: 'Chờ duyệt 1-click', value: 'PENDING_REVIEW' },
-        { label: 'Cần ghép thủ công', value: 'MANUAL_REQUIRED' },
-      ],
-      operators: ['eq', 'ne'],
-    },
-    {
-      key: 'sourceSkuCode',
-      label: 'Mã SKU sàn',
-      type: 'input',
-      operators: ['eq', 'like'],
-    },
-    {
-      key: 'targetMasterSku',
-      label: 'Mã Master SKU kho',
-      type: 'input',
-      operators: ['eq', 'like'],
     },
   ];
 
+  // Menu tùy chọn gom gọn các thao tác còn lại (Chi tiết, Sửa, Xóa)
   const getActionMenuItems = (record: SKUMappingItem): MenuProps['items'] => [
     {
-      key: 'approve',
-      icon: <CheckOutlined style={{ color: '#10B981' }} />,
-      label: 'Duyệt liên kết 1-click',
-      disabled: record.mappingStatus === 'AUTO_APPROVED',
-      onClick: () => handleApprove(record._id),
+      key: 'detail',
+      icon: <EyeOutlined style={{ color: '#8B5CF6' }} />,
+      label: 'Giải thích & Phân tích AI',
+      onClick: () => openDetailModal(record),
     },
     {
       key: 'edit',
-      icon: <EditOutlined style={{ color: '#1890ff' }} />,
+      icon: <EditOutlined style={{ color: '#2563EB' }} />,
       label: 'Ghép nối thủ công (Chỉnh sửa)',
       onClick: () => openEditModal(record),
-    },
-    {
-      key: 'detail',
-      icon: <EyeOutlined style={{ color: '#ed1c24' }} />,
-      label: 'Giải thích thuật toán AI',
-      onClick: () => openDetailModal(record),
     },
     {
       type: 'divider',
@@ -297,10 +284,11 @@ export const SkuMappingTable: React.FC = () => {
     },
   ];
 
+  // Bảng dữ liệu cột
   const columns = [
     {
-      title: 'Sản phẩm sàn TMĐT (Nguồn)',
-      key: 'source',
+      title: 'Mã SKU sàn TMĐT',
+      key: 'sourceSkuCode',
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.sourceSkuCode.localeCompare(b.sourceSkuCode),
       filters: [
         { text: 'TikTok Shop', value: 'TIKTOK_SHOP' },
@@ -308,91 +296,101 @@ export const SkuMappingTable: React.FC = () => {
         { text: 'Lazada', value: 'LAZADA' },
       ],
       onFilter: (value: any, record: SKUMappingItem) => record.sourcePlatform === value,
-      render: (_: any, record: SKUMappingItem) => (
-        <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
-          <Space>
-            <Tag
-              color={
-                record.sourcePlatform === 'TIKTOK_SHOP'
-                  ? '#000000'
-                  : record.sourcePlatform === 'SHOPEE'
-                    ? '#EE4D2D'
-                    : '#0F146D'
-              }
-              style={{
-                borderRadius: 4,
-                fontWeight: 700,
-              }}
-            >
-              {record.sourcePlatform === 'TIKTOK_SHOP'
-                ? 'TikTok Shop'
-                : record.sourcePlatform === 'SHOPEE'
-                  ? 'Shopee'
-                  : 'Lazada'}
-            </Tag>
-            <span style={{ fontFamily: 'JetBrains Mono', color: '#ed1c24', fontWeight: 700 }}>
-              {record.sourceSkuCode}
-            </span>
-          </Space>
-          <div style={{ fontSize: 13, marginTop: 4, fontWeight: 600 }}>
-            {record.sourceProductName}
-          </div>
-          {record.sourceVariationText && (
-            <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>
-              Phân loại: {record.sourceVariationText}
+      render: (_: any, record: SKUMappingItem) => {
+        const isTikTok = record.sourcePlatform === 'TIKTOK_SHOP';
+        const isShopee = record.sourcePlatform === 'SHOPEE';
+        return (
+          <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
+            <Space size={6}>
+              <Tag
+                style={{
+                  borderRadius: 4,
+                  fontWeight: 600,
+                  fontSize: 11,
+                  padding: '1px 6px',
+                  background: isTikTok ? '#F8FAFC' : isShopee ? '#FFF7ED' : '#EEF2FF',
+                  border: `1px solid ${isTikTok ? '#CBD5E1' : isShopee ? '#FFEDD5' : '#E0E7FF'}`,
+                  color: isTikTok ? '#0F172A' : isShopee ? '#EA580C' : '#4338CA',
+                }}
+              >
+                {isTikTok ? 'TikTok Shop' : isShopee ? 'Shopee' : 'Lazada'}
+              </Tag>
+              <span style={{ fontFamily: 'JetBrains Mono', color: '#DC2626', fontWeight: 700, fontSize: 12.5 }}>
+                {record.sourceSkuCode}
+              </span>
+            </Space>
+            <div style={{ fontSize: 13, marginTop: 4, fontWeight: 600, color: '#1E293B' }}>
+              {record.sourceProductName}
             </div>
-          )}
-        </div>
-      ),
+            {record.sourceVariationText && (
+              <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>
+                Phân loại: {record.sourceVariationText}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: 'SKU kho POS đích (Master SKU)',
-      key: 'target',
+      key: 'targetMasterSku',
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.targetMasterSku.localeCompare(b.targetMasterSku),
       filters: [
-        { text: 'Sapo', value: 'SAPO' },
+        { text: 'Sapo POS', value: 'SAPO' },
         { text: 'KiotViet', value: 'KIOTVIET' },
       ],
       onFilter: (value: any, record: SKUMappingItem) => (record.targetPosPlatform || 'SAPO').includes(value),
-      render: (_: any, record: SKUMappingItem) => (
-        <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
-          <Space>
-            <Tag color="#10B981" style={{ borderRadius: 4, fontWeight: 700 }}>
-              {record.targetPosPlatform || 'SAPO'}
-            </Tag>
-            <span style={{ fontFamily: 'JetBrains Mono', color: '#10B981', fontWeight: 700 }}>
-              {record.targetMasterSku}
-            </span>
-          </Space>
-          <div style={{ fontSize: 13, marginTop: 4, color: '#374151' }}>
-            {record.targetProductName}
+      render: (_: any, record: SKUMappingItem) => {
+        const isSapo = (record.targetPosPlatform || 'SAPO').toUpperCase().includes('SAPO');
+        return (
+          <div style={{ cursor: 'pointer' }} onClick={() => openDetailModal(record)}>
+            <Space size={6}>
+              <Tag
+                style={{
+                  borderRadius: 4,
+                  fontWeight: 600,
+                  fontSize: 11,
+                  padding: '1px 6px',
+                  background: isSapo ? '#EFF6FF' : '#F0FDF4',
+                  border: `1px solid ${isSapo ? '#DBEAFE' : '#DCFCE7'}`,
+                  color: isSapo ? '#2563EB' : '#16A34A',
+                }}
+              >
+                {record.targetPosPlatform || 'SAPO'}
+              </Tag>
+              <span style={{ fontFamily: 'JetBrains Mono', color: '#059669', fontWeight: 700, fontSize: 12.5 }}>
+                {record.targetMasterSku}
+              </span>
+            </Space>
+            <div style={{ fontSize: 13, marginTop: 4, color: '#334155' }}>
+              {record.targetProductName}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: 'Điểm tin cậy AI',
-      dataIndex: 'confidenceScore',
       key: 'confidenceScore',
-      width: 190,
+      width: 180,
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => (a.confidenceScore || 0) - (b.confidenceScore || 0),
       render: (confidence: number) => {
         const percent = Math.round((confidence || 0.9) * 100);
         let strokeColor = '#10B981';
-        if (percent < 95) strokeColor = '#fcc20f';
+        if (percent < 95) strokeColor = '#F59E0B';
         if (percent < 70) strokeColor = '#EF4444';
 
         return (
-          <div>
+          <div style={{ width: '100%', maxWidth: 150 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: '#6B7280' }}>Vector Cosine + NER</span>
-              <span style={{ fontWeight: 700, color: strokeColor }}>{percent}%</span>
+              <span style={{ fontSize: 11.5, color: '#64748B' }}>Vector Cosine + NER</span>
+              <span style={{ fontWeight: 700, color: strokeColor, fontSize: 12 }}>{percent}%</span>
             </div>
             <Progress
               percent={percent}
               showInfo={false}
               strokeColor={strokeColor}
-              trailColor="#E5E7EB"
+              trailColor="#E2E8F0"
               size="small"
             />
           </div>
@@ -402,7 +400,7 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'Trạng thái đối soát',
       key: 'mappingStatus',
-      width: 150,
+      width: 160,
       sorter: (a: SKUMappingItem, b: SKUMappingItem) => a.mappingStatus.localeCompare(b.mappingStatus),
       filters: [
         { text: 'Tự động duyệt', value: 'AUTO_APPROVED' },
@@ -413,21 +411,63 @@ export const SkuMappingTable: React.FC = () => {
       render: (_: any, record: SKUMappingItem) => {
         if (record.mappingStatus === 'AUTO_APPROVED') {
           return (
-            <Tag color="#10B981" style={{ fontWeight: 600 }}>
-              <CheckCircleFilled style={{ marginRight: 4 }} /> Tự động duyệt
+            <Tag
+              style={{
+                borderRadius: 4,
+                fontWeight: 600,
+                fontSize: 12,
+                padding: '1px 8px',
+                background: '#F0FDF4',
+                border: '1px solid #86EFAC',
+                color: '#15803D',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <CheckCircleFilled style={{ color: '#16A34A', fontSize: 12 }} />
+              <span>Tự động duyệt</span>
             </Tag>
           );
         }
         if (record.mappingStatus === 'PENDING_REVIEW') {
           return (
-            <Tag color="#fcc20f" style={{ fontWeight: 600, color: '#111827' }}>
-              <ThunderboltFilled style={{ marginRight: 4 }} /> Chờ duyệt
+            <Tag
+              style={{
+                borderRadius: 4,
+                fontWeight: 600,
+                fontSize: 12,
+                padding: '1px 8px',
+                background: '#FFFBEB',
+                border: '1px solid #FCD34D',
+                color: '#B45309',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <ThunderboltFilled style={{ color: '#D97706', fontSize: 12 }} />
+              <span>Chờ duyệt</span>
             </Tag>
           );
         }
         return (
-          <Tag color="#EF4444" style={{ fontWeight: 600 }}>
-            <EditOutlined style={{ marginRight: 4 }} /> Cần ghép tay
+          <Tag
+            style={{
+              borderRadius: 4,
+              fontWeight: 600,
+              fontSize: 12,
+              padding: '1px 8px',
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              color: '#B91C1C',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <EditOutlined style={{ color: '#DC2626', fontSize: 12 }} />
+            <span>Cần ghép tay</span>
           </Tag>
         );
       },
@@ -435,40 +475,23 @@ export const SkuMappingTable: React.FC = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      width: 130,
+      width: 100,
       align: 'center' as const,
       fixed: 'right' as const,
       render: (_: any, record: SKUMappingItem) => {
         const isApproved = record.mappingStatus === 'AUTO_APPROVED';
         return (
-          <Space size={2}>
-            {/* 1. Fixed Position: Approve 1-Click */}
+          <Space size={4}>
+            {/* 1. Nút Duyệt 1-Click icon duy nhất */}
             <IconButton
               icon={<CheckOutlined />}
-              tooltip={isApproved ? 'Đã được phê duyệt tự động' : 'Phê duyệt nhanh 1-Click'}
+              tooltip={isApproved ? 'Đã được duyệt tự động' : 'Phê duyệt nhanh 1-Click'}
               success={!isApproved}
               disabled={isApproved}
               onClick={() => handleApprove(record._id)}
             />
 
-            {/* 2. Fixed Position: Manual Edit */}
-            <IconButton
-              icon={<EditOutlined />}
-              tooltip="Ghép nối thủ công"
-              color="#fcc20f"
-              hoverColor="#d49e07"
-              onClick={() => openEditModal(record)}
-            />
-
-            {/* 3. Fixed Position: Delete Mapping */}
-            <IconButton
-              icon={<DeleteOutlined />}
-              tooltip="Xóa liên kết ánh xạ"
-              danger
-              onClick={() => handleDelete(record._id)}
-            />
-
-            {/* 4. Fixed Position: Menu Dropdown */}
+            {/* 2. Menu gom gọn toàn bộ các thao tác còn lại (Chi tiết, Sửa, Xóa) */}
             <Dropdown menu={{ items: getActionMenuItems(record) }} trigger={['click']} placement="bottomRight">
               <span>
                 <IconButton
@@ -483,10 +506,20 @@ export const SkuMappingTable: React.FC = () => {
     },
   ];
 
+  const hasItemsToApprove = selectedRowKeys.length > 0 || pendingCount > 0;
+
   return (
     <PageContainer
       title="Ánh xạ SKU"
       tooltip="Bảng đối chiếu danh mục sản phẩm từ các Sàn TMĐT về mã Master SKU trong kho POS nội bộ"
+      extra={
+        <IconButton
+          icon={<ExperimentOutlined style={{ color: '#8B5CF6' }} />}
+          tooltip="Phòng thí nghiệm AI so khớp SKU (Gemini + Qdrant)"
+          onClick={() => setAiPlaygroundOpen(true)}
+          size="small"
+        />
+      }
     >
       <DataTable<SKUMappingItem>
         columns={columns}
@@ -494,6 +527,9 @@ export const SkuMappingTable: React.FC = () => {
         rowKey="_id"
         loading={loading}
         statisticsData={statItems}
+        batchOperations={true}
+        selectedRowKeys={selectedRowKeys}
+        onSelectChange={(keys) => setSelectedRowKeys(keys)}
         extra={
           <Space size="small">
             <BaseButton
@@ -505,23 +541,30 @@ export const SkuMappingTable: React.FC = () => {
               Thêm mới
             </BaseButton>
 
-            <BaseButton
-              variant="secondary"
-              size="small"
-              icon={<ExperimentOutlined style={{ color: '#8B5CF6' }} />}
-              onClick={() => setAiPlaygroundOpen(true)}
-            >
-              Phòng thí nghiệm AI
-            </BaseButton>
-
-            {pendingCount > 0 && (
+            {/* Nút Phê duyệt: Outline xanh lá, icon dấu tích, tự đổi số theo mục chọn */}
+            {hasItemsToApprove && (
               <BaseButton
                 variant="secondary"
                 size="small"
-                icon={<ThunderboltFilled style={{ color: '#F59E0B' }} />}
-                onClick={() => setBatchModalOpen(true)}
+                icon={<CheckOutlined style={{ color: '#10B981' }} />}
+                style={{
+                  borderColor: '#10B981',
+                  color: '#10B981',
+                  background: '#F0FDF4',
+                  fontWeight: 600,
+                }}
+                loading={batchLoading}
+                onClick={() => {
+                  if (selectedRowKeys.length > 0) {
+                    setBatchApproveModalOpen(true);
+                  } else {
+                    setBatchModalOpen(true);
+                  }
+                }}
               >
-                Phê duyệt tất cả ({pendingCount})
+                {selectedRowKeys.length > 0
+                  ? `Phê duyệt đã chọn (${selectedRowKeys.length})`
+                  : `Phê duyệt tất cả (${pendingCount})`}
               </BaseButton>
             )}
           </Space>
@@ -537,12 +580,19 @@ export const SkuMappingTable: React.FC = () => {
         }}
         batchActions={[
           {
-            key: 'delete',
-            label: 'Xóa các mục đã chọn',
+            key: 'batch-approve',
+            icon: <CheckCircleFilled style={{ color: '#10B981' }} />,
+            label: `Phê duyệt ${selectedRowKeys.length} mục đã chọn`,
+            onClick: () => setBatchApproveModalOpen(true),
+          },
+          {
+            key: 'batch-delete',
+            icon: <DeleteOutlined style={{ color: '#EF4444' }} />,
+            label: `Xóa ${selectedRowKeys.length} mục đã chọn`,
             danger: true,
             confirm: {
               title: 'Xác nhận xóa hàng loạt',
-              content: 'Bạn có chắc chắn muốn xóa tất cả các cấu hình ánh xạ đã chọn không?',
+              content: `Bạn có chắc chắn muốn xóa tất cả ${selectedRowKeys.length} cấu hình ánh xạ đã chọn không?`,
             },
             onClick: handleBatchDelete,
           },
@@ -593,12 +643,25 @@ export const SkuMappingTable: React.FC = () => {
         onSaveToMappings={handleSavePlaygroundMapping}
       />
 
-      {/* Batch Approve Confirm Modal */}
+      {/* Batch Approve Selected Rows Modal */}
+      <ConfirmModal
+        open={batchApproveModalOpen}
+        title="Xác nhận phê duyệt hàng loạt"
+        content={`Bạn có chắc chắn muốn phê duyệt liên kết cho ${selectedRowKeys.length} mã SKU đã được chọn vào MongoDB Atlas không?`}
+        confirmText={`Phê duyệt ${selectedRowKeys.length} mục`}
+        cancelText="Hủy bỏ"
+        loading={batchLoading}
+        onConfirm={handleBatchApproveSelected}
+        onCancel={() => setBatchApproveModalOpen(false)}
+      />
+
+      {/* Batch Approve All Pending Modal */}
       <ConfirmModal
         open={batchModalOpen}
-        title="Xác nhận phê duyệt hàng loạt"
+        title="Xác nhận phê duyệt tất cả"
         content={`Bạn có chắc chắn muốn phê duyệt tự động tất cả ${pendingCount} mã SKU đang ở trạng thái Chờ duyệt (Điểm tin cậy AI >= 90%) không?`}
         confirmText="Xác nhận duyệt"
+        cancelText="Hủy bỏ"
         loading={batchLoading}
         onConfirm={handleBatchApproveAll}
         onCancel={() => setBatchModalOpen(false)}

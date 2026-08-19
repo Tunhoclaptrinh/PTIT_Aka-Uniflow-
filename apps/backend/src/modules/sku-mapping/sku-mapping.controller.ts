@@ -87,6 +87,19 @@ export class SKUMappingController {
     };
   }
 
+  @Post('bulk/approve')
+  async bulkApproveMappings(
+    @Body('ids') ids: string[],
+    @Body('approverId') approverId?: string
+  ) {
+    const data = await this.skuMappingService.bulkApprove(ids || [], approverId);
+    return {
+      statusCode: HttpStatus.OK,
+      message: `Đã phê duyệt thành công ${data.success} liên kết SKU!`,
+      data,
+    };
+  }
+
   @Post('bulk/delete')
   async bulkDeleteMappings(@Body('ids') ids: string[]) {
     const data = await this.skuMappingService.bulkDelete(ids || []);

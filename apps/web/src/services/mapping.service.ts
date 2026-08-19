@@ -26,6 +26,10 @@ class SKUMappingApiService extends BaseApiService<SKUMappingItem> {
     return baseApi.patch<SKUMappingItem>(`${this.endpoint}/${id}/approve`, { approverId });
   }
 
+  async bulkApprove(ids: string[], approverId?: string): Promise<{ success: number }> {
+    return baseApi.post<{ success: number }>(`${this.endpoint}/bulk/approve`, { ids, approverId });
+  }
+
   async testAIMatch(payload: {
     sourceSku: string;
     sourceName: string;

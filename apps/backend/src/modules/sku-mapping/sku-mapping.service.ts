@@ -49,6 +49,20 @@ export class SKUMappingService extends BaseService<SKUMappingDocument> {
     return mapping;
   }
 
+  async bulkApprove(ids: string[], approverId?: string) {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    const result = await this.model.updateMany(
+      { _id: { $in: objectIds } },
+      {
+        $set: {
+          mappingStatus: 'AUTO_APPROVED',
+          approvedBy: approverId || 'ADMIN_USER',
+        },
+      }
+    );
+    return { success: result.modifiedCount };
+  }
+
   async testAIMatch(payload: {
     sourceSku: string;
     sourceName: string;
