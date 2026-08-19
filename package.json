@@ -7,6 +7,9 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "rxjs": "7.8.2"
+  },
   "scripts": {
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:backend": "npm run start:dev --workspace=apps/backend",
