@@ -1317,6 +1317,52 @@ async function seed() {
     }
     console.log(`✅ 4. Đã nạp ${syncLogs.length} Sync Logs thực tế vào MongoDB Atlas.`);
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // 5. SEED CONNECTORS IN DB
+    // ══════════════════════════════════════════════════════════════════════════
+    const connectorsList = [
+      { connectorId: 'tiktok', name: 'TikTok Shop', category: 'MARKETPLACE', status: 'CONNECTED', ordersSynced: 28450, latencyMs: 185, latency: '185ms' },
+      { connectorId: 'shopee', name: 'Shopee Open Platform', category: 'MARKETPLACE', status: 'CONNECTED', ordersSynced: 14220, latencyMs: 210, latency: '210ms' },
+      { connectorId: 'lazada', name: 'Lazada Open API', category: 'MARKETPLACE', status: 'DISCONNECTED', ordersSynced: 5180, latencyMs: 230, latency: '230ms' },
+      { connectorId: 'pancake', name: 'Pancake POS & Social Chat', category: 'CHAT_SOCIAL', status: 'CONNECTED', ordersSynced: 31200, latencyMs: 110, latency: '110ms' },
+      { connectorId: 'zalo', name: 'Zalo OA & ZNS Notification', category: 'CHAT_SOCIAL', status: 'CONNECTED', ordersSynced: 15400, latencyMs: 95, latency: '95ms' },
+      { connectorId: 'telegram', name: 'Telegram Bot Webhook', category: 'CHAT_SOCIAL', status: 'CONNECTED', ordersSynced: 42300, latencyMs: 80, latency: '80ms' },
+      { connectorId: 'sapo', name: 'Sapo POS & Omnichannel', category: 'POS_ERP', status: 'CONNECTED', ordersSynced: 38900, latencyMs: 145, latency: '145ms' },
+      { connectorId: 'kiotviet', name: 'KiotViet Retail API', category: 'POS_ERP', status: 'CONNECTED', ordersSynced: 19800, latencyMs: 160, latency: '160ms' },
+      { connectorId: 'nhanh', name: 'Nhanh.vn Omnichannel POS', category: 'POS_ERP', status: 'CONNECTED', ordersSynced: 12600, latencyMs: 170, latency: '170ms' },
+      { connectorId: 'haravan', name: 'Haravan Omnichannel', category: 'POS_ERP', status: 'DISCONNECTED', ordersSynced: 3400, latencyMs: 190, latency: '190ms' },
+      { connectorId: 'ladipage', name: 'LadiPage Form Inbound', category: 'LANDING_PAGE', status: 'CONNECTED', ordersSynced: 8700, latencyMs: 85, latency: '85ms' },
+      { connectorId: 'ghtk', name: 'Giao Hàng Tiết Kiệm (GHTK)', category: 'LOGISTICS', status: 'CONNECTED', ordersSynced: 26100, latencyMs: 175, latency: '175ms' },
+      { connectorId: 'ghn', name: 'Giao Hàng Nhanh (GHN Express)', category: 'LOGISTICS', status: 'CONNECTED', ordersSynced: 18400, latencyMs: 165, latency: '165ms' },
+      { connectorId: 'viettelpost', name: 'Viettel Post API v2', category: 'LOGISTICS', status: 'CONNECTED', ordersSynced: 14500, latencyMs: 195, latency: '195ms' },
+      { connectorId: 'googlesheets', name: 'Google Sheets Live Sync', category: 'SPREADSHEET', status: 'CONNECTED', ordersSynced: 16400, latencyMs: 120, latency: '120ms' },
+      { connectorId: 'excel', name: 'Microsoft Excel / CSV Engine', category: 'SPREADSHEET', status: 'CONNECTED', ordersSynced: 9200, latencyMs: 95, latency: '95ms' },
+      { connectorId: 'misa_amis', name: 'MISA AMIS Kế toán', category: 'ACCOUNTING', status: 'CONNECTED', ordersSynced: 4820, latencyMs: 140, latency: '140ms' },
+      { connectorId: 'misa_meinvoice', name: 'MISA meInvoice (Hóa đơn điện tử)', category: 'ACCOUNTING', status: 'CONNECTED', ordersSynced: 3120, latencyMs: 155, latency: '155ms' },
+    ];
+
+    for (const c of connectorsList) {
+      await db.collection('connectors').updateOne(
+        { tenantId: tenant1Id.toString(), connectorId: c.connectorId },
+        {
+          $set: {
+            tenantId: tenant1Id.toString(),
+            ...c,
+            config: {
+              appKey: `app_${c.connectorId}_live_key`,
+              appSecret: `sec_${c.connectorId}_live_secret`,
+              endpoint: `https://api.${c.connectorId}.vn`,
+            },
+            lastSyncedAt: new Date(),
+            lastTestedAt: new Date(),
+          },
+          $setOnInsert: { createdAt: new Date() },
+        },
+        { upsert: true }
+      );
+    }
+    console.log(`✅ 5. Đã nạp ${connectorsList.length} Cổng kết nối đối tác vào MongoDB Atlas.`);
+
     console.log('\n🎉 HOÀN TẤT NẠP DỮ LIỆU ĐA TENANT THỰC TẾ VÀO DATABASE PTIT_Aka! ✅');
   } catch (err) {
     console.error('❌ Lỗi khi nạp dữ liệu:', err.message);
