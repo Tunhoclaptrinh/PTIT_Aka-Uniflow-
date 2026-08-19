@@ -8,7 +8,7 @@ import { WebSocketModule } from './modules/websocket/websocket.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { SKUMappingModule } from './modules/sku-mapping/sku-mapping.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
-import { LogsModule } from './modules/logs/logs.module';
+
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { ConnectorsModule } from './modules/connectors/connectors.module';
@@ -51,7 +51,6 @@ import { RedisModule } from './modules/redis/redis.module';
     WorkflowsModule,
     SKUMappingModule,
     MetricsModule,
-    LogsModule,
     AuthModule,
     TenantsModule,
     ConnectorsModule,

@@ -4,15 +4,11 @@ services:
     env: node
     plan: free
     rootDir: .
-    buildCommand: |
-      npm install --include=dev
-      npm run build:packages
-      npm run build --workspace=apps/backend
-    startCommand: |
-      npm run start:prod --workspace=apps/backend
+    buildCommand: npm install --include=dev && npm run build:packages && npm run build --workspace=apps/backend
+    startCommand: npm run start:prod --workspace=apps/backend
     envVars:
       - key: NODE_ENV
-        value: development
+        value: production
       - key: PORT
         value: 3000
       - key: MONGO_URI
