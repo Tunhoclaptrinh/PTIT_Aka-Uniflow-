@@ -131,6 +131,11 @@ export const GroupNode: React.FC<any> = ({ id, data, selected }) => {
           isVisible={selected}
           minWidth={280}
           minHeight={150}
+          onResizeEnd={(_evt, params) => {
+            if (data.onResizeEnd) {
+              data.onResizeEnd(id, params);
+            }
+          }}
           handleStyle={{ width: 10, height: 10, borderRadius: 3, background: '#8B5CF6', border: '2px solid #FFFFFF' }}
           lineStyle={{ borderColor: '#8B5CF6', borderStyle: 'dashed' }}
         />

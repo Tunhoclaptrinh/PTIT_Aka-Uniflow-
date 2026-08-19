@@ -41,6 +41,49 @@ import { EdgeDirectiveModal } from './panels/EdgeDirectiveModal';
 import { BaseButton, PageContainer, ConfirmModal } from '../base';
 import { notify } from '../../utils/notification';
 
+// Khối tiêu đề quy trình 1 dòng siêu tối giản (không khung, không handle chấm kết nối)
+const WorkflowHeaderNode: React.FC<any> = ({ data }) => {
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '2px 0',
+        userSelect: 'none',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: data.isActive ? '#10B981' : '#94A3B8',
+          display: 'inline-block',
+          boxShadow: data.isActive ? '0 0 6px rgba(16, 185, 129, 0.5)' : 'none',
+        }}
+      />
+      <span style={{ color: '#0F172A', fontSize: 13.5, fontWeight: 700 }}>
+        {data.title || data.label}
+      </span>
+      <span
+        style={{
+          fontSize: 10.5,
+          color: data.isActive ? '#059669' : '#64748B',
+          fontWeight: 600,
+          background: data.isActive ? '#ECFDF5' : '#F1F5F9',
+          padding: '1px 7px',
+          borderRadius: 10,
+          border: `1px solid ${data.isActive ? '#A7F3D0' : '#E2E8F0'}`,
+        }}
+      >
+        {data.isActive ? 'Đang kích hoạt' : 'Bản nháp'}
+      </span>
+    </div>
+  );
+};
+
 const FlowContent: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
@@ -57,6 +100,7 @@ const FlowContent: React.FC = () => {
 
   // Overview mode — xem toàn bộ quy trình trên 1 canvas
   const [isOverviewMode, setIsOverviewMode] = useState(false);
+  const [isCompactNodes, setIsCompactNodes] = useState(false);
 
   // Drawers & Modals state
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -79,6 +123,7 @@ const FlowContent: React.FC = () => {
       ai: AINode,
       action: ActionNode,
       group: GroupNode,
+      workflowHeader: WorkflowHeaderNode,
       TRIGGER_TIKTOK: TriggerNode,
       AI_SKU_MAPPER: AINode,
       ACTION_SAPO_DEDUCT: ActionNode,
@@ -174,6 +219,67 @@ const FlowContent: React.FC = () => {
     }
   };
 
+  // ── GỠ ĐƠN KHỐI CON RA KHỎI CỤM PHÂN VÙNG (Văng ra góc trên bên phải) ──────
+  const handleDetachNodeFromGroup = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => {
+        const targetNode = nds.find((n) => n.id === nodeId);
+        if (!targetNode || !targetNode.parentId) {
+          notify.info('Khối này hiện không nằm trong cụm phân vùng nào.');
+          return nds;
+        }
+
+        const parentGroupId = targetNode.parentId;
+        const parentGroup = nds.find((n) => n.id === parentGroupId);
+        const gx = parentGroup ? parentGroup.position.x : 0;
+        const gy = parentGroup ? parentGroup.position.y : 0;
+        const gw = Number(parentGroup?.style?.width ?? parentGroup?.data?.width ?? 280);
+
+        // Đẩy văng ra góc trên bên phải của cụm phân vùng (+ 40px từ cạnh phải, - 20px từ mép trên)
+        const ejectedX = gx + gw + 40;
+        const ejectedY = Math.max(gy - 20, 20);
+
+        const updated = nds.map((n) => {
+          if (n.id === nodeId) {
+            return {
+              ...n,
+              parentId: undefined,
+              extent: undefined,
+              position: {
+                x: ejectedX,
+                y: ejectedY,
+              },
+              zIndex: 0,
+              data: {
+                ...n.data,
+                onDetachFromGroup: undefined,
+              },
+            };
+          }
+          return n;
+        });
+
+        // Cập nhật lại childCount cho Group cha
+        const newChildCount = updated.filter((n) => n.parentId === parentGroupId).length;
+
+        notify.success(`Đã gỡ khối "${targetNode.data?.label || targetNode.id}" văng ra góc trên bên phải của cụm!`);
+
+        return updated.map((n) =>
+          n.id === parentGroupId
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  childCount: newChildCount,
+                },
+              }
+            : n
+        );
+      });
+    },
+    [setNodes]
+  );
+
   const handleResizeGroup = useCallback((groupId: string, newW: number, newH: number) => {
     setNodes((nds) =>
       nds.map((n) =>
@@ -193,6 +299,110 @@ const FlowContent: React.FC = () => {
       )
     );
   }, [setNodes]);
+
+  // Xử lý mở rộng / thu hẹp kích thước cụm: tự động thêm/bớt các node con và giữ nguyên 100% vị trí thực tế trên Canvas
+  const handleResizeGroupEnd = useCallback(
+    (groupId: string, params: { x?: number; y?: number; width: number; height: number }) => {
+      setNodes((nds) => {
+        const groupNode = nds.find((n) => n.id === groupId);
+        if (!groupNode) return nds;
+
+        const oldGx = groupNode.position.x;
+        const oldGy = groupNode.position.y;
+        const newGx = params.x !== undefined ? params.x : oldGx;
+        const newGy = params.y !== undefined ? params.y : oldGy;
+        const newGw = params.width;
+        const newGh = params.height;
+
+        let childCount = 0;
+        let addedCount = 0;
+        let removedCount = 0;
+
+        const updatedNodes = nds.map((n) => {
+          if (n.id === groupId || n.type === 'group') return n;
+
+          // Tính tọa độ tuyệt đối chính xác của node trên Canvas
+          const absX = n.parentId === groupId ? oldGx + (n.position.x || 0) : (n.position.x || 0);
+          const absY = n.parentId === groupId ? oldGy + (n.position.y || 0) : (n.position.y || 0);
+          const nodeW = n.style?.width || 230;
+          const nodeH = n.style?.height || 75;
+
+          // Kiểm tra tâm của khối có nằm trong phạm vi viền mới của cụm không
+          const cx = absX + nodeW / 2;
+          const cy = absY + nodeH / 2;
+          const isInside = cx >= newGx && cx <= newGx + newGw && cy >= newGy && cy <= newGy + newGh;
+
+          if (isInside) {
+            childCount++;
+            if (n.parentId !== groupId) {
+              addedCount++;
+            }
+            // Chuyển sang tọa độ tương đối mới (ĐẢM BẢO KHÔNG BỊ NHẢY / DỊCH CHUYỂN VỊ TRÍ TRÊN MÀN HÌNH!)
+            return {
+              ...n,
+              parentId: groupId,
+              extent: 'parent' as const,
+              position: {
+                x: absX - newGx,
+                y: absY - newGy,
+              },
+              zIndex: 10,
+              data: {
+                ...n.data,
+                onDetachFromGroup: handleDetachNodeFromGroup,
+              },
+            };
+          } else {
+            if (n.parentId === groupId) {
+              // Bị loại ra ngoài cụm khi cụm thu nhỏ lại
+              removedCount++;
+              return {
+                ...n,
+                parentId: undefined,
+                extent: undefined,
+                position: {
+                  x: absX,
+                  y: absY,
+                },
+                zIndex: 0,
+                data: {
+                  ...n.data,
+                  onDetachFromGroup: undefined,
+                },
+              };
+            }
+            return n;
+          }
+        });
+
+        if (addedCount > 0) {
+          notify.success(`Đã tự động thêm ${addedCount} khối vào cụm phân vùng!`);
+        } else if (removedCount > 0) {
+          notify.info(`Đã tách ${removedCount} khối ra khỏi cụm phân vùng.`);
+        }
+
+        // Cập nhật Group Node với kích thước, tọa độ và số lượng con mới
+        return updatedNodes.map((n) =>
+          n.id === groupId
+            ? {
+                ...n,
+                position: { x: newGx, y: newGy },
+                style: { ...n.style, width: newGw, height: newGh },
+                data: {
+                  ...n.data,
+                  width: newGw,
+                  height: newGh,
+                  origWidth: newGw,
+                  origHeight: newGh,
+                  childCount,
+                },
+              }
+            : n
+        );
+      });
+    },
+    [setNodes]
+  );
 
   // Nâng cấp: Dùng parentId để xác định node con (chính thống ReactFlow)
   const handleToggleExpandGroup = useCallback((groupId: string, isExpanded: boolean) => {
@@ -331,6 +541,7 @@ const FlowContent: React.FC = () => {
         onToggleExpand: handleToggleExpandGroup,
         onUngroup: handleUngroupGroup,
         onResize: handleResizeGroup,
+        onResizeEnd: handleResizeGroupEnd,
       },
     };
 
@@ -349,6 +560,10 @@ const FlowContent: React.FC = () => {
             y: n.position.y - groupY,
           },
           zIndex: 10,
+          data: {
+            ...n.data,
+            onDetachFromGroup: handleDetachNodeFromGroup,
+          },
         };
       });
       // Group node phải đứng TRƯỚC các node con để ReactFlow xử lý parentId
@@ -362,7 +577,7 @@ const FlowContent: React.FC = () => {
     const selectedNodes = nodes.filter((n) => n.selected && n.type !== 'group' && !n.parentId);
 
     if (selectedNodes.length === 0) {
-      notify.warning('Vui lòng chọn các khối trên Canvas (hoặc dùng nút ✂️ Quét vùng) để tạo phân vùng gom nhóm!');
+      notify.warning('Vui lòng chọn các khối trên Canvas (hoặc dùng nút Quét vùng) để tạo phân vùng gom nhóm!');
       return;
     }
     _createGroupFromNodes(selectedNodes);
@@ -444,6 +659,8 @@ const FlowContent: React.FC = () => {
             onToggleExpand: handleToggleExpandGroup,
             onUngroup: handleUngroupGroup,
             onResize: handleResizeGroup,
+            onResizeEnd: handleResizeGroupEnd,
+            onDetachFromGroup: n.parentId ? handleDetachNodeFromGroup : undefined,
           },
         };
       });
@@ -486,13 +703,18 @@ const FlowContent: React.FC = () => {
     setSettingsOpen(true);
   };
 
-  const handleAddNode = (type: string, label: string, category?: string) => {
+  const handleAddNode = (type: string, label: string, category?: string, customData?: any) => {
     const id = `node_${Date.now()}`;
     const newNode = {
       id,
       type,
       position: { x: 200 + nodes.length * 280, y: 150 + (nodes.length % 2 === 0 ? 0 : 60) },
-      data: { label, description: 'Khối chức năng mới', category: category || 'GENERAL' },
+      data: {
+        label,
+        description: customData?.desc || 'Khối chức năng mới',
+        category: category || 'GENERAL',
+        ...customData,
+      },
     };
     setNodes((nds) => [...nds, newNode]);
     notify.success(`Đã thêm khối "${label}" vào quy trình!`);
@@ -634,7 +856,22 @@ const FlowContent: React.FC = () => {
     }
   };
 
-  // ── XEM TOÀN BỘ: gộp tất cả workflow vào 1 canvas với offset lưới ────────
+  const handleToggleCompactNodes = () => {
+    const nextVal = !isCompactNodes;
+    setIsCompactNodes(nextVal);
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          isCompact: nextVal,
+        },
+      }))
+    );
+    notify.info(nextVal ? 'Đã bật chế độ thu nhỏ siêu gọn (1 dòng)' : 'Đã mở rộng hiển thị khối');
+  };
+
+  // ── XEM TOÀN BỘ: gộp tất cả workflow vào 1 canvas theo hàng dọc ────────
   const handleShowAllWorkflows = useCallback(async () => {
     if (isOverviewMode) {
       setIsOverviewMode(false);
@@ -645,52 +882,76 @@ const FlowContent: React.FC = () => {
     setLoading(true);
     try {
       const allWfs = await workflowService.getAllWorkflows();
-      const COLS = 3;
-      const COL_GAP = 1800;
-      const ROW_GAP = 1200;
       let allNodes: any[] = [];
       let allEdges: any[] = [];
+      let currentTopOffset = 0;
 
       allWfs.forEach((wf: WorkflowData, wfIndex: number) => {
-        const col = wfIndex % COLS;
-        const row = Math.floor(wfIndex / COLS);
-        const offsetX = col * COL_GAP;
-        const offsetY = row * ROW_GAP;
         const prefix = `ov_wf${wfIndex}_`;
+        const nodesList = wf.nodes || [];
 
-        // Label nhận dạng workflow
+        // Tính toán bounding box thực tế của quy trình
+        let minX = 0;
+        let minY = 0;
+        let maxY = 0;
+
+        if (nodesList.length > 0) {
+          const xs = nodesList.map((n: any) => n.position?.x || 0);
+          const ys = nodesList.map((n: any) => n.position?.y || 0);
+          const heights = nodesList.map((n: any) => (n.position?.y || 0) + (n.style?.height || 75));
+          minX = Math.min(...xs);
+          minY = Math.min(...ys);
+          maxY = Math.max(...heights);
+        }
+
+        const offsetY = currentTopOffset + 40; // Khoảng cách giữa tiêu đề và khối
+        const wfHeight = Math.max(maxY - minY, 90);
+
+        // 1 Dòng tiêu đề tối giản 100% không khung, không chấm handle
         allNodes.push({
           id: `${prefix}label`,
-          type: 'action',
-          position: { x: offsetX, y: offsetY - 70 },
-          draggable: false,
+          type: 'workflowHeader',
+          position: { x: 0, y: currentTopOffset },
+          draggable: true,
           selectable: false,
           data: {
+            title: `#${wfIndex + 1} ${wf.name}`,
             label: `#${wfIndex + 1} ${wf.name}`,
-            description: wf.isActive ? '🟢 Đang kích hoạt' : '⚪ Bản nháp',
-            category: 'OVERVIEW',
+            isActive: Boolean(wf.isActive),
           },
-          style: { background: '#F3F4F6', border: '1px solid #D1D5DB', minWidth: 300, opacity: 0.92 },
         });
 
-        (wf.nodes || []).forEach((n: any) => {
+        nodesList.forEach((n: any) => {
           const resolvedType = n.type === 'group' ? 'group' : n.type?.includes('trigger') ? 'trigger' : n.type?.includes('ai') ? 'ai' : 'action';
           const nodeStyle = resolvedType === 'group'
             ? { width: n.data?.width || n.style?.width || 560, height: n.data?.height || n.style?.height || 280, zIndex: -1, ...n.style }
             : n.style;
 
+          // Chuẩn hóa tọa độ tương đối theo minX, minY để các quy trình xếp thẳng hàng và giữ nguyên tương đối
+          const relX = (n.position?.x || 0) - (n.parentId ? 0 : minX);
+          const relY = (n.position?.y || 0) - (n.parentId ? 0 : minY);
+
           allNodes.push({
             ...n,
             id: `${prefix}${n.id}`,
             type: resolvedType,
-            position: { x: (n.position?.x || 0) + offsetX, y: (n.position?.y || 0) + offsetY },
+            position: {
+              x: n.parentId ? (n.position?.x || 0) : relX,
+              y: n.parentId ? (n.position?.y || 0) : relY + offsetY,
+            },
             parentId: n.parentId ? `${prefix}${n.parentId}` : undefined,
             extent: n.extent,
             style: nodeStyle,
             zIndex: n.parentId ? 10 : (resolvedType === 'group' ? -1 : 0),
-            draggable: false,
-            selectable: false,
-            data: { ...n.data, label: n.data?.label || n.label || 'Node', description: n.data?.description || '' },
+            draggable: true,
+            selectable: true,
+            data: {
+              ...n.data,
+              label: n.data?.label || n.label || 'Node',
+              description: n.data?.description || '',
+              workflowId: wf._id,
+              originalNodeId: n.id,
+            },
           });
         });
 
@@ -702,14 +963,22 @@ const FlowContent: React.FC = () => {
             target: `${prefix}${e.target}`,
             animated: false,
             style: e.style || { stroke: '#CBD5E1', strokeWidth: 1.5 },
+            data: {
+              ...e.data,
+              workflowId: wf._id,
+              originalEdgeId: e.id,
+            },
           });
         });
+
+        // Cập nhật vị trí bắt đầu cho quy trình tiếp theo
+        currentTopOffset += wfHeight + 140;
       });
 
       setNodes(allNodes);
       setEdges(allEdges);
-      setTimeout(() => fitView({ duration: 600, padding: 0.06 }), 150);
-      notify.success(`Đang hiển thị toàn bộ ${allWfs.length} quy trình trên 1 canvas!`);
+      setTimeout(() => fitView({ duration: 600, padding: 0.08 }), 150);
+      notify.success(`Đang hiển thị toàn bộ ${allWfs.length} quy trình theo hàng dọc trên 1 canvas!`);
     } catch (err: any) {
       notify.error('Lỗi tải toàn bộ quy trình: ' + err.message);
       setIsOverviewMode(false);
@@ -719,13 +988,102 @@ const FlowContent: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOverviewMode, currentWorkflow, setNodes, setEdges, fitView]);
 
-  // ── Drag stop handler ──────────────────────────────────────────────────────
+  // ── Drag stop handler: Hỗ trợ kéo thả khối vào/ra khỏi cụm phân vùng ─────
   const handleNodeDragStop = useCallback((_event: any, draggedNode: any) => {
-    if (draggedNode.type === 'group') {
-      // Khi kéo Group, giữ nguyên các node con thuộc group, không nuốt nhầm các node bên ngoài
-      return;
-    }
-  }, []);
+    if (draggedNode.type === 'group' || isOverviewMode) return;
+
+    const nodeW = draggedNode.style?.width || 230;
+    const nodeH = draggedNode.style?.height || 75;
+
+    setNodes((nds) => {
+      const groups = nds.filter((n) => n.type === 'group' && (n.data?.isExpanded ?? true));
+      const currentParentId = draggedNode.parentId;
+      const currentGroup = groups.find((g) => g.id === currentParentId);
+
+      // Tọa độ tuyệt đối của node sau khi kéo thả trên Canvas
+      const absX = currentGroup ? currentGroup.position.x + (draggedNode.position.x || 0) : (draggedNode.position.x || 0);
+      const absY = currentGroup ? currentGroup.position.y + (draggedNode.position.y || 0) : (draggedNode.position.y || 0);
+      const cx = absX + nodeW / 2;
+      const cy = absY + nodeH / 2;
+
+      // Tìm xem tâm khối có rơi vào bên trong viền của một cụm đang mở rộng không
+      const targetGroup = groups.find((g) => {
+        const gx = g.position.x;
+        const gy = g.position.y;
+        const gw = Number(g.style?.width ?? g.data?.width ?? 280);
+        const gh = Number(g.style?.height ?? g.data?.height ?? 160);
+        return cx >= gx && cx <= gx + gw && cy >= gy && cy <= gy + gh;
+      });
+
+      if (targetGroup && targetGroup.id !== currentParentId) {
+        // Thả vào cụm phân vùng mới
+        notify.success(`Đã thêm "${draggedNode.data?.label || draggedNode.id}" vào "${targetGroup.data?.label || 'cụm phân vùng'}"!`);
+
+        const updated = nds.map((n) => {
+          if (n.id === draggedNode.id) {
+            return {
+              ...n,
+              parentId: targetGroup.id,
+              extent: 'parent' as const,
+              position: {
+                x: absX - targetGroup.position.x,
+                y: absY - targetGroup.position.y,
+              },
+              zIndex: 10,
+              data: {
+                ...n.data,
+                onDetachFromGroup: handleDetachNodeFromGroup,
+              },
+            };
+          }
+          return n;
+        });
+
+        // Cập nhật lại childCount cho tất cả các group
+        return updated.map((n) => {
+          if (n.type === 'group') {
+            const count = updated.filter((c) => c.parentId === n.id).length;
+            return { ...n, data: { ...n.data, childCount: count } };
+          }
+          return n;
+        });
+      } else if (!targetGroup && currentParentId) {
+        // Kéo ra khỏi cụm phân vùng về lại canvas chính
+        notify.info(`Đã đưa "${draggedNode.data?.label || draggedNode.id}" ra khỏi cụm phân vùng.`);
+
+        const updated = nds.map((n) => {
+          if (n.id === draggedNode.id) {
+            return {
+              ...n,
+              parentId: undefined,
+              extent: undefined,
+              position: {
+                x: absX,
+                y: absY,
+              },
+              zIndex: 0,
+              data: {
+                ...n.data,
+                onDetachFromGroup: undefined,
+              },
+            };
+          }
+          return n;
+        });
+
+        // Cập nhật lại childCount cho tất cả các group
+        return updated.map((n) => {
+          if (n.type === 'group') {
+            const count = updated.filter((c) => c.parentId === n.id).length;
+            return { ...n, data: { ...n.data, childCount: count } };
+          }
+          return n;
+        });
+      }
+
+      return nds;
+    });
+  }, [isOverviewMode, setNodes]);
 
   const handleTestRun = async () => {
     if (!currentWorkflow?._id) {
@@ -1004,6 +1362,15 @@ const FlowContent: React.FC = () => {
               </Space>
             )}
 
+            <BaseButton
+              variant="secondary"
+              size="small"
+              onClick={handleToggleCompactNodes}
+              style={{ fontSize: 12 }}
+            >
+              {isCompactNodes ? 'Mở rộng khối' : 'Thu nhỏ khối (1 dòng)'}
+            </BaseButton>
+
             {currentWorkflow && (
               <BaseButton
                 variant="ghost"
@@ -1121,9 +1488,9 @@ const FlowContent: React.FC = () => {
               edgeTypes={edgeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              onConnect={isOverviewMode ? undefined : onConnect}
-              onNodeClick={isOverviewMode ? undefined : handleNodeClick}
-              onEdgeClick={isOverviewMode ? undefined : (_evt, edge) => handleOpenEdgeModal(edge.id)}
+              onConnect={onConnect}
+              onNodeClick={handleNodeClick}
+              onEdgeClick={(_evt, edge) => handleOpenEdgeModal(edge.id)}
               onNodeDragStop={handleNodeDragStop}
               fitView
               elevateEdgesOnSelect
@@ -1237,6 +1604,7 @@ const FlowContent: React.FC = () => {
           selectedNode={selectedNode}
           allNodes={nodes}
           onSelectNode={(node) => setSelectedNode(node)}
+          onDetachNode={handleDetachNodeFromGroup}
           onClose={() => {
             setSettingsOpen(false);
             setSelectedNode(null);
@@ -1433,12 +1801,92 @@ const FlowContent: React.FC = () => {
         open={architectOpen}
         onClose={() => setArchitectOpen(false)}
         selectedNodesCount={nodes.filter((n) => n.selected).length}
-        onGroupSelectedNodes={() => {
-          // Toggle group mode for rate comparison workflow
-          notify.success('Đã gom nhóm thành công!');
+        onApplyFlowUpdate={async (newNodes, newEdges) => {
+          if (newNodes && newNodes.length > 0) {
+            const mappedNodes = newNodes.map((n: any) => {
+              const resolvedType = n.type === 'group' || n.type?.includes('group')
+                ? 'group'
+                : n.type?.includes('trigger')
+                  ? 'trigger'
+                  : n.type?.includes('ai')
+                    ? 'ai'
+                    : 'action';
+              const nodeData = n.data || { label: n.label, description: n.description || '' };
+              const nodeStyle = resolvedType === 'group'
+                ? { width: nodeData.width || n.style?.width || 560, height: nodeData.height || n.style?.height || 280, zIndex: -1, ...n.style }
+                : n.style;
+
+              return {
+                ...n,
+                type: resolvedType,
+                parentId: n.parentId,
+                extent: n.extent,
+                style: nodeStyle,
+                zIndex: n.parentId ? 10 : (resolvedType === 'group' ? -1 : 0),
+                data: {
+                  ...nodeData,
+                  onToggleExpand: handleToggleExpandGroup,
+                  onUngroup: handleUngroupGroup,
+                  onResize: handleResizeGroup,
+                  onResizeEnd: handleResizeGroupEnd,
+                  onDetachFromGroup: n.parentId ? handleDetachNodeFromGroup : undefined,
+                },
+              };
+            });
+
+            const mappedEdges = (newEdges || []).map((e: any) => ({
+              ...e,
+              type: 'directive',
+              animated: e.animated ?? true,
+              style: e.style || { stroke: e.data?.isInternal ? '#10B981' : '#2563EB', strokeWidth: 2 },
+              zIndex: e.data?.isInternal ? 20 : 1,
+              data: {
+                ...e.data,
+                label: e.data?.label || e.label || '',
+                onEditEdge: handleOpenEdgeModal,
+                onDeleteEdge: handleDeleteEdge,
+              },
+            }));
+
+            setNodes(mappedNodes);
+            setEdges(mappedEdges);
+
+            try {
+              if (currentWorkflow?._id) {
+                await workflowService.updateWorkflow(currentWorkflow._id, {
+                  nodes: mappedNodes,
+                  edges: mappedEdges,
+                });
+                setCurrentWorkflow({
+                  ...currentWorkflow,
+                  nodes: mappedNodes,
+                  edges: mappedEdges,
+                });
+              } else {
+                const created = await workflowService.createWorkflow({
+                  name: 'Quy trình Tối ưu Đa kênh AI Auto-Architect',
+                  description: 'Quy trình tự động hóa phân tích theo hạ tầng thực tế của doanh nghiệp',
+                  isActive: true,
+                  nodes: mappedNodes,
+                  edges: mappedEdges,
+                });
+                setCurrentWorkflow(created);
+              }
+            } catch (err: any) {
+              console.warn('Lỗi lưu quy trình auto-architect:', err.message);
+            }
+
+            setTimeout(() => fitView({ duration: 500, padding: 0.1 }), 120);
+          }
         }}
+        onGroupSelectedNodes={handleGroupSelectedNodes}
         onUngroupNodes={() => {
-          notify.info('Đã tách khối thành công!');
+          const selectedGroups = nodes.filter((n) => n.selected && n.type === 'group');
+          if (selectedGroups.length > 0) {
+            selectedGroups.forEach((g) => handleUngroupGroup(g.id));
+          } else {
+            notify.info('Vui lòng chọn một cụm phân vùng trên Canvas để tách khối!');
+          }
         }}
       />
     </PageContainer>

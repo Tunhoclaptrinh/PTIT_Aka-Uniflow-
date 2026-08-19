@@ -178,7 +178,7 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
           label="Tên chỉ lệnh / Nhãn hiển thị trên đường nối"
           rules={[{ required: true, message: 'Vui lòng nhập nhãn chỉ lệnh!' }]}
         >
-          <Input placeholder="Ví dụ: ⚡ Nếu khớp SKU > 90%, 🧾 Xuất HĐĐT VAT 1%, 🏆 Chốt cước rẻ nhất..." />
+          <Input placeholder="Ví dụ: Báo giá Viettel Post, Lệnh trừ tồn kho, Xuất HĐĐT VAT 1%..." />
         </Form.Item>
 
         <Form.Item
@@ -191,10 +191,35 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
               </Tag>
             </span>
           }
+          extra={
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                Gợi ý biểu thức rẽ nhánh (Bấm để chèn):
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {[
+                  { label: 'Chọn Viettel Post', expr: '{{ $json.selectedCarrier == "VIETTEL_POST" }}' },
+                  { label: 'Khớp SKU >= 90%', expr: '{{ $json.confidenceScore >= 0.90 }}' },
+                  { label: 'Đơn VIP >= 1.000.000đ', expr: '{{ $json.orderTotal >= 1000000 }}' },
+                  { label: 'Khối lượng <= 500g', expr: '{{ $json.weightGrams <= 500 }}' },
+                  { label: 'Phương thức COD', expr: '{{ $json.paymentMethod == "COD" }}' },
+                ].map((item) => (
+                  <Tag
+                    key={item.label}
+                    color="geekblue"
+                    style={{ cursor: 'pointer', fontSize: 10.5, borderRadius: 3 }}
+                    onClick={() => form.setFieldsValue({ conditionExpr: item.expr })}
+                  >
+                    + {item.label}
+                  </Tag>
+                ))}
+              </div>
+            </div>
+          }
         >
           <Input.TextArea
             rows={2}
-            placeholder="Ví dụ: payload.confidenceScore >= 0.90 && order.totalAmount < 5000000"
+            placeholder="Ví dụ: {{ $json.confidenceScore >= 0.90 && $json.orderTotal < 5000000 }}"
             style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 12 }}
           />
         </Form.Item>

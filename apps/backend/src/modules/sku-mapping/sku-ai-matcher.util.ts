@@ -22,7 +22,7 @@ export interface AiMatchResult {
   };
   decision: 'AUTO_APPROVED' | 'PENDING_REVIEW' | 'MANUAL_REQUIRED';
   reasoning: string;
-  engineUsed: 'OLLAMA_LLM' | 'GEMINI_LLM' | 'LOCAL_VECTOR_NER';
+  engineUsed: 'OLLAMA_LLM' | 'GEMINI_LLM' | 'OPENAI_LLM' | 'PYTHON_AI_ENGINE' | 'LOCAL_VECTOR_NER';
 }
 
 const STOP_WORDS = new Set([
@@ -106,22 +106,20 @@ function computeCosineSimilarity(tokensA: string[], tokensB: string[]): number {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+import { AiGatewayService } from '../../common/services/ai-gateway.service';
+
 /**
- * Thử gọi Ollama nội bộ (http://localhost:11434) nếu đang chạy
+ * Thử gọi AI Engine / LLM (Gemini / OpenAI / Ollama / Python AI Engine)
  */
-async function tryOllamaMatch(
+async function tryAiLlmMatch(
   sourceTitle: string,
   targetTitle: string
 ): Promise<Partial<AiMatchResult> | null> {
-  const ollamaUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-  const model = process.env.OLLAMA_MODEL || 'llama3';
-
-  try {
-    const prompt = `Bạn là hệ thống AI phân tích sản phẩm TMĐT. Hãy so khớp 2 tên sản phẩm sau:
+  const prompt = `So khớp 2 tên sản phẩm TMĐT sau:
 Sản phẩm A (Sàn TMĐT): "${sourceTitle}"
 Sản phẩm B (Kho Master POS): "${targetTitle}"
 
-Trả về định dạng JSON thuần túy (không markdown, không giải thích ngoài JSON):
+Trả về định dạng JSON:
 {
   "confidenceScore": 0.95,
   "category": "áo polo",
@@ -131,28 +129,14 @@ Trả về định dạng JSON thuần túy (không markdown, không giải thí
   "reasoning": "Khớp cùng loại áo polo, màu đen và kích thước size L."
 }`;
 
-    const res = await axios.post(
-      `${ollamaUrl}/api/generate`,
-      {
-        model,
-        prompt,
-        stream: false,
-        format: 'json',
-      },
-      { timeout: 1500 }
-    );
-
-    if (res.data && res.data.response) {
-      const parsed = JSON.parse(res.data.response);
-      return {
-        confidenceScore: parsed.confidenceScore || 0.95,
-        decision: parsed.decision || 'AUTO_APPROVED',
-        reasoning: parsed.reasoning,
-        engineUsed: 'OLLAMA_LLM',
-      };
-    }
-  } catch {
-    // Ollama không chạy hoặc timeout -> fallback qua Local Vector Cosine Engine
+  const res = await AiGatewayService.completePrompt(prompt, 'Bạn là hệ thống AI đối sánh mã hàng TMĐT UniFlow.', true);
+  if (res.data && res.data.confidenceScore) {
+    return {
+      confidenceScore: res.data.confidenceScore,
+      decision: res.data.decision || 'AUTO_APPROVED',
+      reasoning: res.data.reasoning,
+      engineUsed: res.provider === 'GEMINI' ? 'GEMINI_LLM' : res.provider === 'OPENAI' ? 'OPENAI_LLM' : 'OLLAMA_LLM',
+    };
   }
   return null;
 }
@@ -260,16 +244,16 @@ export async function performAsyncAiSkuMatch(
 ): Promise<AiMatchResult> {
   const localResult = performRealAiSkuMatch(sourceSku, sourceTitle, targetSku, targetTitle);
 
-  // Thử gọi Ollama LLM
-  const ollamaResult = await tryOllamaMatch(sourceTitle, targetTitle);
-  if (ollamaResult && ollamaResult.confidenceScore) {
+  // Thử gọi AI Engine / LLM (Gemini / OpenAI / Ollama)
+  const aiLlmResult = await tryAiLlmMatch(sourceTitle, targetTitle);
+  if (aiLlmResult && aiLlmResult.confidenceScore) {
     return {
       ...localResult,
-      confidenceScore: ollamaResult.confidenceScore,
-      match_score: ollamaResult.confidenceScore,
-      decision: ollamaResult.decision || localResult.decision,
-      reasoning: `[Ollama LLM Verified] ${ollamaResult.reasoning || localResult.reasoning}`,
-      engineUsed: 'OLLAMA_LLM',
+      confidenceScore: aiLlmResult.confidenceScore,
+      match_score: aiLlmResult.confidenceScore,
+      decision: aiLlmResult.decision || localResult.decision,
+      reasoning: `[AI Engine Verified] ${aiLlmResult.reasoning || localResult.reasoning}`,
+      engineUsed: aiLlmResult.engineUsed || 'GEMINI_LLM',
     };
   }
 

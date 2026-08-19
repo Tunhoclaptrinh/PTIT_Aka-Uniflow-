@@ -24,7 +24,10 @@ import {
   AppstoreOutlined,
   ScissorOutlined,
   InfoCircleOutlined,
+  ExportOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { BaseButton } from '../../base/BaseButton';
 import { notify } from '../../../utils/notification';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
@@ -38,6 +41,7 @@ interface NodeSettingsDrawerProps {
   onUpdateNode: (nodeId: string, updatedData: any) => void;
   onDeleteNode: (nodeId: string) => void;
   onSelectNode?: (node: any) => void;
+  onDetachNode?: (nodeId: string) => void;
 }
 
 export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
@@ -48,6 +52,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
   onUpdateNode,
   onDeleteNode,
   onSelectNode,
+  onDetachNode,
 }) => {
   const { themeMode } = useAppConfig();
   const isLight = themeMode === 'light';
@@ -92,6 +97,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         retryPolicy: selectedNode.data?.retryPolicy || 'EXPONENTIAL_3',
         timeoutMs: selectedNode.data?.timeoutMs || 30000,
         enabled: selectedNode.data?.enabled ?? true,
+        enableExecutionCondition: selectedNode.data?.enableExecutionCondition ?? Boolean(selectedNode.data?.executionConditionExpr),
+        executionConditionExpr: selectedNode.data?.executionConditionExpr || '',
+        enableTransform: selectedNode.data?.enableTransform ?? Boolean(selectedNode.data?.transformExpr),
+        transformExpr: selectedNode.data?.transformExpr || '',
+        routingBranchMode: selectedNode.data?.routingBranchMode || 'ALL_MATCHING',
+        httpMethod: selectedNode.data?.httpMethod || 'POST',
+        httpEndpoint: selectedNode.data?.httpEndpoint || '',
+        codeScript: selectedNode.data?.codeScript || '',
       });
       setTestOutput(null);
     }
@@ -126,34 +139,34 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
       const outputPayload = isRateCompare
         ? {
-            success: true,
-            action: 'AI_DYNAMIC_RATE_OPTIMIZATION',
-            sku: 'POLO-SLIM-BLACK-L',
-            parcelWeightGrams: 350,
-            quotes: [
-              { carrier: 'Viettel Post (VTP)', fee: 19500, etaHours: 24, badge: '🏆 RẺ NHẤT (-20.4%)' },
-              { carrier: 'GHTK Express', fee: 22000, etaHours: 18 },
-              { carrier: 'GHN Nhanh', fee: 24500, etaHours: 20 },
-            ],
-            chosenCarrier: 'VIETTEL_POST',
-            appliedFee: 19500,
-            estimatedSavingsVND: 5000,
-            executionTimeMs: 38,
-            timestamp: new Date().toISOString(),
-          }
+          success: true,
+          action: 'AI_DYNAMIC_RATE_OPTIMIZATION',
+          sku: 'POLO-SLIM-BLACK-L',
+          parcelWeightGrams: 350,
+          quotes: [
+            { carrier: 'Viettel Post (VTP)', fee: 19500, etaHours: 24, badge: '🏆 RẺ NHẤT (-20.4%)' },
+            { carrier: 'GHTK Express', fee: 22000, etaHours: 18 },
+            { carrier: 'GHN Nhanh', fee: 24500, etaHours: 20 },
+          ],
+          chosenCarrier: 'VIETTEL_POST',
+          appliedFee: 19500,
+          estimatedSavingsVND: 5000,
+          executionTimeMs: 38,
+          timestamp: new Date().toISOString(),
+        }
         : {
-            success: true,
-            nodeId: selectedNode.id,
-            nodeType: selectedNode.type,
-            outputData: {
-              sku: 'POLO-SLIM-BLACK-L',
-              matchedMasterSku: 'POLO-NAM-SLIM-DEN-L',
-              confidenceScore: 0.96,
-              status: 'READY_FOR_NEXT_STEP',
-            },
-            latencyMs: Math.floor(Math.random() * 35 + 15),
-            statusCode: 200,
-          };
+          success: true,
+          nodeId: selectedNode.id,
+          nodeType: selectedNode.type,
+          outputData: {
+            sku: 'POLO-SLIM-BLACK-L',
+            matchedMasterSku: 'POLO-NAM-SLIM-DEN-L',
+            confidenceScore: 0.96,
+            status: 'READY_FOR_NEXT_STEP',
+          },
+          latencyMs: Math.floor(Math.random() * 35 + 15),
+          statusCode: 200,
+        };
 
       setTestOutput(outputPayload);
       notify.success(`Kiểm thử thành công khối ${selectedNode.data?.label || selectedNode.id}!`);
@@ -368,10 +381,10 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                   const cColor = cCat.includes('POS')
                     ? '#D97706'
                     : cCat.includes('ACCOUNTING')
-                    ? '#0284C7'
-                    : cCat.includes('AI')
-                    ? '#8B5CF6'
-                    : '#10B981';
+                      ? '#0284C7'
+                      : cCat.includes('AI')
+                        ? '#8B5CF6'
+                        : '#10B981';
 
                   return (
                     <div
@@ -438,9 +451,35 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                           </div>
                         </div>
                       </div>
-                      <Tag color={cColor} style={{ fontSize: 10, borderRadius: 3, margin: 0, flexShrink: 0 }}>
-                        {cCat}
-                      </Tag>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <Tag color={cColor} style={{ fontSize: 10, borderRadius: 3, margin: 0 }}>
+                          {cCat}
+                        </Tag>
+                        {onDetachNode && (
+                          <Tooltip title="Tách khối này ra góc trên bên phải của cụm">
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDetachNode(child.id);
+                              }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 22,
+                                height: 22,
+                                borderRadius: 4,
+                                background: '#F5F3FF',
+                                color: '#8B5CF6',
+                                border: '1px solid #DDD6FE',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <ExportOutlined style={{ fontSize: 11 }} />
+                            </span>
+                          </Tooltip>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -470,7 +509,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
     <Drawer
       open={open}
       onClose={onClose}
-      width={560}
+      width={800}
       destroyOnClose
       styles={{
         header: {
@@ -560,6 +599,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
       <Tabs
         activeKey={activeTab}
         onChange={setActiveTab}
+        size='small'
         items={[
           {
             key: 'config',
@@ -577,7 +617,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 8,
+                      justifyContent: 'space-between',
                       padding: '8px 12px',
                       background: '#F5F3FF',
                       borderRadius: 6,
@@ -587,10 +627,26 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       color: '#5B21B6',
                     }}
                   >
-                    <ThunderboltFilled />
-                    <span>
-                      Thuộc cụm phân vùng: <strong>{parentGroup.data?.label || parentGroup.id}</strong>
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <ThunderboltFilled />
+                      <span>
+                        Thuộc cụm phân vùng: <strong>{parentGroup.data?.label || parentGroup.id}</strong>
+                      </span>
+                    </div>
+                    {onDetachNode && (
+                      <BaseButton
+                        variant="ghost"
+                        size="small"
+                        icon={<ExportOutlined />}
+                        onClick={() => {
+                          onDetachNode(selectedNode.id);
+                          onClose();
+                        }}
+                        style={{ color: '#8B5CF6', borderColor: '#C4B5FD', fontSize: 11, padding: '0 8px', height: 24 }}
+                      >
+                        Tách khỏi cụm
+                      </BaseButton>
+                    )}
                   </div>
                 )}
 
@@ -677,8 +733,8 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                           marginBottom: 16,
                         }}
                       >
-                        <div style={{ fontWeight: 700, fontSize: 13, color: '#5B21B6', marginBottom: 6 }}>
-                          ⚙️ CẤU HÌNH SO SÁNH CƯỚC & CHỌN HÃNG VẬN CHUYỂN
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#5B21B6', marginBottom: 8 }}>
+                          Cấu hình So sánh Cước & Tối ưu Giao vận
                         </div>
 
                         <Form.Item
@@ -705,10 +761,10 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                             mode="multiple"
                             placeholder="Chọn các hãng kết nối sẵn có"
                             options={[
-                              { label: 'Viettel Post (🏆 Ưu đãi tuyến trục HN-HCM 19.5k)', value: 'VIETTEL_POST' },
-                              { label: 'GHTK Express (Nội thành siêu tốc 22.0k)', value: 'GHTK' },
-                              { label: 'GHN Nhanh (Giao nhanh liên tỉnh 24.5k)', value: 'GHN' },
-                              { label: 'J&T Express (Đồng giá toàn quốc 21.0k)', value: 'JT_EXPRESS' },
+                              { label: 'Viettel Post (Tuyến trục Hà Nội - TP.HCM)', value: 'VIETTEL_POST' },
+                              { label: 'GHTK Express (Nội thành & Liên tỉnh)', value: 'GHTK' },
+                              { label: 'GHN Nhanh (Chuyển phát nhanh)', value: 'GHN' },
+                              { label: 'J&T Express (Mạng lưới toàn quốc)', value: 'JT_EXPRESS' },
                             ]}
                           />
                         </Form.Item>
@@ -721,9 +777,9 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                         >
                           <Select
                             options={[
-                              { label: '🏆 Hãng có cước phí rẻ nhất (Tiết kiệm tối đa)', value: 'CHEAPEST' },
-                              { label: '⚡ Hãng giao hàng nhanh nhất (Tối ưu thời gian ETA)', value: 'FASTEST' },
-                              { label: '⭐ Hãng có tỷ lệ giao thành công cao nhất (> 98%)', value: 'HIGHEST_SUCCESS' },
+                              { label: 'Hãng có cước phí tối ưu nhất (Cost-effective)', value: 'CHEAPEST' },
+                              { label: 'Hãng giao hàng nhanh nhất (Fastest SLA)', value: 'FASTEST' },
+                              { label: 'Hãng có tỷ lệ giao thành công cao nhất (> 98%)', value: 'HIGHEST_SUCCESS' },
                             ]}
                           />
                         </Form.Item>
@@ -779,66 +835,252 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
                 {nodeType === 'action' && (
                   <>
-                    <Form.Item label="Chi nhánh kho POS đích" name="warehouseId">
-                      <Select
-                        options={[
-                          { label: 'Kho Tổng Hà Nội (WH_MAIN_HN)', value: 'WH_MAIN_HN' },
-                          { label: 'Kho Cầu Giấy (WH_HN_CG)', value: 'WH_HN_CG' },
-                          { label: 'Kho Hồ Chí Minh (WH_HCM_Q1)', value: 'WH_HCM_Q1' },
-                        ]}
-                      />
-                    </Form.Item>
+                    {/* LOGISTICS / VẬN ĐƠN ĐA HÃNG */}
+                    {((selectedNode.data?.category || '').toUpperCase() === 'LOGISTICS' ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('vận đơn') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('đvvc') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('vận chuyển') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('ghtk') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('viettel') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('ghn')) && (
+                        <div
+                          style={{
+                            background: '#F0FDF4',
+                            borderRadius: 6,
+                            border: '1px solid #BBF7D0',
+                            padding: '12px 14px',
+                            marginBottom: 16,
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#166534', marginBottom: 8 }}>
+                            Cấu hình Định tuyến & Tạo Vận đơn Đa hãng
+                          </div>
 
-                    <Form.Item label="Hành động kho hàng" name="deductType">
-                      <Select
-                        options={[
-                          { label: 'Trừ tồn kho khả dụng tức thì (Live Inventory Deduct)', value: 'INSTANT_AVAILABLE' },
-                          { label: 'Khóa tạm giữ tồn kho (Hold Inventory)', value: 'HOLD_INVENTORY' },
-                        ]}
-                      />
-                    </Form.Item>
+                          <Form.Item
+                            label="Chế độ định tuyến Hãng vận chuyển"
+                            name="carrierRoutingMode"
+                            initialValue={selectedNode.data?.carrierRoutingMode || 'DYNAMIC_AI'}
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              options={[
+                                { label: 'Định tuyến tự động theo quyết định AI (Khuyến nghị)', value: 'DYNAMIC_AI' },
+                                { label: 'Tự động chọn hãng rẻ nhất qua cổng Hub', value: 'AUTO_CHEAPEST' },
+                                { label: 'Cố định Viettel Post', value: 'MANUAL_VIETTEL' },
+                                { label: 'Cố định GHTK Express', value: 'MANUAL_GHTK' },
+                                { label: 'Cố định GHN Nhanh', value: 'MANUAL_GHN' },
+                              ]}
+                            />
+                          </Form.Item>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 12,
-                        padding: '10px 14px',
-                        background: isLight ? '#F9FAFB' : '#1F2937',
-                        borderRadius: 6,
-                        border: '1px solid var(--border-subtle, #E5E7EB)',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>Tự động in phiếu giao hàng A6 ngay</div>
-                        <div style={{ color: '#6B7280', fontSize: 12 }}>Tạo file PDF in vận đơn khi vừa sinh mã tracking</div>
-                      </div>
-                      <Form.Item name="autoPrint" valuePropName="checked" noStyle>
-                        <Switch />
-                      </Form.Item>
-                    </div>
+                          <Form.Item
+                            label="Gói dịch vụ giao vận ưu tiên"
+                            name="serviceType"
+                            initialValue={selectedNode.data?.serviceType || 'STANDARD_FAST'}
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              options={[
+                                { label: 'Giao chuẩn liên tỉnh (24h - 48h)', value: 'STANDARD_FAST' },
+                                { label: 'Hỏa tốc nội thành (2h - 4h)', value: 'EXPRESS_SAMEDAY' },
+                                { label: 'Tiết kiệm đường bộ (3 - 5 ngày)', value: 'ECONOMY_SAVER' },
+                              ]}
+                            />
+                          </Form.Item>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 16,
-                        padding: '10px 14px',
-                        background: isLight ? '#F9FAFB' : '#1F2937',
-                        borderRadius: 6,
-                        border: '1px solid var(--border-subtle, #E5E7EB)',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>Tự động đối soát tiền thu hộ COD</div>
-                        <div style={{ color: '#6B7280', fontSize: 12 }}>Đồng bộ số tiền COD với hóa đơn trên sàn TMĐT</div>
-                      </div>
-                      <Form.Item name="autoCod" valuePropName="checked" noStyle>
-                        <Switch />
-                      </Form.Item>
-                    </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: 10,
+                              padding: '8px 10px',
+                              background: '#FFFFFF',
+                              borderRadius: 4,
+                              border: '1px solid #DCFCE7',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#166534' }}>Tự động in phiếu giao hàng A6 ngay</div>
+                              <div style={{ color: '#6B7280', fontSize: 11 }}>Tạo file PDF in vận đơn khi vừa sinh mã tracking</div>
+                            </div>
+                            <Form.Item name="autoPrint" valuePropName="checked" noStyle>
+                              <Switch defaultChecked />
+                            </Form.Item>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '8px 10px',
+                              background: '#FFFFFF',
+                              borderRadius: 4,
+                              border: '1px solid #DCFCE7',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#166534' }}>Tự động đối soát tiền thu hộ COD</div>
+                              <div style={{ color: '#6B7280', fontSize: 11 }}>Đồng bộ số tiền COD với hóa đơn trên sàn TMĐT</div>
+                            </div>
+                            <Form.Item name="autoCod" valuePropName="checked" noStyle>
+                              <Switch defaultChecked />
+                            </Form.Item>
+                          </div>
+                        </div>
+                      )}
+
+                    {/* ACCOUNTING / KẾ TOÁN & HĐĐT */}
+                    {((selectedNode.data?.category || '').toUpperCase() === 'ACCOUNTING' ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('misa') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('kế toán') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('hóa đơn') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('vat')) && (
+                        <div
+                          style={{
+                            background: '#F0F9FF',
+                            borderRadius: 6,
+                            border: '1px solid #BAE6FD',
+                            padding: '12px 14px',
+                            marginBottom: 16,
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#0369A1', marginBottom: 8 }}>
+                            Cấu hình Hóa đơn Điện tử & Kế toán MISA
+                          </div>
+
+                          <Form.Item
+                            label="Phần mềm Hóa đơn điện tử kết nối"
+                            name="accountingSystem"
+                            initialValue={selectedNode.data?.accountingSystem || 'MISA_MEINVOICE'}
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              options={[
+                                { label: 'MISA meInvoice / MISA AMIS (Ký số Cloud HSM)', value: 'MISA_MEINVOICE' },
+                                { label: 'Fast Accounting Online', value: 'FAST_ONLINE' },
+                                { label: 'BRAVO 8R3 ERP', value: 'BRAVO_ERP' },
+                              ]}
+                            />
+                          </Form.Item>
+
+                          <Form.Item
+                            label="Mức thuế suất áp dụng"
+                            name="vatRate"
+                            initialValue={selectedNode.data?.vatRate || 'VAT_1_PCT'}
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              options={[
+                                { label: '1% - Hộ KD & Doanh nghiệp TMĐT theo NĐ 117/2025', value: 'VAT_1_PCT' },
+                                { label: '8% - Thuế suất kích cầu', value: 'VAT_8_PCT' },
+                                { label: '10% - Thuế suất tiêu chuẩn', value: 'VAT_10_PCT' },
+                              ]}
+                            />
+                          </Form.Item>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '8px 10px',
+                              background: '#FFFFFF',
+                              borderRadius: 4,
+                              border: '1px solid #E0F2FE',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#0369A1' }}>Tự động ký số điện tử HSM</div>
+                              <div style={{ color: '#6B7280', fontSize: 11 }}>Phát hành HĐĐT ngay khi đơn hoàn tất giao</div>
+                            </div>
+                            <Form.Item name="autoSignInvoice" valuePropName="checked" noStyle>
+                              <Switch defaultChecked />
+                            </Form.Item>
+                          </div>
+                        </div>
+                      )}
+
+                    {/* POS / KHO BÃI */}
+                    {((selectedNode.data?.category || '').toUpperCase() === 'POS' ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('sapo') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('kiotviet') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('nhanh') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('kho')) && (
+                        <>
+                          <Form.Item label="Chi nhánh kho POS đích" name="warehouseId">
+                            <Select
+                              options={[
+                                { label: 'Kho Tổng Hà Nội (WH_MAIN_HN)', value: 'WH_MAIN_HN' },
+                                { label: 'Kho Cầu Giấy (WH_HN_CG)', value: 'WH_HN_CG' },
+                                { label: 'Kho Hồ Chí Minh (WH_HCM_Q1)', value: 'WH_HCM_Q1' },
+                              ]}
+                            />
+                          </Form.Item>
+
+                          <Form.Item label="Hành động kho hàng" name="deductType">
+                            <Select
+                              options={[
+                                { label: 'Trừ tồn kho khả dụng tức thì (Live Inventory Deduct)', value: 'INSTANT_AVAILABLE' },
+                                { label: 'Khóa tạm giữ tồn kho (Hold Inventory)', value: 'HOLD_INVENTORY' },
+                              ]}
+                            />
+                          </Form.Item>
+                        </>
+                      )}
+
+                    {/* CUSTOM DEVELOPER BLOCKS */}
+                    {((selectedNode.data?.category || '').toUpperCase() === 'CUSTOM' ||
+                      selectedNode.data?.customType ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('custom') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('http') ||
+                      (selectedNode.data?.label || '').toLowerCase().includes('script')) && (
+                        <div
+                          style={{
+                            background: '#F0F9FF',
+                            borderRadius: 6,
+                            border: '1px solid #BAE6FD',
+                            padding: '12px 14px',
+                            marginBottom: 16,
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#0369A1', marginBottom: 8 }}>
+                            Cấu hình Khối Tùy chỉnh (Custom Developer Node)
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 10 }}>
+                            <Form.Item label="Phương thức" name="httpMethod" initialValue={selectedNode.data?.httpMethod || 'POST'}>
+                              <Select
+                                options={[
+                                  { label: 'POST', value: 'POST' },
+                                  { label: 'GET', value: 'GET' },
+                                  { label: 'PUT', value: 'PUT' },
+                                  { label: 'DELETE', value: 'DELETE' },
+                                  { label: 'PATCH', value: 'PATCH' },
+                                ]}
+                              />
+                            </Form.Item>
+
+                            <Form.Item label="Endpoint URL" name="httpEndpoint" initialValue={selectedNode.data?.httpEndpoint || ''}>
+                              <Input placeholder="https://api.yourdomain.com/v1/resource" />
+                            </Form.Item>
+                          </div>
+
+                          <Form.Item
+                            label="Mã hàm JavaScript xử lý ($json, input)"
+                            name="codeScript"
+                            initialValue={selectedNode.data?.codeScript || ''}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input.TextArea
+                              rows={4}
+                              placeholder="// Viết mã xử lý payload tùy ý tại đây..."
+                              style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 12 }}
+                            />
+                          </Form.Item>
+                        </div>
+                      )}
                   </>
                 )}
 
@@ -857,6 +1099,195 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                     </Form.Item>
                   </div>
                 </div>
+              </Form>
+            ),
+          },
+          {
+            key: 'logic',
+            label: (
+              <Space size={4}>
+                <BranchesOutlined />
+                <span>Biểu thức & Rẽ nhánh</span>
+              </Space>
+            ),
+            children: (
+              <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
+                {/* Banner giới thiệu Expression Engine */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                    padding: '10px 14px',
+                    background: '#F8FAFC',
+                    borderRadius: 6,
+                    border: '1px solid #E2E8F0',
+                    marginBottom: 16,
+                    fontSize: 12,
+                    color: '#334155',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <BranchesOutlined style={{ fontSize: 15, marginTop: 2, flexShrink: 0, color: '#6366F1' }} />
+                  <div>
+                    <strong>Động cơ biểu thức logic (Expression & Transformation Engine):</strong> Thiết lập điều kiện kích hoạt khối hoặc biến đổi cấu trúc JSON Payload theo chuẩn n8n / JavaScript Expression.
+                  </div>
+                </div>
+
+                {/* 1. ĐIỀU KIỆN THỰC THI KHỐI */}
+                <div
+                  style={{
+                    background: isLight ? '#F9FAFB' : '#1F2937',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-subtle, #E5E7EB)',
+                    padding: '12px 14px',
+                    marginBottom: 16,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
+                        Biểu thức điều kiện thực thi (Execution Filter)
+                      </div>
+                      <div style={{ color: '#6B7280', fontSize: 11.5 }}>
+                        Chỉ kích hoạt khối này khi biểu thức logic trả về giá trị True
+                      </div>
+                    </div>
+                    <Form.Item name="enableExecutionCondition" valuePropName="checked" noStyle>
+                      <Switch checkedChildren="Bật lọc" unCheckedChildren="Luôn chạy" />
+                    </Form.Item>
+                  </div>
+
+                  <Form.Item
+                    name="executionConditionExpr"
+                    label={<span style={{ fontSize: 12, color: '#4B5563' }}>Biểu thức điều kiện (Condition Expression)</span>}
+                    style={{ marginBottom: 8 }}
+                    extra={
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                          Gợi ý biểu thức phổ biến (Bấm để chèn):
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {[
+                            { label: 'Đơn VIP >= 1.000.000đ', expr: '{{ $json.orderTotal >= 1000000 }}' },
+                            { label: 'Khớp SKU >= 90%', expr: '{{ $json.confidenceScore >= 0.90 }}' },
+                            { label: 'Khối lượng <= 500g', expr: '{{ $json.weightGrams <= 500 }}' },
+                            { label: 'Phương thức COD', expr: '{{ $json.paymentMethod == "COD" }}' },
+                            { label: 'Tồn kho khả dụng > 0', expr: '{{ $json.availableStock > 0 }}' },
+                            { label: 'Kênh TikTok Shop', expr: '{{ $json.channel == "TIKTOK_SHOP" }}' },
+                          ].map((item) => (
+                            <Tag
+                              key={item.label}
+                              color="purple"
+                              style={{ cursor: 'pointer', fontSize: 10.5, borderRadius: 3 }}
+                              onClick={() => form.setFieldsValue({ executionConditionExpr: item.expr, enableExecutionCondition: true })}
+                            >
+                              + {item.label}
+                            </Tag>
+                          ))}
+                        </div>
+                      </div>
+                    }
+                  >
+                    <Input.TextArea
+                      rows={2}
+                      placeholder="Ví dụ: {{ $json.confidenceScore >= 0.90 && $json.orderTotal < 5000000 }}"
+                      style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 12 }}
+                    />
+                  </Form.Item>
+                </div>
+
+                {/* 2. BIẾN ĐỔI CẤU TRÚC JSON ĐẦU RA */}
+                <div
+                  style={{
+                    background: isLight ? '#F9FAFB' : '#1F2937',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-subtle, #E5E7EB)',
+                    padding: '12px 14px',
+                    marginBottom: 16,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
+                        Biến đổi cấu trúc Payload đầu ra (Output Transform)
+                      </div>
+                      <div style={{ color: '#6B7280', fontSize: 11.5 }}>
+                        Map và định dạng lại các trường JSON trước khi chuyển tiếp sang khối tiếp theo
+                      </div>
+                    </div>
+                    <Form.Item name="enableTransform" valuePropName="checked" noStyle>
+                      <Switch checkedChildren="Bật biến đổi" unCheckedChildren="Nguyên bản" />
+                    </Form.Item>
+                  </div>
+
+                  <Form.Item
+                    name="transformExpr"
+                    label={<span style={{ fontSize: 12, color: '#4B5563' }}>Mẫu JSON Mapping / Transform Expression</span>}
+                    style={{ marginBottom: 8 }}
+                    extra={
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                          Gợi ý ánh xạ JSON (Bấm để chèn):
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {[
+                            { label: 'Mã đơn & Số tiền', expr: '{\n  "orderId": $json.orderId,\n  "amount": $json.totalAmount,\n  "carrier": $json.chosenCarrier\n}' },
+                            { label: 'Ánh xạ hóa đơn MISA', expr: '{\n  "invNo": $json.orderId,\n  "buyerName": $json.shippingAddress.receiverName,\n  "vatRate": 0.01\n}' },
+                          ].map((item) => (
+                            <Tag
+                              key={item.label}
+                              color="blue"
+                              style={{ cursor: 'pointer', fontSize: 10.5, borderRadius: 3 }}
+                              onClick={() => form.setFieldsValue({ transformExpr: item.expr, enableTransform: true })}
+                            >
+                              + {item.label}
+                            </Tag>
+                          ))}
+                        </div>
+                      </div>
+                    }
+                  >
+                    <Input.TextArea
+                      rows={4}
+                      placeholder='{\n  "orderId": $json.orderId,\n  "syncTimestamp": $now()\n}'
+                      style={{ fontFamily: 'Consolas, Monaco, monospace', fontSize: 12 }}
+                    />
+                  </Form.Item>
+                </div>
+
+                {/* 3. CHẾ ĐỘ PHÂN LUỒNG RẼ NHÁNH CHO KHỐI LOGIC */}
+                {((selectedNode.data?.category || '').toUpperCase() === 'LOGIC' ||
+                  (selectedNode.data?.label || '').toLowerCase().includes('rẽ nhánh') ||
+                  (selectedNode.data?.label || '').toLowerCase().includes('điều kiện')) && (
+                  <div
+                    style={{
+                      background: '#FDF2F8',
+                      borderRadius: 6,
+                      border: '1px solid #FBCFE8',
+                      padding: '12px 14px',
+                      marginBottom: 16,
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#9D174D', marginBottom: 8 }}>
+                      Cấu hình Phân luồng Rẽ nhánh Đa cổng (Router / Switch)
+                    </div>
+
+                    <Form.Item
+                      label="Chế độ kích hoạt các cổng ra"
+                      name="routingBranchMode"
+                      initialValue="FIRST_MATCHING"
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Select
+                        options={[
+                          { label: 'Chỉ kích hoạt Nhánh đầu tiên thỏa mãn (If - Else If)', value: 'FIRST_MATCHING' },
+                          { label: 'Kích hoạt Tất cả các nhánh thỏa mãn (Parallel Multi-Branch)', value: 'ALL_MATCHING' },
+                        ]}
+                      />
+                    </Form.Item>
+                  </div>
+                )}
               </Form>
             ),
           },

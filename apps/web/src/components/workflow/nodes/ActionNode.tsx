@@ -5,10 +5,12 @@ import {
   CarFilled,
   BellFilled,
   BranchesOutlined,
+  ExportOutlined,
 } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
 
-export const ActionNode: React.FC<any> = ({ data, selected }) => {
+export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const label = (data.label || '').toLowerCase();
@@ -53,9 +55,19 @@ export const ActionNode: React.FC<any> = ({ data, selected }) => {
     label.includes('thông báo') ||
     label.includes('cảnh báo');
 
+  const isMultiCarrier =
+    label.includes('tối ưu') ||
+    label.includes('toi uu') ||
+    label.includes('đa hãng') ||
+    label.includes('da hang') ||
+    label.includes('đvvc') ||
+    label.includes('dvvc') ||
+    label.includes('hãng rẻ nhất') ||
+    label.includes('hang re nhat');
+
   let nodeColor = '#10B981';
-  let catTitle = 'Vận chuyển';
-  let subTag = label.includes('rẻ nhất') ? 'Tự chốt cước' : 'Tạo vận đơn';
+  let catTitle = isMultiCarrier ? 'Vận chuyển Đa hãng' : 'Vận chuyển';
+  let subTag = isMultiCarrier ? 'Tự chốt ĐVVC' : label.includes('rẻ nhất') ? 'Tự chốt cước' : 'Tạo vận đơn';
   let FallbackIcon = <CarFilled style={{ color: '#10B981', fontSize: 16 }} />;
 
   if (isAccounting) {
@@ -94,10 +106,44 @@ export const ActionNode: React.FC<any> = ({ data, selected }) => {
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
       }}
     >
+      {/* Nút tách đơn ra khỏi cụm phân vùng (văng ra góc trên bên phải) */}
+      {isHovered && data.onDetachFromGroup && (
+        <Tooltip title="Tách khối ra khỏi cụm phân vùng">
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onDetachFromGroup(id);
+            }}
+            style={{
+              position: 'absolute',
+              top: -24,
+              right: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 8px',
+              borderRadius: 4,
+              background: '#FFFFFF',
+              border: '1px solid #C4B5FD',
+              boxShadow: '0 2px 8px rgba(139,92,246,0.18)',
+              color: '#8B5CF6',
+              fontSize: 10.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              zIndex: 100,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <ExportOutlined style={{ fontSize: 10 }} />
+            <span>Tách khỏi cụm</span>
+          </div>
+        </Tooltip>
+      )}
+
       <NodeResizer
         isVisible={selected}
-        minWidth={190}
-        minHeight={65}
+        minWidth={140}
+        minHeight={34}
         handleStyle={{ width: 8, height: 8, borderRadius: 2, background: nodeColor, border: '2px solid #FFFFFF' }}
         lineStyle={{ borderColor: nodeColor }}
       />
@@ -120,7 +166,7 @@ export const ActionNode: React.FC<any> = ({ data, selected }) => {
         style={{
           width: '100%',
           height: '100%',
-          minWidth: 220,
+          minWidth: data.isCompact ? 140 : 200,
           background: '#FFFFFF',
           borderRadius: 6,
           border: selected ? `2px solid ${nodeColor}` : `1.5px solid ${nodeColor}`,
@@ -132,89 +178,148 @@ export const ActionNode: React.FC<any> = ({ data, selected }) => {
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
-          padding: '9px 12px',
+          padding: data.isCompact ? '5px 8px' : '9px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
-        {/* Top Minimal Category & Status */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 6,
-          }}
-        >
-          <span style={{ fontSize: 11, fontWeight: 600, color: nodeColor }}>
-            {catTitle}
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: nodeColor, fontWeight: 500 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: nodeColor }} />
-            {subTag}
-          </span>
-        </div>
-
-        {/* Main Body: Logo & Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 6,
-              background: '#FFFFFF',
-              border: '1px solid #E5E7EB',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              padding: 3,
-            }}
-          >
-            {partnerLogo ? (
-              <img
-                src={partnerLogo}
-                alt={data.label}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            ) : isNotify && label.includes('telegram') ? (
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
-                alt="Telegram"
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            ) : (
-              FallbackIcon
-            )}
-          </div>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
+        {data.isCompact ? (
+          /* Chế độ 1 dòng siêu gọn (Ultra-Compact) */
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
             <div
               style={{
+                width: 20,
+                height: 20,
+                borderRadius: 4,
+                background: '#FFFFFF',
+                border: '1px solid #E5E7EB',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                padding: 2,
+              }}
+            >
+              {partnerLogo ? (
+                <img
+                  src={partnerLogo}
+                  alt={data.label}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : isNotify && label.includes('telegram') ? (
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
+                  alt="Telegram"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : (
+                FallbackIcon
+              )}
+            </div>
+            <span
+              style={{
                 fontWeight: 600,
-                fontSize: 13,
+                fontSize: 11.5,
                 color: '#111827',
-                lineHeight: 1.2,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
+                flex: 1,
               }}
               title={data.label}
             >
-              {data.label || 'Action Node'}
-            </div>
+              {data.label || 'Action'}
+            </span>
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: nodeColor, flexShrink: 0 }}>
+              {subTag}
+            </span>
+          </div>
+        ) : (
+          /* Chế độ tiêu chuẩn (Standard Minimal) */
+          <div>
+            {/* Top Minimal Category & Status */}
             <div
               style={{
-                fontSize: 11,
-                color: '#6B7280',
-                marginTop: 2,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 6,
               }}
             >
-              {data.description || 'Xử lý hành động luồng'}
+              <span style={{ fontSize: 11, fontWeight: 600, color: nodeColor }}>
+                {catTitle}
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: nodeColor, fontWeight: 500 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: nodeColor }} />
+                {subTag}
+              </span>
+            </div>
+
+            {/* Main Body: Logo & Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 6,
+                  background: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  padding: 3,
+                }}
+              >
+                {partnerLogo ? (
+                  <img
+                    src={partnerLogo}
+                    alt={data.label}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : isNotify && label.includes('telegram') ? (
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
+                    alt="Telegram"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  FallbackIcon
+                )}
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: '#111827',
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  title={data.label}
+                >
+                  {data.label || 'Action Node'}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: '#6B7280',
+                    marginTop: 2,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {data.description || 'Xử lý hành động luồng'}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Output Handle */}

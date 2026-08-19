@@ -6,7 +6,6 @@ import {
   EdgeProps,
 } from '@xyflow/react';
 import {
-  ThunderboltFilled,
   EditOutlined,
   DeleteOutlined,
   PlusOutlined,
@@ -57,6 +56,8 @@ export const DirectiveEdge: React.FC<EdgeProps> = ({
     }
   };
 
+  const cleanLabel = edgeLabel.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
+
   return (
     <>
       <BaseEdge
@@ -83,29 +84,31 @@ export const DirectiveEdge: React.FC<EdgeProps> = ({
             cursor: 'pointer',
           }}
         >
-          {edgeLabel ? (
+          {cleanLabel ? (
             <div
               onClick={handleEdit}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                padding: '3px 8px',
-                borderRadius: 12,
+                padding: '2.5px 8px',
+                borderRadius: 4,
                 background: selected
                   ? '#8B5CF6'
                   : isHovered
                   ? '#FFFFFF'
-                  : 'rgba(255, 255, 255, 0.94)',
+                  : 'rgba(255, 255, 255, 0.96)',
                 border: selected
-                  ? '1.5px solid #7C3AED'
-                  : `1.5px solid ${edgeColor}`,
-                color: selected ? '#FFFFFF' : '#1E293B',
+                  ? '1px solid #7C3AED'
+                  : isHovered
+                  ? `1px solid ${edgeColor}`
+                  : '1px solid #E2E8F0',
+                color: selected ? '#FFFFFF' : '#334155',
                 boxShadow: selected
                   ? '0 0 0 3px rgba(139, 92, 246, 0.25), 0 4px 12px rgba(0,0,0,0.12)'
                   : isHovered
-                  ? '0 4px 12px rgba(0, 0, 0, 0.12)'
-                  : '0 1px 4px rgba(0, 0, 0, 0.06)',
+                  ? '0 3px 10px rgba(0, 0, 0, 0.1)'
+                  : '0 1px 3px rgba(0, 0, 0, 0.05)',
                 fontSize: 11,
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
@@ -116,9 +119,18 @@ export const DirectiveEdge: React.FC<EdgeProps> = ({
               {conditionExpr ? (
                 <BranchesOutlined style={{ color: selected ? '#FFFFFF' : edgeColor, fontSize: 11 }} />
               ) : (
-                <ThunderboltFilled style={{ color: selected ? '#FFFFFF' : edgeColor, fontSize: 10 }} />
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: '50%',
+                    background: selected ? '#FFFFFF' : edgeColor,
+                    display: 'inline-block',
+                    flexShrink: 0,
+                  }}
+                />
               )}
-              <span>{edgeLabel}</span>
+              <span>{cleanLabel}</span>
 
               {isHovered && (
                 <div

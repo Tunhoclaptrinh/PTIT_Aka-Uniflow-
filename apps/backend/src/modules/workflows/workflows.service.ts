@@ -8,39 +8,7 @@ import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mappi
 import { BaseService } from '../../common/services/base.service';
 import { performRealAiSkuMatch } from '../sku-mapping/sku-ai-matcher.util';
 
-async function tryOllamaWorkflowGenerate(promptText: string) {
-  const ollamaUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-  const model = process.env.OLLAMA_MODEL || 'llama3';
-  try {
-    const systemPrompt = `Bạn là kỹ sư kiến trúc tự động hóa TMĐT UniFlow. Người dùng yêu cầu tạo quy trình: "${promptText}".
-Hãy phân tích và trả về định dạng JSON thuần túy (không markdown):
-{
-  "name": "Tên quy trình",
-  "marketplace": "TIKTOK_SHOP",
-  "marketplaceLabel": "TikTok Shop Inbound",
-  "pos": "SAPO",
-  "posLabel": "Trừ tồn kho Sapo POS",
-  "logistics": "GHTK",
-  "logisticsLabel": "Tạo vận đơn GHTK",
-  "hasNotify": false,
-  "notifyLabel": "",
-  "reasoning": "Giải thích cấu hình quy trình"
-}`;
-    const res = await axios.post(
-      `${ollamaUrl}/api/generate`,
-      {
-        model,
-        prompt: systemPrompt,
-        stream: false,
-        format: 'json',
-      },
-      { timeout: 1500 }
-    );
-    return JSON.parse(res.data.response);
-  } catch {
-    return null;
-  }
-}
+import { AiGatewayService } from '../../common/services/ai-gateway.service';
 
 @Injectable()
 export class WorkflowsService extends BaseService<WorkflowDocument> {
@@ -74,12 +42,12 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     const ts = Date.now();
     const lower = prompt.toLowerCase();
 
-    // 1. Thử gọi Ollama LLM
-    const ollamaParsed = await tryOllamaWorkflowGenerate(prompt);
+    // 1. Thử gọi AI Engine / LLM (Gemini / OpenAI / Ollama / Python AI Engine)
+    const aiParsed = await AiGatewayService.generateWorkflowArchitecture(prompt);
 
     // 2. Nhận diện sàn TMĐT Trigger
-    const isShopee = lower.includes('shopee') || ollamaParsed?.marketplace === 'SHOPEE';
-    const isLazada = lower.includes('lazada') || ollamaParsed?.marketplace === 'LAZADA';
+    const isShopee = lower.includes('shopee') || aiParsed?.marketplace === 'SHOPEE';
+    const isLazada = lower.includes('lazada') || aiParsed?.marketplace === 'LAZADA';
     const isTikTok = !isShopee && !isLazada;
 
     const triggerId = `node_trigger_${ts}`;
@@ -111,8 +79,8 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       : 'Tự động đối sánh mã SKU qua Vector Cosine & Gemini NLP';
 
     // 4. Nhận diện POS / Kho
-    const isKiotViet = lower.includes('kiotviet') || lower.includes('kiot') || ollamaParsed?.pos === 'KIOTVIET';
-    const isHaravan = lower.includes('haravan') || ollamaParsed?.pos === 'HARAVAN';
+    const isKiotViet = lower.includes('kiotviet') || lower.includes('kiot') || aiParsed?.pos === 'KIOTVIET';
+    const isHaravan = lower.includes('haravan') || aiParsed?.pos === 'HARAVAN';
     const isSapo = !isKiotViet && !isHaravan;
 
     const posId = `node_pos_${ts}`;
@@ -124,14 +92,14 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     const posDesc = 'Ghi giảm tồn kho tức thì chống bán âm trên đa sàn';
 
     // 5. Nhận diện ĐVVC Logistics
-    const isGHN = lower.includes('ghn') || lower.includes('giao hàng nhanh') || ollamaParsed?.logistics === 'GHN';
-    const isViettel = lower.includes('viettel') || lower.includes('vtp') || ollamaParsed?.logistics === 'VIETTEL_POST';
-    const isVNPost = lower.includes('vnpost') || lower.includes('bưu điện') || ollamaParsed?.logistics === 'VNPOST';
+    const isGHN = lower.includes('ghn') || lower.includes('giao hàng nhanh') || aiParsed?.logistics === 'GHN';
+    const isViettel = lower.includes('viettel') || lower.includes('vtp') || aiParsed?.logistics === 'VIETTEL_POST';
+    const isVNPost = lower.includes('vnpost') || lower.includes('bưu điện') || aiParsed?.logistics === 'VNPOST';
     const isGHTK = !isGHN && !isViettel && !isVNPost;
 
     const carrierId = `node_carrier_${ts}`;
     const carrierLabel = isRateCompare
-      ? 'Tạo vận đơn hãng rẻ nhất'
+      ? 'Tạo vận đơn ĐVVC tối ưu (Đa hãng)'
       : isGHN
       ? 'Tạo đơn GHN Nhanh'
       : isViettel
@@ -140,11 +108,11 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       ? 'Tạo vận đơn VNPost'
       : 'Tạo vận đơn GHTK';
     const carrierDesc = isRateCompare
-      ? 'Tự động xuất mã vận đơn của nhà vận chuyển có cước thấp nhất'
+      ? 'Tự động đẩy đơn & nhận mã vận đơn theo Hãng AI đã chốt'
       : 'Tự động tạo vận đơn & nhận mã tracking 0-chạm';
 
     // 6. Nhận diện thông báo
-    const hasTelegram = lower.includes('telegram') || ollamaParsed?.hasNotify || isRateCompare;
+    const hasTelegram = lower.includes('telegram') || aiParsed?.hasNotify || isRateCompare;
     const hasZalo = lower.includes('zalo');
 
     const nodes: any[] = [
@@ -171,7 +139,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     ];
 
     const edges: any[] = [
-      { id: `e_${triggerId}_${aiId}`, source: triggerId, target: aiId, animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 } },
+      { id: `e_${triggerId}_${aiId}`, source: triggerId, target: aiId, animated: true, style: { stroke: '#ed1c24', strokeWidth: 2 }, data: { label: 'Dữ liệu đơn hàng' } },
     ];
 
     if (isRateCompare) {
@@ -181,7 +149,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
         type: 'ai',
         position: { x: 660, y: 160 },
         data: {
-          label: 'AI So sánh cước & Chọn hãng rẻ nhất',
+          label: 'AI So sánh cước & Chọn hãng tối ưu',
           description: 'Tính toán cước phí realtime giữa GHTK, GHN, Viettel Post',
           model: 'RATE_OPTIMIZER_AI',
         },
@@ -211,9 +179,9 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
         },
       });
 
-      edges.push({ id: `e_${aiId}_${rateCompareAiId}`, source: aiId, target: rateCompareAiId, animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 } });
-      edges.push({ id: `e_${rateCompareAiId}_${posId}`, source: rateCompareAiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } });
-      edges.push({ id: `e_${rateCompareAiId}_${carrierId}`, source: rateCompareAiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } });
+      edges.push({ id: `e_${aiId}_${rateCompareAiId}`, source: aiId, target: rateCompareAiId, animated: true, style: { stroke: '#8B5CF6', strokeWidth: 2 }, data: { label: 'Thông tin kiện & Điểm giao' } });
+      edges.push({ id: `e_${rateCompareAiId}_${posId}`, source: rateCompareAiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } });
+      edges.push({ id: `e_${rateCompareAiId}_${carrierId}`, source: rateCompareAiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Hãng tối ưu được chọn' } });
 
       if (hasTelegram) {
         const notifyId = `node_notify_${ts}`;
@@ -221,7 +189,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           id: notifyId,
           type: 'action',
           position: { x: 1260, y: 160 },
-          data: { label: 'Thông báo Telegram Bot', description: 'Báo cáo số tiền cước tiết kiệm được cho quản lý', category: 'NOTIFY' },
+          data: { label: 'Thông báo Telegram Bot', description: 'Báo cáo: Hãng được chọn + Mã vận đơn + Mức tiết kiệm', category: 'NOTIFY' },
         });
         edges.push({
           id: `e_${carrierId}_${notifyId}`,
@@ -229,6 +197,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           target: notifyId,
           animated: true,
           style: { stroke: '#3B82F6', strokeWidth: 2 },
+          data: { label: 'Thông báo hoàn tất' },
         });
       }
     } else {
@@ -285,7 +254,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       ? `Quy trình ${marketText} ➔ AI So sánh cước & Chốt hãng rẻ nhất`
       : `Quy trình ${marketText} ➔ ${posText} ➔ ${shipText}`;
 
-    const reasoning = ollamaParsed?.reasoning ||
+    const reasoning = aiParsed?.reasoning ||
       (isRateCompare
         ? `AI đã tự động thiết kế luồng thông minh: Nhận đơn từ ${marketText}, chuyển qua AI đối sánh SKU & bóc tách trọng lượng, sau đó tự động so sánh cước realtime giữa GHTK, GHN, Viettel Post để chọn hãng cước thấp nhất, trừ kho ${posText} và gửi báo cáo Telegram.`
         : `AI đã tự động phân tích: Kênh đầu vào là ${marketText}, chuyển dữ liệu qua AI Hybrid SKU Mapper, đồng bộ tồn kho sang ${posText} và khởi tạo đơn giao hàng ${shipText}.`);
@@ -297,7 +266,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       edges,
       viewport: { x: 0, y: 0, zoom: 0.95 },
       reasoning,
-      engineUsed: ollamaParsed ? 'OLLAMA_LLM' : 'LOCAL_NLP_ENGINE',
+      engineUsed: aiParsed ? 'AI_ENGINE_GATEWAY' : 'LOCAL_NLP_ENGINE',
     };
   }
 
@@ -385,6 +354,10 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
             stepType = 'NOTIFY';
             stepName = `Bắn thông báo: ${label}`;
             stepDetail = `Đã gửi tin thông báo xác nhận hoàn tất đơn hàng #${randomOrderId} và mã vận đơn ${waybillCode}.`;
+          } else if (category.includes('CUSTOM') || label.toLowerCase().includes('http') || label.toLowerCase().includes('script') || label.toLowerCase().includes('custom')) {
+            stepType = 'CUSTOM_BLOCK';
+            stepName = `Xử lý tùy chỉnh: ${label}`;
+            stepDetail = `Thực thi thành công khối lập trình tùy chỉnh, bóc tách và biến đổi dữ liệu Payload đầu ra thành công (Status 200 OK).`;
           }
 
           return {
@@ -432,7 +405,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           },
         ];
 
-    const logMessage = `Đơn ${platform} #${randomOrderId} ➔ Thực thi ${steps.length} khối ➔ Khớp SKU (${(aiResult.confidenceScore * 100).toFixed(1)}%) ➔ Mã vận đơn: ${waybillCode} (${durationMs}ms) ✅`;
+    const logMessage = `Đơn ${platform} #${randomOrderId} -> Thực thi ${steps.length} khối -> Khớp SKU (${(aiResult.confidenceScore * 100).toFixed(1)}%) -> Mã vận đơn: ${waybillCode} (${durationMs}ms) [Thành công]`;
 
     // 4. Lưu Log vào MongoDB
     const savedLog = await this.logModel.create({

@@ -21,7 +21,6 @@ import {
   CodeOutlined,
   ShoppingOutlined,
   CarFilled,
-  MessageFilled,
   CheckCircleFilled,
   EnvironmentOutlined,
   CopyOutlined,
@@ -29,6 +28,10 @@ import {
   PhoneOutlined,
   SafetyCertificateFilled,
   DollarCircleFilled,
+  UserOutlined,
+  ClockCircleOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../base';
 import { notify } from '../../utils/notification';
@@ -48,6 +51,31 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
   initialFileData,
 }) => {
   const [activeTab, setActiveTab] = useState<'chat' | 'file' | 'tracking' | 'pos' | 'webhook' | 'accounting'>(defaultTab);
+  const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [open, activeTab]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -220 : 220;
+      tabsContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      setTimeout(checkScroll, 250);
+    }
+  };
 
   // Sync activeTab if defaultTab changes when opening
   React.useEffect(() => {
@@ -67,7 +95,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
     {
       id: '2',
       sender: 'ai',
-      text: 'Dạ chào bạn Tuấn! Với chiều cao 1m75 nặng 70kg, bạn mặc **Size L** của Áo Polo Pima là vừa vặn và tôn dáng nhất nhé ạ! Hiện bên mình đang có sẵn tại Kho Tổng Hà Nội và đang có ưu đãi còn **350.000đ/áo**. Bạn muốn shop gửi màu Trắng hay Xanh Navy ạ? 😊',
+      text: 'Dạ chào bạn Tuấn! Với chiều cao 1m75 nặng 70kg, bạn mặc **Size L** của Áo Polo Pima là vừa vặn và tôn dáng nhất nhé ạ!\n\nHiện tại sản phẩm đang có sẵn tại **Kho Tổng Hà Nội** và đang áp dụng giá ưu đãi **350.000đ/áo**.\nBạn muốn shop gửi màu Trắng hay Xanh Navy ạ?',
       time: '10:14',
       aiMetadata: {
         intent: 'TƯ_VẤN_SIZE_ÁO',
@@ -85,7 +113,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
     {
       id: '4',
       sender: 'ai',
-      text: 'Dạ vâng ạ! Shop đã tạo đơn hàng thành công cho bạn:\n- **Sản phẩm**: Áo Polo Pima Nam Cao Cấp (Xanh Navy - Size L)\n- **Tổng thanh toán**: 350.000đ (Freeship qua Viettel Post Hỏa Tốc)\n- **Mã đơn hàng**: #UNF-88291\nShop sẽ bàn giao ngay cho đơn vị vận chuyển trong 30 phút tới nhé ạ! 🎉',
+      text: 'Dạ vâng ạ! Shop đã tạo đơn hàng thành công cho bạn:\n• **Sản phẩm**: Áo Polo Pima Nam Cao Cấp (Xanh Navy - Size L)\n• **Tổng thanh toán**: 350.000đ (Freeship qua Viettel Post Tuyến Trục)\n• **Mã đơn hàng**: #UNF-88291\n\nShop sẽ bàn giao ngay cho bưu tá lấy hàng trong 30 phút tới nhé ạ!',
       time: '10:15',
       aiMetadata: {
         intent: 'CHỐT_ĐƠN_TỰ_ĐỘNG',
@@ -132,12 +160,54 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
   );
 
   const navItems = [
-    { key: 'chat', label: 'Pancake & AI CSKH Live', icon: <MessageFilled style={{ color: '#2563EB' }} />, badge: 'Live' },
-    { key: 'accounting', label: 'Sổ cái MISA & Kê khai Thuế', icon: <DollarCircleFilled style={{ color: '#0284C7' }} />, badge: 'TT 40/2021' },
-    { key: 'file', label: 'Bảng tính Excel (.xlsx)', icon: <FileExcelFilled style={{ color: '#107C41' }} />, badge: '5 SKU' },
-    { key: 'tracking', label: 'Hành trình Vận đơn', icon: <CarFilled style={{ color: '#EE0033' }} />, badge: 'Đang giao' },
-    { key: 'pos', label: 'Tồn kho POS Realtime', icon: <ShoppingOutlined style={{ color: '#0088FF' }} />, badge: '4 Kho' },
-    { key: 'webhook', label: 'Giám sát Webhook', icon: <CodeOutlined style={{ color: '#8B5CF6' }} />, badge: '200 OK' },
+    {
+      key: 'chat',
+      label: 'Pancake & AI CSKH Live',
+      logo: getPartnerLogo('pancake'),
+      fallbackIcon: <CustomerServiceOutlined style={{ color: '#2563EB' }} />,
+      badge: 'Live',
+      badgeColor: 'red',
+    },
+    {
+      key: 'accounting',
+      label: 'Sổ cái MISA & Kê khai Thuế',
+      logo: getPartnerLogo('misa'),
+      fallbackIcon: <DollarCircleFilled style={{ color: '#0284C7' }} />,
+      badge: 'TT 40/2021',
+      badgeColor: 'blue',
+    },
+    {
+      key: 'file',
+      label: 'Bảng tính Excel (.xlsx)',
+      logo: getPartnerLogo('excel'),
+      fallbackIcon: <FileExcelFilled style={{ color: '#107C41' }} />,
+      badge: '5 SKU',
+      badgeColor: 'green',
+    },
+    {
+      key: 'tracking',
+      label: 'Hành trình Viettel Post',
+      logo: getPartnerLogo('viettel post'),
+      fallbackIcon: <CarFilled style={{ color: '#EE0033' }} />,
+      badge: 'Đang giao',
+      badgeColor: 'magenta',
+    },
+    {
+      key: 'pos',
+      label: 'Tồn kho Sapo POS',
+      logo: getPartnerLogo('sapo'),
+      fallbackIcon: <ShoppingOutlined style={{ color: '#0088FF' }} />,
+      badge: '4 Kho',
+      badgeColor: 'orange',
+    },
+    {
+      key: 'webhook',
+      label: 'Giám sát Webhook Inbound',
+      logo: getPartnerLogo('tiktok'),
+      fallbackIcon: <CodeOutlined style={{ color: '#8B5CF6' }} />,
+      badge: '200 OK',
+      badgeColor: 'purple',
+    },
   ];
 
   return (
@@ -145,33 +215,36 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
       open={open}
       onCancel={onClose}
       footer={null}
-      width={1000}
+      width={1120}
+      centered
       title={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
               style={{
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                background: '#FFF1F2',
-                border: '1px solid #FECDD3',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                padding: 4,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}
             >
-              <img src="/favicon.svg" alt="UniFlow" style={{ width: 20, height: 20 }} />
+              <img src="/favicon.svg" alt="UniFlow" style={{ width: 22, height: 22 }} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8, color: '#111827' }}>
+              <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8, color: '#0F172A' }}>
                 <span>Trung tâm Kiểm tra Đa năng (Agent Multi-Window Inspector)</span>
-                <Tag color="purple" style={{ borderRadius: 4, margin: 0, fontSize: 10, fontWeight: 700 }}>
+                <Tag color="purple" style={{ borderRadius: 4, margin: 0, fontSize: 10.5, fontWeight: 700 }}>
                   Agentic Mini-Hub v2.5
                 </Tag>
               </div>
-              <div style={{ fontSize: 11.5, color: '#6B7280', fontWeight: 400 }}>
-                Cửa sổ tích hợp kiểm tra hội thoại Pancake, file Excel, tra cứu vận đơn Viettel Post và kho POS
+              <div style={{ fontSize: 11.5, color: '#64748B', fontWeight: 400 }}>
+                Cửa sổ tích hợp kiểm tra hội thoại Pancake, bảng tính Excel, tra cứu vận đơn Viettel Post và kho POS
               </div>
             </div>
           </div>
@@ -181,83 +254,164 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
         body: { padding: '12px 18px 18px', background: '#F8FAFC' },
       }}
     >
-      {/* 1. Multi-Window Tab Bar Navigation */}
+      {/* 1. Multi-Window Tab Bar Navigation (Cuộn ngang mượt mà với logo đối tác thật, thanh cuộn hiện rõ và mũi tên sang phải/trái) */}
       <div
         style={{
+          position: 'relative',
           display: 'flex',
-          gap: 8,
+          alignItems: 'center',
           marginBottom: 12,
-          padding: 4,
           background: '#FFFFFF',
-          borderRadius: 10,
+          borderRadius: 8,
           border: '1px solid #E2E8F0',
-          overflowX: 'auto',
+          padding: '4px 6px',
         }}
       >
-        {navItems.map((item) => {
-          const isSelected = activeTab === item.key;
-          return (
-            <div
-              key={item.key}
-              onClick={() => setActiveTab(item.key as any)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 14px',
-                borderRadius: 7,
-                fontSize: 12.5,
-                fontWeight: isSelected ? 700 : 500,
-                color: isSelected ? '#1E293B' : '#64748B',
-                background: isSelected ? '#F1F5F9' : 'transparent',
-                border: isSelected ? '1px solid #CBD5E1' : '1px solid transparent',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                whiteSpace: 'nowrap',
-                userSelect: 'none',
-              }}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-              <Tag
-                color={isSelected ? 'red' : 'default'}
+        {/* Left Scroll Arrow */}
+        {canScrollLeft && (
+          <button
+            onClick={() => handleScroll('left')}
+            style={{
+              position: 'absolute',
+              left: 4,
+              zIndex: 10,
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#334155',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <LeftOutlined style={{ fontSize: 10 }} />
+          </button>
+        )}
+
+        {/* Scrollable Container with custom visible scrollbar */}
+        <div
+          ref={tabsContainerRef}
+          onScroll={checkScroll}
+          style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#CBD5E1 #F8FAFC',
+            padding: '2px 4px 6px 4px',
+            width: '100%',
+          }}
+        >
+          {navItems.map((item) => {
+            const isSelected = activeTab === item.key;
+            return (
+              <div
+                key={item.key}
+                onClick={() => setActiveTab(item.key as any)}
                 style={{
-                  fontSize: 10,
-                  borderRadius: 4,
-                  margin: '0 0 0 4px',
-                  padding: '0 5px',
-                  height: 18,
-                  lineHeight: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: isSelected ? 700 : 500,
+                  color: isSelected ? '#0F172A' : '#64748B',
+                  background: isSelected ? '#F1F5F9' : 'transparent',
+                  border: isSelected ? '1px solid #CBD5E1' : '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                  flexShrink: 0,
                 }}
               >
-                {item.badge}
-              </Tag>
-            </div>
-          );
-        })}
+                {item.logo ? (
+                  <img
+                    src={item.logo}
+                    alt={item.label}
+                    style={{ width: 16, height: 16, objectFit: 'contain' }}
+                    onError={(e: any) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  item.fallbackIcon
+                )}
+                <span>{item.label}</span>
+                <Tag
+                  color={isSelected ? item.badgeColor : 'default'}
+                  style={{
+                    fontSize: 10,
+                    borderRadius: 3,
+                    margin: 0,
+                    padding: '0 4px',
+                    height: 17,
+                    lineHeight: '15px',
+                    fontWeight: 600,
+                  }}
+                >
+                  {item.badge}
+                </Tag>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right Scroll Arrow */}
+        {canScrollRight && (
+          <button
+            onClick={() => handleScroll('right')}
+            style={{
+              position: 'absolute',
+              right: 4,
+              zIndex: 10,
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#334155',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <RightOutlined style={{ fontSize: 10 }} />
+          </button>
+        )}
       </div>
 
       {/* 2. Window Content Area */}
-      <div style={{ height: 500, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: 530, display: 'flex', flexDirection: 'column' }}>
         {/* Tab 1: Pancake POS & Live AI CSKH */}
         {activeTab === 'chat' && (
-          <div style={{ display: 'flex', gap: 14, height: '100%' }}>
+          <div style={{ display: 'flex', gap: 12, height: '100%' }}>
             {/* Left: Chat Thread */}
             <div
               style={{
                 flex: 1,
                 background: '#FFFFFF',
-                borderRadius: 10,
+                borderRadius: 8,
                 border: '1px solid #E2E8F0',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }}
             >
               {/* Customer Header Info */}
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '8px 14px',
                   background: '#F8FAFC',
                   borderBottom: '1px solid #E2E8F0',
                   display: 'flex',
@@ -266,19 +420,48 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <img src={getPartnerLogo('pancake')} alt="Pancake" style={{ width: 22, height: 22 }} />
+                  <div style={{ position: 'relative' }}>
+                    <Avatar
+                      size={34}
+                      style={{
+                        backgroundColor: '#3B82F6',
+                        fontSize: 13,
+                        fontWeight: 600,
+                      }}
+                    >
+                      NT
+                    </Avatar>
+                    <img
+                      src={getPartnerLogo('pancake')}
+                      alt="Pancake"
+                      style={{
+                        position: 'absolute',
+                        bottom: -2,
+                        right: -2,
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        border: '1px solid #FFFFFF',
+                        background: '#FFFFFF',
+                      }}
+                    />
+                  </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <strong style={{ fontSize: 13, color: '#0F172A' }}>Nguyễn Văn Tuấn</strong>
-                      <Tag color="blue" style={{ fontSize: 10, margin: 0 }}>ID: #CUST_7891</Tag>
-                      <Tag color="gold" style={{ fontSize: 10, margin: 0 }}>Khách VIP</Tag>
+                      <Tag color="blue" style={{ fontSize: 10, borderRadius: 3, margin: 0 }}>
+                        ID: #CUST_7891
+                      </Tag>
+                      <Tag color="gold" style={{ fontSize: 10, borderRadius: 3, margin: 0 }}>
+                        Khách VIP
+                      </Tag>
                     </div>
                     <div style={{ fontSize: 11, color: '#64748B' }}>
                       Fanpage Thời Trang An Khang • SĐT: 0988***123 • Cầu Giấy, Hà Nội
                     </div>
                   </div>
                 </div>
-                <Tag color="green" style={{ fontSize: 11, margin: 0, padding: '2px 8px' }}>
+                <Tag color="green" style={{ fontSize: 11, margin: 0, padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
                   ● Live Sync
                 </Tag>
               </div>
@@ -288,7 +471,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 style={{
                   flex: 1,
                   overflowY: 'auto',
-                  padding: 14,
+                  padding: '14px 16px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 12,
@@ -307,26 +490,28 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                       }}
                     >
                       <Avatar
-                        size={30}
+                        size={28}
+                        icon={isCust ? <UserOutlined /> : undefined}
+                        src={isCust ? undefined : '/favicon.svg'}
                         style={{
-                          backgroundColor: isCust ? '#3B82F6' : '#ed1c24',
-                          fontSize: 12,
+                          backgroundColor: isCust ? '#3B82F6' : '#FFFFFF',
+                          border: isCust ? 'none' : '1px solid #E2E8F0',
+                          padding: isCust ? 0 : 2,
+                          fontSize: 11,
                           flexShrink: 0,
                         }}
-                      >
-                        {isCust ? 'T' : <ThunderboltFilled style={{ fontSize: 12 }} />}
-                      </Avatar>
+                      />
 
-                      <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ maxWidth: '82%', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                           style={{
                             padding: '10px 14px',
-                            borderRadius: isCust ? '2px 12px 12px 12px' : '12px 2px 12px 12px',
-                            background: isCust ? '#F1F5F9' : '#FFF1F2',
-                            border: isCust ? '1px solid #E2E8F0' : '1px solid #FECDD3',
+                            borderRadius: isCust ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
+                            background: isCust ? '#F1F5F9' : '#FFF7ED',
+                            border: isCust ? '1px solid #E2E8F0' : '1px solid #FED7AA',
                             color: '#1E293B',
-                            fontSize: 13,
-                            lineHeight: 1.55,
+                            fontSize: 12.5,
+                            lineHeight: 1.6,
                             whiteSpace: 'pre-line',
                           }}
                         >
@@ -345,8 +530,8 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                         >
                           <span>{m.time}</span>
                           {!isCust && (
-                            <span style={{ color: '#ed1c24', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                              <ThunderboltFilled /> Phản hồi tự động AI (1.1s)
+                            <span style={{ color: '#D97706', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                              <ClockCircleOutlined /> Phản hồi tự động AI (1.1s)
                             </span>
                           )}
                         </div>
@@ -359,7 +544,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
               {/* Bottom Manual Chat Input */}
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '8px 12px',
                   borderTop: '1px solid #E2E8F0',
                   background: '#FFFFFF',
                   display: 'flex',
@@ -373,23 +558,23 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                     display: 'flex',
                     alignItems: 'center',
                     border: '1px solid #CBD5E1',
-                    borderRadius: 8,
+                    borderRadius: 6,
                     background: '#FFFFFF',
-                    padding: '2px 8px 2px 10px',
+                    padding: '2px 8px',
                     height: 34,
-                    transition: 'all 0.2s ease',
                   }}
                 >
                   <Tag
                     color={isManualOverride ? 'orange' : 'green'}
                     style={{
                       marginRight: 6,
-                      fontSize: 10.5,
-                      padding: '0 6px',
-                      height: 20,
-                      lineHeight: '18px',
-                      borderRadius: 4,
+                      fontSize: 10,
+                      padding: '0 5px',
+                      height: 18,
+                      lineHeight: '16px',
+                      borderRadius: 3,
                       flexShrink: 0,
+                      fontWeight: 600,
                     }}
                   >
                     {isManualOverride ? 'Can thiệp' : 'AI 0-chạm'}
@@ -406,7 +591,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                     onPressEnter={handleSendManual}
                     style={{
                       padding: 0,
-                      fontSize: 12.5,
+                      fontSize: 12,
                       boxShadow: 'none',
                     }}
                   />
@@ -419,12 +604,9 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   onClick={handleSendManual}
                   style={{
                     height: 34,
-                    padding: '0 16px',
-                    fontSize: 12.5,
-                    borderRadius: 8,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    padding: '0 14px',
+                    fontSize: 12,
+                    borderRadius: 6,
                   }}
                 >
                   Gửi
@@ -432,50 +614,65 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
               </div>
             </div>
 
-            {/* Right: AI Decision Breakdown */}
+            {/* Right: Compact AI Decision Breakdown */}
             <div
               style={{
-                width: 290,
+                width: 280,
                 background: '#FFFFFF',
-                borderRadius: 10,
+                borderRadius: 8,
                 border: '1px solid #E2E8F0',
-                padding: 14,
+                padding: '12px 14px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12,
+                gap: 10,
                 fontSize: 12,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <ThunderboltFilled style={{ color: '#ed1c24' }} />
-                <span>Giải trình Quyết định AI</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 700, fontSize: 12.5, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ThunderboltFilled style={{ color: '#8B5CF6' }} />
+                  GIẢI TRÌNH QUYẾT ĐỊNH AI
+                </span>
+                <Tag color="purple" style={{ margin: 0, fontSize: 10, borderRadius: 3, fontWeight: 600 }}>
+                  v2.5
+                </Tag>
               </div>
 
-              <div style={{ background: '#F8FAFC', padding: 10, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                <div style={{ color: '#64748B', fontSize: 11, marginBottom: 2 }}>Ý định phát hiện (Intent):</div>
-                <strong style={{ color: '#059669', fontSize: 12.5 }}>TƯ VẤN SIZE & CHỐT ĐƠN</strong>
-                <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11 }}>
-                  <span>Độ tin cậy:</span>
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                <div style={{ color: '#64748B', fontSize: 10.5, marginBottom: 2 }}>Ý định phát hiện (Intent):</div>
+                <strong style={{ color: '#059669', fontSize: 12 }}>TƯ VẤN SIZE & CHỐT ĐƠN</strong>
+                <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10.5 }}>
+                  <span style={{ color: '#64748B' }}>Độ tin cậy:</span>
                   <strong style={{ color: '#059669' }}>99.1%</strong>
                 </div>
-                <Progress percent={99} size="small" strokeColor="#10B981" showInfo={false} />
+                <Progress percent={99} size="small" strokeColor="#10B981" showInfo={false} style={{ margin: '2px 0 0' }} />
               </div>
 
-              <div style={{ background: '#F8FAFC', padding: 10, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                <div style={{ color: '#64748B', fontSize: 11, marginBottom: 4 }}>Dữ liệu tham chiếu:</div>
-                <div style={{ fontSize: 11.5, color: '#334155', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <div>• Master SKU: <strong>POLO-PREM-NVY-M</strong></div>
-                  <div>• Tồn kho Sapo: <strong>340 chiếc (WH_MAIN_HN)</strong></div>
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                <div style={{ color: '#64748B', fontSize: 10.5, marginBottom: 4 }}>Dữ liệu tham chiếu:</div>
+                <div style={{ fontSize: 11, color: '#334155', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div>• Master SKU: <code style={{ color: '#0F172A', fontWeight: 600 }}>POLO-PREM-NVY-M</code></div>
+                  <div>• Tồn kho Sapo: <strong>340 chiếc</strong> (WH_MAIN_HN)</div>
                   <div>• Cước tối ưu: <strong>Viettel Post (19.5k)</strong></div>
                 </div>
               </div>
 
-              <div style={{ background: '#F8FAFC', padding: 10, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                <div style={{ color: '#64748B', fontSize: 11, marginBottom: 4 }}>Kênh kết nối:</div>
+              <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                <div style={{ color: '#64748B', fontSize: 10.5, marginBottom: 4 }}>Kênh kết nối tích hợp:</div>
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  <Tag color="blue" style={{ margin: 0 }}>Pancake POS</Tag>
-                  <Tag color="orange" style={{ margin: 0 }}>Shopee Chat</Tag>
-                  <Tag color="cyan" style={{ margin: 0 }}>Zalo ZNS</Tag>
+                  <Tag color="blue" style={{ margin: 0, fontSize: 10.5, borderRadius: 3 }}>
+                    <img src={getPartnerLogo('pancake')} alt="" style={{ width: 12, height: 12, marginRight: 3, verticalAlign: 'middle' }} />
+                    Pancake POS
+                  </Tag>
+                  <Tag color="orange" style={{ margin: 0, fontSize: 10.5, borderRadius: 3 }}>
+                    <img src={getPartnerLogo('shopee')} alt="" style={{ width: 12, height: 12, marginRight: 3, verticalAlign: 'middle' }} />
+                    Shopee Chat
+                  </Tag>
+                  <Tag color="cyan" style={{ margin: 0, fontSize: 10.5, borderRadius: 3 }}>
+                    <img src={getPartnerLogo('zalo')} alt="" style={{ width: 12, height: 12, marginRight: 3, verticalAlign: 'middle' }} />
+                    Zalo ZNS
+                  </Tag>
                 </div>
               </div>
 
@@ -486,9 +683,9 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   icon={<CustomerServiceOutlined />}
                   onClick={() => {
                     setIsManualOverride(!isManualOverride);
-                    notify.info(isManualOverride ? 'Đã tắt can thiệp thủ công!' : 'Đã bật can thiệp thủ công!');
+                    notify.info(isManualOverride ? 'Đã tắt can thiệp thủ công (Bật lại AI)!' : 'Đã bật can thiệp thủ công!');
                   }}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: 30, fontSize: 11.5 }}
                 >
                   {isManualOverride ? 'Tắt can thiệp (Bật lại AI)' : 'Can thiệp chat thủ công'}
                 </BaseButton>
@@ -498,7 +695,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   size="small"
                   icon={<EditOutlined />}
                   onClick={() => notify.success('Mở bảng cấu hình Prompt bot Pancake!')}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: 30, fontSize: 11.5 }}
                 >
                   Sửa Prompt bot Pancake
                 </BaseButton>
@@ -509,16 +706,16 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
 
         {/* Tab 2: File & Spreadsheet Inspector */}
         {activeTab === 'file' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 8, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <FileExcelFilled style={{ color: '#107C41', fontSize: 28 }} />
+                <img src={getPartnerLogo('excel')} alt="Excel" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <strong style={{ fontSize: 14, color: '#0F172A' }}>Bao_Cao_Doanh_Thu_Tong_Hop_UniFlow.xlsx</strong>
-                    <Tag color="green">Realtime Data</Tag>
+                    <strong style={{ fontSize: 13.5, color: '#0F172A' }}>Bao_Cao_Doanh_Thu_Tong_Hop_UniFlow.xlsx</strong>
+                    <Tag color="green" style={{ borderRadius: 3, fontSize: 10.5 }}>Realtime Sync</Tag>
                   </div>
-                  <div style={{ fontSize: 11.5, color: '#64748B' }}>
+                  <div style={{ fontSize: 11, color: '#64748B' }}>
                     Đã xuất 5 dòng dữ liệu • Tổng doanh thu: <strong>1.411.800.000đ</strong> • Đã bán: <strong>4.500 SP</strong>
                   </div>
                 </div>
@@ -531,7 +728,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   placeholder="Tìm SKU hoặc tên sản phẩm..."
                   value={fileSearchQuery}
                   onChange={(e) => setFileSearchQuery(e.target.value)}
-                  style={{ width: 220, borderRadius: 6 }}
+                  style={{ width: 220, borderRadius: 6, height: 30 }}
                 />
 
                 <BaseButton
@@ -539,6 +736,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   size="small"
                   icon={<DownloadOutlined />}
                   onClick={() => notify.success('Đã tải xuống file Excel (.xlsx) thành công!')}
+                  style={{ height: 30 }}
                 >
                   Tải file Excel
                 </BaseButton>
@@ -552,13 +750,13 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 size="small"
                 rowKey="sku"
                 columns={[
-                  { title: 'Mã SKU', dataIndex: 'sku', key: 'sku', render: (val) => <strong style={{ color: '#ed1c24' }}>{val}</strong> },
+                  { title: 'Mã SKU', dataIndex: 'sku', key: 'sku', render: (val) => <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{val}</strong> },
                   { title: 'Tên Sản Phẩm', dataIndex: 'name', key: 'name' },
-                  { title: 'Sàn Bán', dataIndex: 'channel', key: 'ch', render: (val) => <Tag color="blue">{val}</Tag> },
+                  { title: 'Sàn Bán', dataIndex: 'channel', key: 'ch', render: (val) => <Tag color="blue" style={{ borderRadius: 3 }}>{val}</Tag> },
                   { title: 'Số Lượng Đã Bán', dataIndex: 'qty', key: 'qty' },
                   { title: 'Tồn Kho Khả Dụng', dataIndex: 'stock', key: 'stk', render: (val) => <strong>{val} chiếc</strong> },
                   { title: 'Doanh Thu (VNĐ)', dataIndex: 'rev', key: 'rev', render: (val) => <strong>{val}đ</strong> },
-                  { title: 'Trạng Thái', dataIndex: 'status', key: 'status', render: (val) => <Tag color={val.includes('hết') ? 'orange' : 'green'}>{val}</Tag> },
+                  { title: 'Trạng Thái', dataIndex: 'status', key: 'status', render: (val) => <Tag color={val.includes('hết') ? 'orange' : 'green'} style={{ borderRadius: 3 }}>{val}</Tag> },
                 ]}
               />
             </div>
@@ -567,71 +765,75 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
 
         {/* Tab 3: Live Carrier Waybill Tracking */}
         {activeTab === 'tracking' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: 16, height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8, color: '#0F172A' }}>
-                  <span>Mã vận đơn: <strong>VTP882910482VN</strong></span>
-                  <Tag color="magenta">Viettel Post Hỏa Tốc</Tag>
-                  <Tag color="green">SLA Đúng hạn</Tag>
-                </div>
-                <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
-                  Người nhận: <strong>Nguyễn Văn Tuấn</strong> (0988***123) • Địa chỉ: 12 Cầu Giấy, Hà Nội
+          <div style={{ background: '#FFFFFF', borderRadius: 8, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img src={getPartnerLogo('viettel post')} alt="Viettel Post" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, color: '#0F172A' }}>
+                    <span>Mã vận đơn: <strong style={{ color: '#EE0033' }}>VTP882910482VN</strong></span>
+                    <Tag color="magenta" style={{ borderRadius: 3 }}>Viettel Post Tuyến Trục</Tag>
+                    <Tag color="green" style={{ borderRadius: 3 }}>SLA Đúng hạn</Tag>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>
+                    Người nhận: <strong>Nguyễn Văn Tuấn</strong> (0988***123) • Địa chỉ: 12 Cầu Giấy, Hà Nội
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <BaseButton
                   variant="ghost"
                   size="small"
                   icon={<PhoneOutlined />}
                   onClick={() => notify.info('Đang liên hệ Bưu tá Lê Văn Long: 0912***789')}
+                  style={{ height: 30 }}
                 >
                   Gọi bưu tá (0912***789)
                 </BaseButton>
 
-                <Tag color="processing" icon={<CarFilled />} style={{ fontSize: 12, padding: '4px 10px', margin: 0 }}>
+                <Tag color="processing" icon={<CarFilled />} style={{ fontSize: 11.5, padding: '3px 8px', margin: 0, borderRadius: 4 }}>
                   ĐANG PHÁT HÀNG (Dự kiến: Trước 14:00)
                 </Tag>
               </div>
             </div>
 
-            <Row gutter={14} style={{ marginBottom: 14 }}>
+            <Row gutter={10} style={{ marginBottom: 12 }}>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Cước vận chuyển" value="19.500đ" valueStyle={{ color: '#059669', fontWeight: 'bold', fontSize: 17 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Cước vận chuyển" value="19.500đ" valueStyle={{ color: '#059669', fontWeight: 'bold', fontSize: 15 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Khối lượng quy đổi" value="350g" suffix="(25x15x5cm)" valueStyle={{ fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Khối lượng quy đổi" value="350g" suffix="(25x15x5cm)" valueStyle={{ fontSize: 14 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Tiền thu hộ COD" value="350.000đ" valueStyle={{ fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Tiền thu hộ COD" value="350.000đ" valueStyle={{ fontSize: 14 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Thời gian giao TB" value="1.8 giờ" valueStyle={{ color: '#2563EB', fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Thời gian giao TB" value="1.8 giờ" valueStyle={{ color: '#2563EB', fontSize: 14 }} />
                 </div>
               </Col>
             </Row>
 
-            <div style={{ flex: 1, background: '#F8FAFC', padding: 14, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10, color: '#0F172A' }}>
+            <div style={{ flex: 1, background: '#F8FAFC', padding: 12, borderRadius: 6, border: '1px solid #E2E8F0' }}>
+              <div style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 10, color: '#0F172A' }}>
                 Lịch trình di chuyển chi tiết:
               </div>
               <Timeline
                 items={[
                   {
                     color: 'green',
-                    dot: <CheckCircleFilled style={{ fontSize: 14 }} />,
+                    dot: <CheckCircleFilled style={{ fontSize: 13 }} />,
                     children: (
                       <div>
                         <strong>10:45 - Bưu tá đang phát hàng tới người nhận</strong>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>Bưu tá Lê Văn Long (0912***789) đang trên tuyến đường Cầu Giấy.</div>
+                        <div style={{ fontSize: 11.5, color: '#64748B' }}>Bưu tá Lê Văn Long (0912***789) đang trên tuyến đường Cầu Giấy.</div>
                       </div>
                     ),
                   },
@@ -640,7 +842,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                     children: (
                       <div>
                         <strong>09:30 - Đến bưu cục phát Cầu Giấy (Hà Nội)</strong>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>Kiện hàng đã hoàn tất phân loại và nhập kho phát.</div>
+                        <div style={{ fontSize: 11.5, color: '#64748B' }}>Kiện hàng đã hoàn tất phân loại và nhập kho phát.</div>
                       </div>
                     ),
                   },
@@ -649,7 +851,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                     children: (
                       <div>
                         <strong>08:15 - Đã lấy hàng tại Kho Tổng Hà Nội (WH_MAIN_HN)</strong>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>Bưu tá Viettel Post xác nhận nhận bưu kiện từ hệ thống UniFlow.</div>
+                        <div style={{ fontSize: 11.5, color: '#64748B' }}>Bưu tá Viettel Post xác nhận nhận bưu kiện từ hệ thống UniFlow.</div>
                       </div>
                     ),
                   },
@@ -661,17 +863,21 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
 
         {/* Tab 4: Sapo & KiotViet Multi-Branch Inventory */}
         {activeTab === 'pos' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 8, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div>
-                <strong style={{ fontSize: 14, color: '#0F172A' }}>Tồn kho Sapo POS & KiotViet theo từng chi nhánh</strong>
-                <div style={{ fontSize: 11.5, color: '#64748B' }}>Đồng bộ realtime 2 chiều qua Webhook Inbound</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img src={getPartnerLogo('sapo')} alt="Sapo" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                <div>
+                  <strong style={{ fontSize: 13.5, color: '#0F172A' }}>Tồn kho Sapo POS theo từng chi nhánh</strong>
+                  <div style={{ fontSize: 11, color: '#64748B' }}>Đồng bộ realtime 2 chiều qua Webhook Inbound</div>
+                </div>
               </div>
               <BaseButton
                 variant="primary"
                 size="small"
                 icon={<ShoppingOutlined />}
                 onClick={() => notify.success('Đã đồng bộ lại toàn bộ tồn kho 4 chi nhánh!')}
+                style={{ height: 30 }}
               >
                 Đồng bộ tồn kho ngay
               </BaseButton>
@@ -689,12 +895,12 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 size="small"
                 rowKey="branch"
                 columns={[
-                  { title: 'Chi nhánh / Kho hàng', dataIndex: 'branch', key: 'br', render: (val) => <span style={{ fontWeight: 600 }}><EnvironmentOutlined style={{ color: '#ed1c24', marginRight: 4 }} />{val}</span> },
+                  { title: 'Chi nhánh / Kho hàng', dataIndex: 'branch', key: 'br', render: (val) => <span style={{ fontWeight: 600 }}><EnvironmentOutlined style={{ color: '#0284C7', marginRight: 4 }} />{val}</span> },
                   { title: 'Áo Polo (M)', dataIndex: 'polo', key: 'p', render: (val) => <strong>{val}</strong> },
                   { title: 'Áo Thun (L)', dataIndex: 'tshirt', key: 't', render: (val) => <strong>{val}</strong> },
                   { title: 'Quần Jean (31)', dataIndex: 'jean', key: 'j', render: (val) => <strong>{val}</strong> },
                   { title: 'Áo Hoodie (XL)', dataIndex: 'hoodie', key: 'h', render: (val) => <span style={{ color: val === 0 ? '#EF4444' : '#0F172A', fontWeight: val === 0 ? 700 : 400 }}>{val}</span> },
-                  { title: 'Tình trạng', dataIndex: 'status', key: 'st', render: (val) => <Tag color={val.includes('Hết') ? 'red' : 'green'}>{val}</Tag> },
+                  { title: 'Tình trạng', dataIndex: 'status', key: 'st', render: (val) => <Tag color={val.includes('Hết') ? 'red' : 'green'} style={{ borderRadius: 3 }}>{val}</Tag> },
                 ]}
               />
             </div>
@@ -703,14 +909,14 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
 
         {/* Tab 5: Webhook Payload Inspector */}
         {activeTab === 'webhook' && (
-          <div style={{ background: '#0F172A', borderRadius: 10, padding: 14, height: '100%', display: 'flex', flexDirection: 'column', color: '#E2E8F0', fontFamily: 'Consolas, monospace', fontSize: 12 }}>
+          <div style={{ background: '#0F172A', borderRadius: 8, padding: 14, height: '100%', display: 'flex', flexDirection: 'column', color: '#E2E8F0', fontFamily: 'Consolas, monospace', fontSize: 11.5 }}>
             <div style={{ color: '#94A3B8', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <SafetyCertificateFilled style={{ color: '#10B981' }} />
                 <span style={{ color: '#FFFFFF', fontWeight: 600 }}>TikTok Shop Webhook Payload (HMAC-SHA256 Verified)</span>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Tag color="green" style={{ margin: 0 }}>200 OK • 120ms</Tag>
+                <Tag color="green" style={{ margin: 0, borderRadius: 3 }}>200 OK • 120ms</Tag>
                 <BaseButton
                   variant="ghost"
                   size="small"
@@ -725,7 +931,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 </BaseButton>
               </div>
             </div>
-            <pre style={{ flex: 1, margin: 0, overflowY: 'auto', background: '#1E293B', padding: 12, borderRadius: 8, border: '1px solid #334155', whiteSpace: 'pre-wrap' }}>
+            <pre style={{ flex: 1, margin: 0, overflowY: 'auto', background: '#020617', padding: 12, borderRadius: 6, border: '1px solid #1E293B', whiteSpace: 'pre-wrap' }}>
               {JSON.stringify(
                 {
                   event: 'ORDER_STATUS_CHANGE',
@@ -761,13 +967,13 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
 
         {/* Tab 6: MISA AMIS Accounting & Tax Declaration Inspector */}
         {activeTab === 'accounting' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 8, border: '1px solid #E2E8F0', padding: 14, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <img src={getPartnerLogo('misa')} alt="MISA" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                 <div>
-                  <strong style={{ fontSize: 14, color: '#0F172A' }}>Sổ cái MISA AMIS & Kê khai Thuế TMĐT (Nghị định 117/2025/NĐ-CP)</strong>
-                  <div style={{ fontSize: 11.5, color: '#64748B' }}>Tự động bóc tách doanh thu sạch, thuế GTGT (1%) & TNCN (0.5%) theo TT 40/2021/TT-BTC</div>
+                  <strong style={{ fontSize: 13.5, color: '#0F172A' }}>Sổ cái MISA AMIS & Kê khai Thuế TMĐT (Nghị định 117/2025/NĐ-CP)</strong>
+                  <div style={{ fontSize: 11, color: '#64748B' }}>Tự động bóc tách doanh thu sạch, thuế GTGT (1%) & TNCN (0.5%) theo TT 40/2021/TT-BTC</div>
                 </div>
               </div>
 
@@ -777,6 +983,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   size="small"
                   icon={<DownloadOutlined />}
                   onClick={() => notify.success('Đã tải xuống Tờ khai Thuế Mẫu 01/GTGT.xlsx')}
+                  style={{ height: 30 }}
                 >
                   Tải Mẫu 01/GTGT
                 </BaseButton>
@@ -785,6 +992,7 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                   size="small"
                   icon={<ThunderboltFilled />}
                   onClick={() => notify.success('Đã đồng bộ 2.410 chứng từ vào phần mềm MISA AMIS! ✅')}
+                  style={{ height: 30 }}
                 >
                   Đồng bộ sang MISA AMIS
                 </BaseButton>
@@ -792,25 +1000,25 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
             </div>
 
             {/* Tax & Financial Highlights */}
-            <Row gutter={12} style={{ marginBottom: 12 }}>
+            <Row gutter={10} style={{ marginBottom: 12 }}>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Tổng doanh thu Gross" value="1.411.800.000đ" valueStyle={{ color: '#0F172A', fontWeight: 'bold', fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Tổng doanh thu Gross" value="1.411.800.000đ" valueStyle={{ color: '#0F172A', fontWeight: 'bold', fontSize: 14 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Thuế GTGT (1%)" value="13.405.000đ" valueStyle={{ color: '#EF4444', fontWeight: 'bold', fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Thuế GTGT (1%)" value="13.405.000đ" valueStyle={{ color: '#EF4444', fontWeight: 'bold', fontSize: 14 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                  <Statistic title="Thuế TNCN (0.5%)" value="6.702.500đ" valueStyle={{ color: '#D97706', fontWeight: 'bold', fontSize: 15 }} />
+                <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>
+                  <Statistic title="Thuế TNCN (0.5%)" value="6.702.500đ" valueStyle={{ color: '#D97706', fontWeight: 'bold', fontSize: 14 }} />
                 </div>
               </Col>
               <Col span={6}>
-                <div style={{ background: '#ECFDF5', padding: '10px 12px', borderRadius: 8, border: '1px solid #A7F3D0' }}>
-                  <Statistic title="Tổng thuế tạm tính" value="20.107.500đ" valueStyle={{ color: '#059669', fontWeight: 'bold', fontSize: 15 }} />
+                <div style={{ background: '#ECFDF5', padding: '8px 10px', borderRadius: 6, border: '1px solid #A7F3D0' }}>
+                  <Statistic title="Tổng thuế tạm tính" value="20.107.500đ" valueStyle={{ color: '#059669', fontWeight: 'bold', fontSize: 14 }} />
                 </div>
               </Col>
             </Row>
@@ -827,14 +1035,14 @@ export const AgentOmniInspectorModal: React.FC<AgentOmniInspectorModalProps> = (
                 size="small"
                 rowKey="docNo"
                 columns={[
-                  { title: 'Số Hóa Đơn / CT', dataIndex: 'docNo', key: 'd', render: (val) => <strong style={{ color: '#0284C7' }}>{val}</strong> },
+                  { title: 'Số Hóa Đơn / CT', dataIndex: 'docNo', key: 'd', render: (val) => <strong style={{ color: '#0284C7', fontFamily: 'monospace' }}>{val}</strong> },
                   { title: 'Ngày CT', dataIndex: 'date', key: 'dt' },
-                  { title: 'Kênh Bán', dataIndex: 'ch', key: 'c', render: (val) => <Tag color="blue">{val}</Tag> },
+                  { title: 'Kênh Bán', dataIndex: 'ch', key: 'c', render: (val) => <Tag color="blue" style={{ borderRadius: 3 }}>{val}</Tag> },
                   { title: 'Khách Hàng', dataIndex: 'customer', key: 'cust' },
                   { title: 'Doanh Thu', dataIndex: 'gross', key: 'gr', render: (val) => <strong>{val}</strong> },
                   { title: 'Thuế VAT', dataIndex: 'vat', key: 'v', render: (val) => <span style={{ color: '#EF4444' }}>{val}</span> },
                   { title: 'Định Khoản', dataIndex: 'debit', key: 'deb', render: (val) => <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{val}</span> },
-                  { title: 'Trạng Thái', dataIndex: 'status', key: 'st', render: (val) => <Tag color="green">{val}</Tag> },
+                  { title: 'Trạng Thái', dataIndex: 'status', key: 'st', render: (val) => <Tag color="green" style={{ borderRadius: 3 }}>{val}</Tag> },
                 ]}
               />
             </div>

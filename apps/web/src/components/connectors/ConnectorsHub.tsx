@@ -341,10 +341,10 @@ export const ConnectorsHub: React.FC = () => {
           items={[
             { key: 'ALL', label: 'Tất cả cổng kết nối' },
             { key: 'MARKETPLACE', label: 'Sàn TMĐT' },
-            { key: 'CHAT_SOCIAL', label: 'CSKH & Hội thoại (Pancake, Zalo, Telegram)' },
             { key: 'POS_ERP', label: 'Quản lý kho POS & ERP' },
             { key: 'LOGISTICS', label: 'Đơn vị vận chuyển' },
-            { key: 'ACCOUNTING', label: '🧾 Kế toán & Thuế (MISA, Fast, Bravo)' },
+            { key: 'ACCOUNTING', label: 'Kế toán & Thuế (MISA meInvoice / AMIS)' },
+            { key: 'CHAT_SOCIAL', label: 'CSKH & Hội thoại (Pancake, Zalo, Telegram)' },
             { key: 'SPREADSHEET', label: 'Bảng tính & Excel' },
             { key: 'LANDING_PAGE', label: 'Landing Page & Form' },
           ]}
