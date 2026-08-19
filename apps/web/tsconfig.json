@@ -20,9 +20,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"],
+      "@uniflow/shared-types": ["../../packages/shared-types/src"],
+      "@uniflow/udm-schema": ["../../packages/udm-schema/src"]
     }
   },
   "include": ["src"],
