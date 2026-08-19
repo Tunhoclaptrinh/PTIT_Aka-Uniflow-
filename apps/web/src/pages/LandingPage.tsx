@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Button,
+  Drawer,
 } from 'antd';
 import {
   SunOutlined,
@@ -34,6 +35,13 @@ import {
   CloudServerOutlined,
   RiseOutlined,
   CheckCircleOutlined,
+  MenuOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  PlaySquareOutlined,
+  ApartmentOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { notify } from '../utils/notification';
@@ -52,6 +60,7 @@ export const LandingPage: React.FC = () => {
   const [demoStep, setDemoStep] = useState(1);
   const [demoScenario, setDemoScenario] = useState<'TIKTOK_SAPO' | 'SHOPEE_KIOT' | 'HEALING'>('TIKTOK_SAPO');
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ── FAQ STATE ────────────────────────────────────────────────────────────
   const [faqCategory, setFaqCategory] = useState('Tích hợp & Kết nối');
@@ -441,8 +450,348 @@ export function verifyTikTokWebhook(
               </Link>
             </div>
           )}
+          {/* Mobile Hamburger Button */}
+          <button
+            className="mobile-hamburger-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Mở danh mục điều hướng"
+            style={{
+              display: 'none', // Shown via CSS media query
+              background: 'transparent',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #CBD5E1',
+              color: isDark ? '#F8FAFC' : '#0F172A',
+              padding: '6px 10px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MenuOutlined style={{ fontSize: 18 }} />
+          </button>
         </div>
       </header>
+
+      {/* ── MOBILE MENU DRAWER ──────────────────────────────────────────────── */}
+      <Drawer
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        placement="right"
+        width={300}
+        styles={{
+          body: {
+            padding: '20px 16px',
+            background: isDark ? '#0B0F19' : '#FFFFFF',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          },
+          header: {
+            background: isDark ? '#080C14' : '#F8FAFC',
+            borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+          },
+        }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src="/logo.svg" alt="UniFlow" style={{ height: 28, width: 'auto' }} />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: isDark ? '#F8FAFC' : '#0F172A' }}>
+                <span>Uni</span>
+                <span style={{ color: '#ed1c24' }}>Flow</span>
+                <span style={{ color: '#FCC20F' }}> AI</span>
+              </div>
+              <div style={{ fontSize: 9.5, color: '#64748B', fontWeight: 600 }}>PTIT_Aka · IPAAS</div>
+            </div>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: activeNav === 'home' ? '#ed1c24' : isDark ? '#E2E8F0' : '#1E293B',
+              background: activeNav === 'home' ? (isDark ? 'rgba(237, 28, 36, 0.12)' : '#FEF2F2') : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+            onClick={() => {
+              scrollToSection('home');
+              setMobileMenuOpen(false);
+            }}
+          >
+            <HomeOutlined style={{ color: '#ed1c24' }} />
+            <span>Trang chủ</span>
+          </div>
+
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: activeNav === 'demo' ? '#ed1c24' : isDark ? '#E2E8F0' : '#1E293B',
+              background: activeNav === 'demo' ? (isDark ? 'rgba(237, 28, 36, 0.12)' : '#FEF2F2') : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+            onClick={() => {
+              scrollToSection('demo');
+              setMobileMenuOpen(false);
+            }}
+          >
+            <PlaySquareOutlined style={{ color: '#ed1c24' }} />
+            <span>Mô phỏng 0-chạm</span>
+          </div>
+
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: activeNav === 'pipeline' ? '#ed1c24' : isDark ? '#E2E8F0' : '#1E293B',
+              background: activeNav === 'pipeline' ? (isDark ? 'rgba(237, 28, 36, 0.12)' : '#FEF2F2') : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+            onClick={() => {
+              scrollToSection('pipeline');
+              setMobileMenuOpen(false);
+            }}
+          >
+            <ApartmentOutlined style={{ color: '#ed1c24' }} />
+            <span>Quy trình vận hành</span>
+          </div>
+
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: activeNav === 'features' ? '#ed1c24' : isDark ? '#E2E8F0' : '#1E293B',
+              background: activeNav === 'features' ? (isDark ? 'rgba(237, 28, 36, 0.12)' : '#FEF2F2') : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+            onClick={() => {
+              scrollToSection('features');
+              setMobileMenuOpen(false);
+            }}
+          >
+            <AppstoreOutlined style={{ color: '#ed1c24' }} />
+            <span>Tính năng cốt lõi</span>
+          </div>
+
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: activeNav === 'docs' ? '#ed1c24' : isDark ? '#E2E8F0' : '#1E293B',
+              background: activeNav === 'docs' ? (isDark ? 'rgba(237, 28, 36, 0.12)' : '#FEF2F2') : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+            onClick={() => {
+              scrollToSection('docs');
+              setMobileMenuOpen(false);
+            }}
+          >
+            <FileTextOutlined style={{ color: '#ed1c24' }} />
+            <span>Tài liệu API</span>
+          </div>
+
+          <Link
+            to="/workflows"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: isDark ? '#E2E8F0' : '#1E293B',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <BranchesOutlined style={{ color: '#FCC20F' }} />
+            <span>Canvas Thiết kế Flow</span>
+          </Link>
+
+          <Link
+            to="/connectors"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              color: isDark ? '#E2E8F0' : '#1E293B',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <ApiOutlined style={{ color: '#10B981' }} />
+            <span>Kênh tích hợp Hub</span>
+          </Link>
+        </div>
+
+        {/* Quick Settings Bar in Mobile Drawer */}
+        <div
+          style={{
+            marginTop: 'auto',
+            paddingTop: 16,
+            borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: '#64748B' }}>Chế độ giao diện:</span>
+            <button
+              onClick={toggleTheme}
+              style={{
+                background: isDark ? 'rgba(255, 255, 255, 0.1)' : '#F1F5F9',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: 6,
+                color: isDark ? '#FCC20F' : '#0F172A',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              {isDark ? <SunOutlined /> : <MoonOutlined />} {isDark ? 'Sáng' : 'Tối'}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: '#64748B' }}>Ngôn ngữ:</span>
+            <button
+              onClick={() => setLang(lang === 'VN' ? 'EN' : 'VN')}
+              style={{
+                background: isDark ? 'rgba(255, 255, 255, 0.1)' : '#F1F5F9',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: 6,
+                color: isDark ? '#F8FAFC' : '#0F172A',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              <GlobalOutlined style={{ color: '#ed1c24' }} /> {lang === 'VN' ? 'Tiếng Việt' : 'English'}
+            </button>
+          </div>
+
+          {/* Contact Support Hotline */}
+          <div
+            style={{
+              padding: '8px 10px',
+              borderRadius: 6,
+              background: isDark ? 'rgba(237, 28, 36, 0.08)' : '#FFF1F2',
+              border: isDark ? '1px solid rgba(237, 28, 36, 0.2)' : '1px solid #FFE4E6',
+              fontSize: 11.5,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <div style={{ color: '#ed1c24', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <PhoneOutlined /> Hotline / Zalo: 0945 650 883
+            </div>
+            <div style={{ color: '#64748B', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MailOutlined /> tuannguyentien16@gmail.com
+            </div>
+          </div>
+
+          {/* Auth Action Buttons */}
+          {isAuthenticated ? (
+            <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+              <button
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: 8,
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                <UserOutlined style={{ marginRight: 6 }} />
+                {user?.name || 'Vào Dashboard'}
+              </button>
+            </Link>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                <button
+                  type="button"
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #CBD5E1',
+                    color: isDark ? '#F8FAFC' : '#1E293B',
+                    padding: '8px',
+                    borderRadius: 8,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Đăng nhập
+                </button>
+              </Link>
+              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                <button
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #ed1c24 0%, #C4001A 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    padding: '10px',
+                    borderRadius: 8,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(237, 28, 36, 0.3)',
+                  }}
+                >
+                  <RocketFilled style={{ marginRight: 6 }} />
+                  Dùng thử 14 ngày
+                </button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </Drawer>
 
       {/* ══════════════════════════════════════════════════════════════════
           1. FIRST FOLD: 100VH HERO CONTAINER
