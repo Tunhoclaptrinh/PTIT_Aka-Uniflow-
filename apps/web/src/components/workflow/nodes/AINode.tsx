@@ -73,18 +73,17 @@ export const AINode: React.FC<any> = ({ data, selected }) => {
           height: '100%',
           minWidth: hasCarriers && expanded ? 260 : 220,
           background: '#FFFFFF',
-          borderRadius: 8,
-          border: selected ? `2px solid ${nodeColor}` : '1px solid #E5E7EB',
-          borderLeft: `3px solid ${nodeColor}`,
+          borderRadius: 6,
+          border: selected ? `2px solid ${nodeColor}` : `1.5px solid ${nodeColor}`,
           boxShadow: selected
-            ? `0 0 0 3px rgba(139, 92, 246, 0.15), 0 6px 16px rgba(0, 0, 0, 0.06)`
+            ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.08)`
             : isHovered
-            ? '0 4px 12px rgba(0, 0, 0, 0.06)'
-            : '0 1px 3px rgba(0, 0, 0, 0.03)',
+            ? `0 4px 14px ${nodeColor}25`
+            : `0 1px 4px rgba(0, 0, 0, 0.04)`,
           color: '#111827',
           cursor: 'pointer',
           userSelect: 'none',
-          padding: '10px 12px',
+          padding: '9px 12px',
           transition: 'width 0.2s ease',
         }}
       >

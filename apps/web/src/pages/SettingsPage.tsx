@@ -280,6 +280,82 @@ export const SettingsPage: React.FC = () => {
                 </BaseCard>
               </Col>
             </Row>
+
+            {/* 3. Kế toán & Thuế — MISA AMIS Integration */}
+            <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
+              <Col xs={24}>
+                <BaseCard
+                  icon={<span style={{ fontSize: 18 }}>🧾</span>}
+                  title="Tích hợp kế toán & thuế (MISA AMIS / meInvoice)"
+                  subtitle="Cấu hình kết nối tự động ghi sổ cái, xuất hóa đơn điện tử và kê khai thuế theo NĐ 117/2025"
+                >
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={8}>
+                      <Form.Item label="MISA AMIS — Mã công ty" name="misaCompanyCode">
+                        <Input placeholder="VD: CTY-HN-012345" style={{ fontFamily: 'JetBrains Mono' }} />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item label="MISA AMIS — API Key" name="misaApiKey">
+                        <Input.Password placeholder="Nhập API Key từ MISA AMIS..." />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item label="MISA meInvoice — Access Token" name="misaInvoiceToken">
+                        <Input.Password placeholder="Token phát hành hóa đơn điện tử..." />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item label="Loại thuế suất GTGT mặc định" name="vatRate" initialValue="1">
+                        <Select
+                          options={[
+                            { label: '1% — Hàng TMĐT theo TT 40/2021', value: '1' },
+                            { label: '5% — Nhóm hàng thiết yếu', value: '5' },
+                            { label: '10% — Thuế GTGT thông thường', value: '10' },
+                            { label: '0% — Miễn thuế xuất khẩu', value: '0' },
+                          ]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item label="Phần mềm kế toán chính" name="accountingSoftware" initialValue="MISA_AMIS">
+                        <Select
+                          options={[
+                            { label: 'MISA AMIS Kế toán', value: 'MISA_AMIS' },
+                            { label: 'Fast Accounting ERP', value: 'FAST' },
+                            { label: 'Bravo ERP', value: 'BRAVO' },
+                          ]}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                    <Form.Item label="Tự động đồng bộ sổ cái MISA khi có đơn hoàn thành" name="autoSyncMisa" valuePropName="checked">
+                      <Switch defaultChecked />
+                    </Form.Item>
+                    <Form.Item label="Tự động phát hành hóa đơn GTGT điện tử (meInvoice)" name="autoIssueInvoice" valuePropName="checked">
+                      <Switch defaultChecked />
+                    </Form.Item>
+                    <Form.Item label="Kê khai thuế tự động theo kỳ hàng tháng" name="autoTaxDeclaration" valuePropName="checked">
+                      <Switch />
+                    </Form.Item>
+                  </div>
+
+                  <FormFooter
+                    align="left"
+                    submitText="Lưu cấu hình MISA & Thuế"
+                    cancelText="Hủy"
+                    loading={saving}
+                    onSubmit={() => form.submit()}
+                    onCancel={fetchTenant}
+                  />
+                </BaseCard>
+              </Col>
+            </Row>
           </Form>
         </div>
       )}

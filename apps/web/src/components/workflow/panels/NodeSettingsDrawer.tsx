@@ -20,6 +20,10 @@ import {
   CodeOutlined,
   ControlOutlined,
   CheckCircleFilled,
+  ThunderboltFilled,
+  AppstoreOutlined,
+  ScissorOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { BaseButton } from '../../base/BaseButton';
 import { notify } from '../../../utils/notification';
@@ -29,34 +33,56 @@ import { useAppConfig } from '../../../context/AppConfigContext';
 interface NodeSettingsDrawerProps {
   open: boolean;
   selectedNode: any;
+  allNodes?: any[];
   onClose: () => void;
   onUpdateNode: (nodeId: string, updatedData: any) => void;
   onDeleteNode: (nodeId: string) => void;
+  onSelectNode?: (node: any) => void;
 }
 
 export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
   open,
   selectedNode,
+  allNodes = [],
   onClose,
   onUpdateNode,
   onDeleteNode,
+  onSelectNode,
 }) => {
-  const [form] = Form.useForm();
-  const [activeTab, setActiveTab] = useState('config');
-  const [testing, setTesting] = useState(false);
-  const [testOutput, setTestResult] = useState<any>(null);
   const { themeMode } = useAppConfig();
   const isLight = themeMode === 'light';
+  const [activeTab, setActiveTab] = useState('config');
+  const [form] = Form.useForm();
+  const [testOutput, setTestOutput] = useState<any>(null);
+  const [testing, setTesting] = useState(false);
+
+  const nodeType = selectedNode?.type || 'action';
+  const isGroup = nodeType === 'group' || selectedNode?.type?.toLowerCase().includes('group');
+
+  // Lấy các node con thực tế đang thuộc group này
+  const childNodes = isGroup && selectedNode
+    ? allNodes.filter((n) => n.parentId === selectedNode.id)
+    : [];
+
+  // Tìm Group cha nếu selectedNode là node con
+  const parentGroup = !isGroup && selectedNode?.parentId
+    ? allNodes.find((n) => n.id === selectedNode.parentId)
+    : null;
 
   React.useEffect(() => {
     if (open && selectedNode) {
       form.resetFields();
       form.setFieldsValue({
         label: selectedNode.data?.label || '',
+        subtitle: selectedNode.data?.subtitle || '',
         description: selectedNode.data?.description || '',
+        isExpanded: selectedNode.data?.isExpanded ?? true,
         eventType: selectedNode.data?.eventType || 'ORDER_PAID',
         threshold: selectedNode.data?.threshold || 90,
         model: selectedNode.data?.model || 'GEMINI_FLASH_QDRANT',
+        compareMode: selectedNode.data?.compareMode || 'AUTO_HUB',
+        carrierList: selectedNode.data?.carrierList || ['VIETTEL_POST', 'GHTK', 'GHN'],
+        strategy: selectedNode.data?.strategy || 'CHEAPEST',
         nerExtraction: selectedNode.data?.nerExtraction ?? true,
         fallbackAction: selectedNode.data?.fallbackAction || 'QUEUE_PENDING',
         warehouseId: selectedNode.data?.warehouseId || 'WH_MAIN_HN',
@@ -67,22 +93,11 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         timeoutMs: selectedNode.data?.timeoutMs || 30000,
         enabled: selectedNode.data?.enabled ?? true,
       });
-      setTestResult(null);
+      setTestOutput(null);
     }
   }, [open, selectedNode, form]);
 
   if (!selectedNode) return null;
-
-  const nodeType = selectedNode.type || 'action';
-  const partnerLogo = nodeType === 'ai' ? '/favicon.svg' : getPartnerLogo(selectedNode.data?.label || '');
-
-  const categoryLabels: Record<string, { label: string; color: string }> = {
-    trigger: { label: 'Cổng tiếp nhận Webhook', color: '#ed1c24' },
-    ai: { label: 'Trí tuệ nhân tạo AI', color: '#8B5CF6' },
-    action: { label: 'Khối xử lý Kho & Vận chuyển', color: '#10B981' },
-  };
-
-  const currentCat = categoryLabels[nodeType] || { label: 'Khối xử lý', color: '#6B7280' };
 
   const handleSave = async () => {
     try {
@@ -91,7 +106,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         ...selectedNode.data,
         ...values,
       });
-      notify.success(`Đã lưu cấu hình khối "${values.label || selectedNode.id}" thành công!`);
+      notify.success(isGroup ? `Đã lưu ghi chú phân vùng "${values.label || selectedNode.id}"!` : `Đã lưu cấu hình khối "${values.label || selectedNode.id}"!`);
       onClose();
     } catch (err) {
       console.warn('Validate failed:', err);
@@ -100,7 +115,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
   const handleTestStep = async () => {
     setTesting(true);
-    notify.loading(`Đang chạy thử nghiệm khối ${selectedNode.data?.label}...`, 'testStep');
+    notify.loading(`Đang chạy thử nghiệm khối ${selectedNode.data?.label || selectedNode.id}...`);
     setTimeout(() => {
       setTesting(false);
       const isRateCompare =
@@ -113,74 +128,343 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         ? {
             success: true,
             action: 'AI_DYNAMIC_RATE_OPTIMIZATION',
-            message: `Khối "${selectedNode.data?.label}" đã truy vấn cước realtime và chốt hãng rẻ nhất: Viettel Post`,
-            realtimeQuotes: [
-              { carrier: 'Viettel Post', fee: 19500, slaHours: 24, status: 'CHOSEN_LOWEST_PRICE_WINNER 🏆', savings: '5.000đ (20.4%)' },
-              { carrier: 'GHTK Express', fee: 22000, slaHours: 18, status: 'CANDIDATE', diff: '+2.500đ' },
-              { carrier: 'GHN Nhanh', fee: 24500, slaHours: 24, status: 'CANDIDATE', diff: '+5.000đ' },
-              { carrier: 'J&T Express', fee: 21000, slaHours: 36, status: 'CANDIDATE', diff: '+1.500đ' },
+            sku: 'POLO-SLIM-BLACK-L',
+            parcelWeightGrams: 350,
+            quotes: [
+              { carrier: 'Viettel Post (VTP)', fee: 19500, etaHours: 24, badge: '🏆 RẺ NHẤT (-20.4%)' },
+              { carrier: 'GHTK Express', fee: 22000, etaHours: 18 },
+              { carrier: 'GHN Nhanh', fee: 24500, etaHours: 20 },
             ],
             chosenCarrier: 'VIETTEL_POST',
             appliedFee: 19500,
-            simulatedTrackingNumber: `VTP${Math.floor(100000000 + Math.random() * 900000000)}VN`,
-            evaluationSummary: 'Đã tối ưu hóa chi phí vận chuyển thành công cho kiện hàng 350g tuyến Hà Nội ➔ Toàn quốc.',
+            estimatedSavingsVND: 5000,
+            executionTimeMs: 38,
+            timestamp: new Date().toISOString(),
           }
         : {
             success: true,
-            action: 'EXECUTE_NODE_SIMULATION',
-            message: `Khối "${selectedNode.data?.label}" đã xử lý payload UDM thành công`,
-            sampleTransformedData: {
-              sourceOrderId: 'VN_ORD_982471',
-              status: 'PROCESSED',
-              matchedMasterSku: 'AO-POLO-NAM-BLK-L',
-              inventoryDeducted: 1,
-              waybillCreated: 'VTP_TRACK_8831920',
+            nodeId: selectedNode.id,
+            nodeType: selectedNode.type,
+            outputData: {
+              sku: 'POLO-SLIM-BLACK-L',
+              matchedMasterSku: 'POLO-NAM-SLIM-DEN-L',
+              confidenceScore: 0.96,
+              status: 'READY_FOR_NEXT_STEP',
             },
+            latencyMs: Math.floor(Math.random() * 35 + 15),
+            statusCode: 200,
           };
 
-      setTestResult({
-        status: 'SUCCESS',
-        statusCode: 200,
-        latencyMs: Math.floor(Math.random() * 30) + 25,
-        timestamp: new Date().toISOString(),
-        nodeId: selectedNode.id,
-        nodeType: selectedNode.type,
-        outputPayload,
-      });
-      notify.success(`Chạy thử khối "${selectedNode.data?.label}" thành công! (200 OK)`);
-    }, 500);
+      setTestOutput(outputPayload);
+      notify.success(`Kiểm thử thành công khối ${selectedNode.data?.label || selectedNode.id}!`);
+    }, 600);
   };
 
-  const sampleUdmPayload = JSON.stringify(
-    {
-      sourcePlatform: 'TIKTOK_SHOP',
-      sourceOrderId: 'TTS_VN_893120',
-      orderStatus: 'AWAITING_SHIPMENT',
-      payment: {
-        method: 'COD',
-        totalAmount: 380000,
-        currency: 'VND',
-        isPaid: false,
-      },
-      lineItems: [
-        {
-          sourceSku: 'POLO-SLIM-BLACK-L',
-          productName: 'Áo Polo Nam Cao Cấp Slimfit Đen L',
-          quantity: 1,
-          unitPrice: 380000,
-        },
-      ],
-      shippingAddress: {
-        receiverName: 'Nguyễn Văn An',
-        phone: '0987654321',
-        fullAddress: 'Số 10 Tạ Quang Bửu, Bách Khoa, Hai Bà Trưng, Hà Nội',
-        province: 'Hà Nội',
-        district: 'Hai Bà Trưng',
-      },
-    },
-    null,
-    2
-  );
+  // ══════════════════════════════════════════════════════════════════════════
+  // 1. DÀNH RIÊNG CHO PHÂN VÙNG GOM NHÓM (GROUP NODE)
+  // ══════════════════════════════════════════════════════════════════════════
+  if (isGroup) {
+    return (
+      <Drawer
+        open={open}
+        onClose={onClose}
+        width={540}
+        destroyOnClose
+        styles={{
+          header: {
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
+            background: '#FAF5FF',
+          },
+          body: {
+            padding: '16px 20px',
+          },
+          footer: {
+            padding: '12px 20px',
+            borderTop: '1px solid var(--border-subtle, #E5E7EB)',
+          },
+        }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 6,
+                background: '#F3E8FF',
+                color: '#8B5CF6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 1px 3px rgba(139,92,246, 0.15)',
+                flexShrink: 0,
+              }}
+            >
+              <AppstoreOutlined style={{ fontSize: 19 }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 15,
+                    color: '#111827',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {selectedNode.data?.label || 'Phân vùng gom nhóm'}
+                </span>
+                <Tag color="purple" style={{ borderRadius: 4, fontSize: 10, fontWeight: 700, margin: 0 }}>
+                  {childNodes.length} KHỐI THÀNH VIÊN
+                </Tag>
+              </div>
+              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+                📌 Phân vùng ghi chú & Tổ chức trực quan (Canvas Section)
+              </div>
+            </div>
+          </div>
+        }
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <BaseButton
+              variant="danger"
+              size="small"
+              icon={<ScissorOutlined />}
+              onClick={() => {
+                if (selectedNode.data?.onUngroup) {
+                  selectedNode.data.onUngroup(selectedNode.id);
+                } else {
+                  onDeleteNode(selectedNode.id);
+                }
+                onClose();
+              }}
+            >
+              Gỡ gộp phân vùng (Bung các khối)
+            </BaseButton>
+
+            <Space size="small">
+              <BaseButton variant="ghost" size="small" onClick={onClose}>
+                Đóng
+              </BaseButton>
+              <BaseButton variant="primary" size="small" icon={<SaveOutlined />} onClick={handleSave}>
+                Lưu ghi chú phân vùng
+              </BaseButton>
+            </Space>
+          </div>
+        }
+      >
+        {/* Info Banner */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+            padding: '10px 14px',
+            background: '#F5F3FF',
+            borderRadius: 6,
+            border: '1px solid #DDD6FE',
+            marginBottom: 16,
+            fontSize: 12,
+            color: '#5B21B6',
+            lineHeight: 1.5,
+          }}
+        >
+          <InfoCircleOutlined style={{ fontSize: 15, marginTop: 2, flexShrink: 0 }} />
+          <div>
+            <strong>Phân vùng ghi chú & gom nhóm trực quan:</strong> Dùng để nhóm các khối liên quan, di chuyển đồng loạt và ghi chú nghiệp vụ trên Canvas. Phân vùng không phải là một bước xử lý hay một luồng thực thi.
+          </div>
+        </div>
+
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Tên phân vùng gom nhóm"
+            name="label"
+            rules={[{ required: true, message: 'Vui lòng nhập tên phân vùng!' }]}
+          >
+            <Input placeholder="Ví dụ: Cụm so sánh cước đa hãng, Cụm đồng bộ 3 kho POS..." />
+          </Form.Item>
+
+          <Form.Item label="Phụ đề / Ghi chú nhanh" name="subtitle">
+            <Input placeholder="Ví dụ: ⚡ Realtime Lock: Sapo + KiotViet + Nhanh.vn + MISA" />
+          </Form.Item>
+
+          <Form.Item label="Mô tả mục đích nghiệp vụ của cụm" name="description">
+            <Input.TextArea rows={2} placeholder="Ghi chú mục đích của các khối nằm trong cụm phân vùng này..." />
+          </Form.Item>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+              padding: '10px 14px',
+              background: '#F9FAFB',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle, #E5E7EB)',
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>Trạng thái mở rộng trên sơ đồ</div>
+              <div style={{ color: '#6B7280', fontSize: 12 }}>Bật để xem chi tiết tất cả các khối con, tắt để co gọn thành thẻ 1 khối</div>
+            </div>
+            <Form.Item name="isExpanded" valuePropName="checked" noStyle>
+              <Switch
+                checkedChildren="Mở rộng"
+                unCheckedChildren="Thu gọn"
+                onChange={(checked) => {
+                  if (selectedNode.data?.onToggleExpand) {
+                    selectedNode.data.onToggleExpand(selectedNode.id, checked);
+                  }
+                }}
+              />
+            </Form.Item>
+          </div>
+
+          <Divider style={{ margin: '14px 0' }} />
+
+          {/* Danh sách các khối con */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>
+                📦 Các khối thành viên ({childNodes.length} khối con):
+              </span>
+              {selectedNode.data?.onUngroup && (
+                <BaseButton
+                  variant="ghost"
+                  size="small"
+                  onClick={() => {
+                    selectedNode.data.onUngroup(selectedNode.id);
+                    onClose();
+                  }}
+                  style={{ color: '#EF4444', borderColor: '#FCA5A5', fontSize: 11 }}
+                >
+                  Gỡ gộp vùng
+                </BaseButton>
+              )}
+            </div>
+
+            {childNodes.length === 0 ? (
+              <div
+                style={{
+                  padding: '16px',
+                  background: '#F9FAFB',
+                  borderRadius: 6,
+                  border: '1px dashed #D1D5DB',
+                  textAlign: 'center',
+                  color: '#6B7280',
+                  fontSize: 12,
+                }}
+              >
+                Cụm này hiện chưa có khối con nào. Bạn có thể dùng công cụ Quét vùng (✂️) hoặc chọn các khối trên Canvas để gom thêm.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {childNodes.map((child, idx) => {
+                  const cLogo = getPartnerLogo(child.data?.label || child.label || '');
+                  const cCat = (child.data?.category || child.type || '').toUpperCase();
+                  const cColor = cCat.includes('POS')
+                    ? '#D97706'
+                    : cCat.includes('ACCOUNTING')
+                    ? '#0284C7'
+                    : cCat.includes('AI')
+                    ? '#8B5CF6'
+                    : '#10B981';
+
+                  return (
+                    <div
+                      key={child.id}
+                      onClick={() => {
+                        if (onSelectNode) onSelectNode(child);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        background: '#FFFFFF',
+                        border: `1.5px solid ${cColor}`,
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 4,
+                            background: '#F3F4F6',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            padding: 2,
+                          }}
+                        >
+                          {cLogo ? (
+                            <img src={cLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          ) : (
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: cColor }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: 12.5,
+                              color: '#111827',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {idx + 1}. {child.data?.label || child.label || child.id}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: '#6B7280',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {child.data?.description || 'Khối xử lý dữ liệu'}
+                          </div>
+                        </div>
+                      </div>
+                      <Tag color={cColor} style={{ fontSize: 10, borderRadius: 3, margin: 0, flexShrink: 0 }}>
+                        {cCat}
+                      </Tag>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Form>
+      </Drawer>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 2. DÀNH CHO CÁC KHỐI XỬ LÝ ĐƠN LẺ (TRIGGER, AI, ACTION)
+  // ══════════════════════════════════════════════════════════════════════════
+  const partnerLogo = nodeType === 'ai' ? '/favicon.svg' : getPartnerLogo(selectedNode.data?.label || '');
+
+  const categoryLabels: Record<string, { label: string; color: string }> = {
+    trigger: { label: 'Cổng tiếp nhận Webhook', color: '#ed1c24' },
+    ai: { label: 'Trí tuệ nhân tạo AI', color: '#8B5CF6' },
+    action: { label: 'Khối xử lý Kho & Vận chuyển', color: '#10B981' },
+    group: { label: `Cụm phân vùng (${childNodes.length} khối con)`, color: '#8B5CF6' },
+  };
+
+  const currentCat = categoryLabels[nodeType] || { label: 'Khối xử lý', color: '#6B7280' };
 
   return (
     <Drawer
@@ -207,7 +491,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
             style={{
               width: 38,
               height: 38,
-              borderRadius: 8,
+              borderRadius: 6,
               background: '#FFFFFF',
               border: '1px solid #E5E7EB',
               display: 'flex',
@@ -287,6 +571,29 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
             ),
             children: (
               <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
+                {/* Thông báo nếu node đang nằm trong một cụm phân vùng */}
+                {parentGroup && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      background: '#F5F3FF',
+                      borderRadius: 6,
+                      border: '1px solid #DDD6FE',
+                      marginBottom: 14,
+                      fontSize: 12,
+                      color: '#5B21B6',
+                    }}
+                  >
+                    <ThunderboltFilled />
+                    <span>
+                      Thuộc cụm phân vùng: <strong>{parentGroup.data?.label || parentGroup.id}</strong>
+                    </span>
+                  </div>
+                )}
+
                 {/* 1. Tên và mô tả chung */}
                 <Form.Item
                   label="Tên hiển thị khối xử lý"
@@ -302,7 +609,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
                 <Divider style={{ margin: '16px 0' }} />
 
-                {/* 2. Cấu hình theo từng loại Node */}
+                {/* 2. Cấu hình theo từng loại Node đơn lẻ */}
                 {nodeType === 'trigger' && (
                   <>
                     <Form.Item label="Sự kiện sàn TMĐT kích hoạt" name="eventType">
@@ -364,7 +671,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       <div
                         style={{
                           background: '#F5F3FF',
-                          borderRadius: 10,
+                          borderRadius: 6,
                           border: '1px solid #DDD6FE',
                           padding: '12px 14px',
                           marginBottom: 16,
@@ -407,30 +714,32 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                         </Form.Item>
 
                         <Form.Item
-                          label="Chiến lược quyết định tự động của AI"
-                          name="optimizeStrategy"
-                          initialValue={selectedNode.data?.optimizeStrategy || 'LOWEST_PRICE'}
+                          label="Chiến lược lựa chọn hãng vận chuyển"
+                          name="strategy"
+                          initialValue={selectedNode.data?.strategy || 'CHEAPEST'}
                           style={{ marginBottom: 0 }}
                         >
                           <Select
                             options={[
-                              { label: '🏆 Cước thấp nhất (Tối đa hóa lợi nhuận)', value: 'LOWEST_PRICE' },
-                              { label: '⚡ Giao hàng nhanh nhất (Tối ưu SLA < 24h)', value: 'FASTEST_DELIVERY' },
-                              { label: '🎯 Tỷ lệ giao thành công cao nhất (Độ tin cậy > 98%)', value: 'HIGHEST_SUCCESS_RATE' },
-                              { label: '📦 Phân tuyến hàng nặng (> 5kg đi Viettel Post)', value: 'HEAVY_WEIGHT_PRIORITY' },
+                              { label: '🏆 Hãng có cước phí rẻ nhất (Tiết kiệm tối đa)', value: 'CHEAPEST' },
+                              { label: '⚡ Hãng giao hàng nhanh nhất (Tối ưu thời gian ETA)', value: 'FASTEST' },
+                              { label: '⭐ Hãng có tỷ lệ giao thành công cao nhất (> 98%)', value: 'HIGHEST_SUCCESS' },
                             ]}
                           />
                         </Form.Item>
                       </div>
                     ) : (
                       <>
-                        <Form.Item label="Ngưỡng tin cậy tự động phê duyệt (%)" name="threshold">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                            <Slider min={70} max={99} style={{ flex: 1 }} />
-                            <Form.Item name="threshold" noStyle>
-                              <InputNumber min={70} max={99} formatter={(value) => `${value}%`} style={{ width: 80 }} />
-                            </Form.Item>
-                          </div>
+                        <Form.Item
+                          label={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                              <span>Ngưỡng tin cậy chấp thuận tự động</span>
+                              <span style={{ fontWeight: 600, color: '#8B5CF6' }}>{form.getFieldValue('threshold') || 85}%</span>
+                            </div>
+                          }
+                          name="threshold"
+                        >
+                          <Slider min={60} max={99} />
                         </Form.Item>
 
                         <div
@@ -441,7 +750,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                             marginBottom: 16,
                             padding: '10px 14px',
                             background: isLight ? '#F9FAFB' : '#1F2937',
-                            borderRadius: 8,
+                            borderRadius: 6,
                             border: '1px solid var(--border-subtle, #E5E7EB)',
                           }}
                         >
@@ -497,7 +806,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                         marginBottom: 12,
                         padding: '10px 14px',
                         background: isLight ? '#F9FAFB' : '#1F2937',
-                        borderRadius: 8,
+                        borderRadius: 6,
                         border: '1px solid var(--border-subtle, #E5E7EB)',
                       }}
                     >
@@ -518,7 +827,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                         marginBottom: 16,
                         padding: '10px 14px',
                         background: isLight ? '#F9FAFB' : '#1F2937',
-                        borderRadius: 8,
+                        borderRadius: 6,
                         border: '1px solid var(--border-subtle, #E5E7EB)',
                       }}
                     >
@@ -561,34 +870,47 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
             ),
             children: (
               <div style={{ marginTop: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>JSON Schema đầu vào khối:</span>
-                  <BaseButton
-                    variant="ghost"
-                    size="small"
-                    icon={<CopyOutlined />}
-                    onClick={() => {
-                      navigator.clipboard.writeText(sampleUdmPayload);
-                      notify.success('Đã sao chép cấu trúc JSON mẫu!');
-                    }}
-                  >
-                    Sao chép JSON
-                  </BaseButton>
+                <div style={{ marginBottom: 12, color: '#6B7280', fontSize: 12 }}>
+                  Mẫu Schema Unified Data Model (UDM) chuẩn hóa truyền qua khối này:
                 </div>
                 <pre
                   style={{
-                    background: isLight ? '#F8FAFC' : '#0B0F19',
-                    color: isLight ? '#0F172A' : '#E2E8F0',
+                    background: isLight ? '#F8FAFC' : '#111827',
+                    color: isLight ? '#0F172A' : '#F3F4F6',
                     padding: 14,
-                    borderRadius: 8,
-                    border: '1px solid #E5E7EB',
+                    borderRadius: 6,
+                    border: '1px solid #E2E8F0',
                     fontSize: 12,
                     fontFamily: 'JetBrains Mono, monospace',
-                    maxHeight: 380,
+                    maxHeight: 400,
                     overflowY: 'auto',
                   }}
                 >
-                  {sampleUdmPayload}
+                  {JSON.stringify(
+                    {
+                      orderId: 'ORD_VN_8839210',
+                      channel: 'TIKTOK_SHOP',
+                      totalAmount: 380000,
+                      paymentMethod: 'COD',
+                      items: [
+                        {
+                          sourceSku: 'POLO-SLIM-BLACK-L',
+                          productName: 'Áo Polo Nam Cao Cấp Slimfit Đen L',
+                          quantity: 1,
+                          unitPrice: 380000,
+                        },
+                      ],
+                      shippingAddress: {
+                        receiverName: 'Nguyễn Văn An',
+                        phone: '0987654321',
+                        fullAddress: 'Số 10 Tạ Quang Bửu, Bách Khoa, Hai Bà Trưng, Hà Nội',
+                        province: 'Hà Nội',
+                        district: 'Hai Bà Trưng',
+                      },
+                    },
+                    null,
+                    2
+                  )}
                 </pre>
               </div>
             ),
@@ -598,16 +920,16 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
             label: (
               <Space size={4}>
                 <PlayCircleOutlined />
-                <span>Chạy thử khối</span>
+                <span>Kiểm thử khối</span>
               </Space>
             ),
             children: (
-              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
                 <div
                   style={{
                     padding: 14,
                     background: isLight ? '#F9FAFB' : '#1F2937',
-                    borderRadius: 8,
+                    borderRadius: 6,
                     border: '1px solid #E5E7EB',
                   }}
                 >
@@ -631,15 +953,15 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                       <CheckCircleFilled style={{ color: '#10B981' }} />
                       <span style={{ fontWeight: 600, fontSize: 13 }}>Kết quả thực thi thử nghiệm:</span>
-                      <Tag color="#10B981">{testOutput.statusCode} OK</Tag>
-                      <Tag color="#3B82F6">{testOutput.latencyMs}ms</Tag>
+                      <Tag color="#10B981">{testOutput.statusCode || 200} OK</Tag>
+                      <Tag color="#3B82F6">{testOutput.latencyMs || testOutput.executionTimeMs || 35}ms</Tag>
                     </div>
                     <pre
                       style={{
                         background: isLight ? '#F8FAFC' : '#0B0F19',
                         color: '#10B981',
                         padding: 14,
-                        borderRadius: 8,
+                        borderRadius: 6,
                         border: '1px solid #E5E7EB',
                         fontSize: 12,
                         fontFamily: 'JetBrains Mono, monospace',

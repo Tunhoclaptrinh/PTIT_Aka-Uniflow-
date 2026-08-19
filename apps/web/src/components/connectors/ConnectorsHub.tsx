@@ -14,7 +14,7 @@ import { getPartnerLogo } from '../../utils/partnerLogos';
 export interface ConnectorItem {
   id: string;
   name: string;
-  category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS' | 'CHAT_SOCIAL' | 'SPREADSHEET' | 'LANDING_PAGE';
+  category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS' | 'CHAT_SOCIAL' | 'SPREADSHEET' | 'LANDING_PAGE' | 'ACCOUNTING';
   categoryLabel: string;
   status: 'CONNECTED' | 'DISCONNECTED';
   ordersSynced: number;
@@ -203,6 +203,50 @@ const defaultConnectorsList: ConnectorItem[] = [
     brandColor: '#107C41',
     description: 'Xuất file Excel (.xlsx) theo mẫu tùy biến, đồng bộ OneDrive & nhập xuất SKU hàng loạt',
   },
+  {
+    id: 'misa_amis',
+    name: 'MISA AMIS Kế toán',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'CONNECTED',
+    ordersSynced: 4820,
+    latency: '140ms',
+    brandColor: '#0070C0',
+    description: 'Tự động ghi sổ cái, xuất chứng từ và đồng bộ hóa đơn VAT sang MISA AMIS theo thời gian thực',
+  },
+  {
+    id: 'misa_meinvoice',
+    name: 'MISA meInvoice (Hóa đơn điện tử)',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'CONNECTED',
+    ordersSynced: 3120,
+    latency: '155ms',
+    brandColor: '#0070C0',
+    description: 'Phát hành hóa đơn GTGT điện tử ký số, tuân thủ Nghị định 117/2025 & Thông tư 40/2021',
+  },
+  {
+    id: 'fast_accounting',
+    name: 'Fast Accounting ERP',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'DISCONNECTED',
+    ordersSynced: 1840,
+    latency: '185ms',
+    brandColor: '#E65100',
+    description: 'Đối soát số dư tài khoản ngân hàng, tổng hợp báo cáo tài chính và kê khai thuế TNCN',
+  },
+  {
+    id: 'bravo_erp',
+    name: 'Bravo ERP',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'DISCONNECTED',
+    ordersSynced: 920,
+    latency: '200ms',
+    brandColor: '#1565C0',
+    description: 'Quản lý tài chính tổng hợp, phân tích lãi lỗ đa trung tâm chi phí và kiểm toán nội bộ',
+  },
 ];
 
 export const ConnectorsHub: React.FC = () => {
@@ -300,6 +344,7 @@ export const ConnectorsHub: React.FC = () => {
             { key: 'CHAT_SOCIAL', label: 'CSKH & Hội thoại (Pancake, Zalo, Telegram)' },
             { key: 'POS_ERP', label: 'Quản lý kho POS & ERP' },
             { key: 'LOGISTICS', label: 'Đơn vị vận chuyển' },
+            { key: 'ACCOUNTING', label: '🧾 Kế toán & Thuế (MISA, Fast, Bravo)' },
             { key: 'SPREADSHEET', label: 'Bảng tính & Excel' },
             { key: 'LANDING_PAGE', label: 'Landing Page & Form' },
           ]}

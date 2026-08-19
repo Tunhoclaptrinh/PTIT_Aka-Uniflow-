@@ -25,16 +25,19 @@ import {
   ApartmentOutlined,
   AppstoreOutlined,
   ScissorOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { TriggerNode } from './nodes/TriggerNode';
 import { AINode } from './nodes/AINode';
 import { ActionNode } from './nodes/ActionNode';
 import { GroupNode } from './nodes/GroupNode';
+import { DirectiveEdge } from './edges/DirectiveEdge';
 import { workflowService, WorkflowData, DryRunResult } from '../../services/workflow.service';
 import { PromptBar } from './panels/PromptBar';
 import { NodeLibraryDrawer } from './panels/NodeLibraryDrawer';
 import { NodeSettingsDrawer } from './panels/NodeSettingsDrawer';
 import { AIFlowArchitectDrawer } from './panels/AIFlowArchitectDrawer';
+import { EdgeDirectiveModal } from './panels/EdgeDirectiveModal';
 import { BaseButton, PageContainer, ConfirmModal } from '../base';
 import { notify } from '../../utils/notification';
 
@@ -52,10 +55,15 @@ const FlowContent: React.FC = () => {
   const [snipStart, setSnipStart] = useState<{ clientX: number; clientY: number } | null>(null);
   const [snipEnd, setSnipEnd] = useState<{ clientX: number; clientY: number } | null>(null);
 
+  // Overview mode — xem toàn bộ quy trình trên 1 canvas
+  const [isOverviewMode, setIsOverviewMode] = useState(false);
+
   // Drawers & Modals state
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any>(null);
+  const [edgeModalOpen, setEdgeModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [debugDrawerOpen, setDebugDrawerOpen] = useState(false);
@@ -79,21 +87,68 @@ const FlowContent: React.FC = () => {
     []
   );
 
+  const edgeTypes = useMemo(
+    () => ({
+      default: DirectiveEdge,
+      directive: DirectiveEdge,
+    }),
+    []
+  );
+
+  const handleOpenEdgeModal = useCallback((edgeId: string) => {
+    setEdges((eds) => {
+      const found = eds.find((e) => e.id === edgeId);
+      if (found) {
+        setSelectedEdge(found);
+        setEdgeModalOpen(true);
+      }
+      return eds;
+    });
+  }, [setEdges]);
+
+  const handleDeleteEdge = useCallback((edgeId: string) => {
+    setEdges((eds) => eds.filter((e) => e.id !== edgeId));
+  }, [setEdges]);
+
+  const handleSaveEdgeDirective = useCallback(
+    (edgeId: string, updatedData: any, updatedStyle: any, animated: boolean) => {
+      setEdges((eds) =>
+        eds.map((e) =>
+          e.id === edgeId
+            ? {
+                ...e,
+                data: { ...e.data, ...updatedData },
+                style: { ...e.style, ...updatedStyle },
+                animated,
+              }
+            : e
+        )
+      );
+    },
+    [setEdges]
+  );
+
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) =>
         addEdge(
           {
             ...params,
+            type: 'directive',
             animated: true,
-            style: { stroke: '#ed1c24', strokeWidth: 2 },
+            style: { stroke: '#2563EB', strokeWidth: 2 },
+            data: {
+              label: '',
+              onEditEdge: handleOpenEdgeModal,
+              onDeleteEdge: handleDeleteEdge,
+            },
           },
           eds
         )
       );
-      notify.success('Đã kết nối khối xử lý thành công!');
+      notify.success('Đã kết nối khối xử lý thành công! Nhấp vào đường nối để gán chỉ lệnh hoặc điều kiện rẽ nhánh.');
     },
-    [setEdges]
+    [handleOpenEdgeModal, handleDeleteEdge, setEdges]
   );
 
   const loadAllWorkflows = async (selectedId?: string) => {
@@ -121,111 +176,110 @@ const FlowContent: React.FC = () => {
 
   const handleResizeGroup = useCallback((groupId: string, newW: number, newH: number) => {
     setNodes((nds) =>
-      nds.map((n) => (n.id === groupId ? { ...n, data: { ...n.data, width: newW, height: newH } } : n))
+      nds.map((n) =>
+        n.id === groupId
+          ? {
+              ...n,
+              style: { ...n.style, width: newW, height: newH },
+              data: {
+                ...n.data,
+                width: newW,
+                height: newH,
+                origWidth: newW,
+                origHeight: newH,
+              },
+            }
+          : n
+      )
     );
   }, [setNodes]);
 
+  // Nâng cấp: Dùng parentId để xác định node con (chính thống ReactFlow)
   const handleToggleExpandGroup = useCallback((groupId: string, isExpanded: boolean) => {
-    let childIds = new Set<string>();
-
-    setNodes((nds) => {
-      const foundGroup = nds.find((n) => n.id === groupId);
-      if (!foundGroup) return nds;
-
-      const gx = foundGroup.position.x;
-      const gy = foundGroup.position.y;
-      const gw = foundGroup.data?.width || 580;
-      const gh = foundGroup.data?.height || 290;
-
-      // Tìm tất cả các node con nằm trong phân vùng
-      nds.forEach((n) => {
-        if (
-          n.type !== 'group' &&
-          n.position.x >= gx - 15 &&
-          n.position.x <= gx + gw + 15 &&
-          n.position.y >= gy - 15 &&
-          n.position.y <= gy + gh + 15
-        ) {
-          childIds.add(n.id);
-        }
-      });
-
-      return nds.map((n) => {
-        if (n.id === groupId) {
-          return { ...n, data: { ...n.data, isExpanded } };
-        }
-        if (childIds.has(n.id)) {
-          return { ...n, hidden: !isExpanded };
-        }
-        return n;
-      });
-    });
-
-    // Định tuyến lại dây nối (Edge Rerouting) để không bị đứt gãy kết nối khi thu gọn
-    setEdges((eds) => {
-      if (childIds.size === 0) return eds;
-
-      return eds.map((e) => {
-        const rawSrc = e.data?.originalSource || e.source;
-        const rawTgt = e.data?.originalTarget || e.target;
-        const isSrcChild = childIds.has(rawSrc) || rawSrc === groupId;
-        const isTgtChild = childIds.has(rawTgt) || rawTgt === groupId;
-
-        if (!isExpanded) {
-          // Thu gọn: Dây nội bộ -> ẩn, Dây từ ngoài vào cụm -> cắm vào GroupNode, Dây từ cụm ra ngoài -> xuất phát từ GroupNode
-          if (isSrcChild && isTgtChild && rawSrc !== groupId && rawTgt !== groupId) {
-            return { ...e, hidden: true };
-          }
-          if (!isSrcChild && isTgtChild) {
-            return {
-              ...e,
-              target: groupId,
-              data: { ...e.data, originalTarget: rawTgt },
-              hidden: false,
-            };
-          }
-          if (isSrcChild && !isTgtChild) {
-            return {
-              ...e,
-              source: groupId,
-              data: { ...e.data, originalSource: rawSrc },
-              hidden: false,
-            };
-          }
-          return e;
-        } else {
-          // Mở rộng: Khôi phục dây nối về đúng các khối con ban đầu
-          return {
-            ...e,
-            source: rawSrc,
-            target: rawTgt,
-            hidden: false,
-          };
-        }
-      });
-    });
-
-    // Tự động cân bằng giao diện (Auto-balance Canvas)
-    setTimeout(() => {
-      fitView({ duration: 350 });
-    }, 60);
-
-    notify.info(
-      isExpanded
-        ? 'Đã mở rộng cụm phân vùng & phục hồi toàn bộ dây kết nối các khối con!'
-        : 'Đã thu gọn cụm phân vùng & tự động nối dây liền mạch vào cụm!'
+    // Lấy childIds ĐỒNG BỘ từ nodes hiện tại (không dùng setNodes callback lồng nhau)
+    const childIds = new Set(
+      nodes.filter((n) => n.parentId === groupId).map((n) => n.id)
     );
-  }, [setNodes, setEdges, fitView]);
+
+    // Lấy kích thước gốc của group để khôi phục khi mở rộng
+    const groupNode = nodes.find((n) => n.id === groupId);
+    const origW = groupNode?.data?.origWidth || groupNode?.data?.width || groupNode?.style?.width || 580;
+    const origH = groupNode?.data?.origHeight || groupNode?.data?.height || groupNode?.style?.height || 290;
+
+    // Một lần setNodes duy nhất — fix bug ghi đè & set chính xác kích thước bao
+    setNodes((nds) => nds.map((n) => {
+      if (n.id === groupId) {
+        return {
+          ...n,
+          data: { ...n.data, isExpanded },
+          // Thu gọn: shrink kích thước xuống card nhỏ 280x95; Mở rộng: khôi phục kích thước gốc
+          style: isExpanded
+            ? { ...n.style, width: origW, height: origH, zIndex: -1 }
+            : { ...n.style, width: 280, height: 95, zIndex: 10 },
+        };
+      }
+      if (childIds.has(n.id)) {
+        // Ẩn/hiện node con — chắc chắn hoạt động với parentId
+        return { ...n, hidden: !isExpanded };
+      }
+      return n;
+    }));
+
+    // Cập nhật edges dựa trên childIds đã lấy đồng bộ
+    setEdges((eds) => eds.map((e) => {
+      const rawSrc = e.data?.originalSource || e.source;
+      const rawTgt = e.data?.originalTarget || e.target;
+      const isSrcChild = childIds.has(rawSrc);
+      const isTgtChild = childIds.has(rawTgt);
+
+      if (!isExpanded) {
+        // Dây nội bộ (cả 2 đầu trong group) → ẩn khi group thu gọn
+        if (isSrcChild && isTgtChild) return { ...e, hidden: true };
+        // Dây từ ngoài → vào group → cắm vào GroupNode collapsed card
+        if (!isSrcChild && isTgtChild) return { ...e, target: groupId, data: { ...e.data, originalTarget: rawTgt }, hidden: false };
+        // Dây từ group → ra ngoài → xuất phát từ GroupNode collapsed card
+        if (isSrcChild && !isTgtChild) return { ...e, source: groupId, data: { ...e.data, originalSource: rawSrc }, hidden: false };
+        return e;
+      } else {
+        // Mở rộng: khôi phục tất cả dây về node con gốc
+        return { ...e, source: rawSrc, target: rawTgt, hidden: false };
+      }
+    }));
+
+    setTimeout(() => fitView({ duration: 400 }), 100);
+    notify.info(isExpanded
+      ? 'Đã mở rộng cụm & phục hồi toàn bộ dây kết nối!'
+      : 'Đã thu gọn cụm & tự động nối dây liền mạch!');
+  }, [nodes, setNodes, setEdges, fitView]);
+
 
   const handleUngroupGroup = useCallback((groupId: string) => {
     setNodes((nds) => {
-      // Khi gỡ gộp vùng, bỏ ẩn tất cả các node con
+      // Lấy vị trí tuyệt đối của group trên canvas
+      const group = nds.find((n) => n.id === groupId);
+      const groupX = group?.position.x ?? 0;
+      const groupY = group?.position.y ?? 0;
+
       return nds
         .filter((n) => n.id !== groupId)
-        .map((n) => ({ ...n, hidden: false }));
+        .map((n) => {
+          if (n.parentId === groupId) {
+            // Convert relative position → absolute position
+            return {
+              ...n,
+              parentId: undefined,
+              extent: undefined,
+              position: {
+                x: groupX + (n.position.x || 0),
+                y: groupY + (n.position.y || 0),
+              },
+              hidden: false,
+            };
+          }
+          return { ...n, hidden: false };
+        });
     });
 
-    // Khôi phục tất cả dây nối đang trỏ vào groupId về lại các node con ban đầu
     setEdges((eds) =>
       eds.map((e) => ({
         ...e,
@@ -235,36 +289,44 @@ const FlowContent: React.FC = () => {
       }))
     );
 
-    notify.success('Đã hủy gom nhóm phân vùng & khôi phục các khối độc lập!');
+    notify.success('Đã hủy gom nhóm & khôi phục các khối về canvas!');
   }, [setNodes, setEdges]);
 
-  const handleGroupSelectedNodes = useCallback(() => {
-    const selectedNodes = nodes.filter((n) => n.selected && n.type !== 'group');
-    const targetNodes = selectedNodes.length > 0
-      ? selectedNodes
-      : nodes.filter((n) => n.type !== 'trigger' && n.type !== 'group');
-
-    if (targetNodes.length === 0) {
-      notify.warning('Vui lòng chọn ít nhất 1 khối xử lý trên bản đồ để gom nhóm!');
-      return;
-    }
-
-    const minX = Math.min(...targetNodes.map((n) => n.position.x));
-    const maxX = Math.max(...targetNodes.map((n) => n.position.x));
-    const minY = Math.min(...targetNodes.map((n) => n.position.y));
-    const maxY = Math.max(...targetNodes.map((n) => n.position.y));
+  // Hàm nội bộ: tạo GroupNode với kích thước vừa vặn cho node con
+  const _createGroupFromNodes = useCallback((targetNodes: any[], groupLabel?: string) => {
+    if (targetNodes.length === 0) return;
 
     const groupId = `group_${Date.now()}`;
+    const NODE_W = 240;
+    const NODE_H = 78;
+
+    const absMinX = Math.min(...targetNodes.map((n) => n.position.x));
+    const absMinY = Math.min(...targetNodes.map((n) => n.position.y));
+    const absMaxX = Math.max(...targetNodes.map((n) => n.position.x + (n.style?.width || NODE_W)));
+    const absMaxY = Math.max(...targetNodes.map((n) => n.position.y + (n.style?.height || NODE_H)));
+
+    const PADDING_X = 24;
+    const PADDING_TOP = 48; // khoảng trống tiêu đề cụm
+    const PADDING_BOTTOM = 24;
+
+    const groupX = absMinX - PADDING_X;
+    const groupY = absMinY - PADDING_TOP;
+    const groupW = Math.max((absMaxX - absMinX) + PADDING_X * 2, 280);
+    const groupH = Math.max((absMaxY - absMinY) + PADDING_TOP + PADDING_BOTTOM, 160);
+
     const newGroupNode = {
       id: groupId,
       type: 'group',
-      position: { x: minX - 25, y: minY - 45 },
+      position: { x: groupX, y: groupY },
+      style: { width: groupW, height: groupH, zIndex: -1 },
       data: {
-        label: `Cụm phân vùng gom nhóm (${targetNodes.length} khối)`,
-        subtitle: `Tối ưu hóa tự động • ${targetNodes.length} khối xử lý`,
+        label: groupLabel || `Cụm phân vùng (${targetNodes.length} khối)`,
+        subtitle: `${targetNodes.length} khối xử lý`,
         childCount: targetNodes.length,
-        width: Math.max(maxX - minX + 280, 540),
-        height: Math.max(maxY - minY + 150, 260),
+        width: groupW,
+        height: groupH,
+        origWidth: groupW,
+        origHeight: groupH,
         isExpanded: true,
         onToggleExpand: handleToggleExpandGroup,
         onUngroup: handleUngroupGroup,
@@ -272,9 +334,39 @@ const FlowContent: React.FC = () => {
       },
     };
 
-    setNodes((nds) => [newGroupNode, ...nds]);
-    notify.success(`Đã tạo cụm phân vùng gom nhóm cho ${targetNodes.length} khối xử lý! 🎉`);
-  }, [nodes, setNodes, handleToggleExpandGroup, handleUngroupGroup, handleResizeGroup]);
+    // Cập nhật node con: đặt parentId + extent:parent + vị trí tương đối trong group
+    setNodes((nds) => {
+      const childIdSet = new Set(targetNodes.map((n) => n.id));
+      const updatedChildren = nds.map((n) => {
+        if (!childIdSet.has(n.id)) return n;
+        return {
+          ...n,
+          parentId: groupId,
+          extent: 'parent' as const,
+          // Vị trí tương đối trong group
+          position: {
+            x: n.position.x - groupX,
+            y: n.position.y - groupY,
+          },
+          zIndex: 10,
+        };
+      });
+      // Group node phải đứng TRƯỚC các node con để ReactFlow xử lý parentId
+      return [newGroupNode, ...updatedChildren.filter((n) => !childIdSet.has(n.id)), ...updatedChildren.filter((n) => childIdSet.has(n.id))];
+    });
+
+    notify.success(`Đã gom ${targetNodes.length} khối vào cụm phân vùng thành công!`);
+  }, [setNodes, handleToggleExpandGroup, handleUngroupGroup, handleResizeGroup]);
+
+  const handleGroupSelectedNodes = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected && n.type !== 'group' && !n.parentId);
+
+    if (selectedNodes.length === 0) {
+      notify.warning('Vui lòng chọn các khối trên Canvas (hoặc dùng nút ✂️ Quét vùng) để tạo phân vùng gom nhóm!');
+      return;
+    }
+    _createGroupFromNodes(selectedNodes);
+  }, [nodes, _createGroupFromNodes]);
 
   // Xử lý kéo chuột quét vùng gom nhóm kiểu Snipping Tool Windows
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
@@ -300,67 +392,61 @@ const FlowContent: React.FC = () => {
 
     if (Math.abs(maxX - minX) > 30 && Math.abs(maxY - minY) > 30) {
       const enclosedNodes = nodes.filter((n) => {
-        if (n.type === 'group') return false;
-        const nx = n.position.x;
-        const ny = n.position.y;
-        return nx >= minX - 120 && nx <= maxX && ny >= minY - 60 && ny <= maxY;
+        if (n.type === 'group' || n.parentId) return false;
+        const nw = n.style?.width || 230;
+        const nh = n.style?.height || 75;
+        const cx = n.position.x + nw / 2;
+        const cy = n.position.y + nh / 2;
+        return cx >= minX && cx <= maxX && cy >= minY && cy <= maxY;
       });
 
       if (enclosedNodes.length > 0) {
-        const actualMinX = Math.min(...enclosedNodes.map((n) => n.position.x));
-        const actualMaxX = Math.max(...enclosedNodes.map((n) => n.position.x));
-        const actualMinY = Math.min(...enclosedNodes.map((n) => n.position.y));
-        const actualMaxY = Math.max(...enclosedNodes.map((n) => n.position.y));
-
-        const groupId = `group_${Date.now()}`;
-        const newGroupNode = {
-          id: groupId,
-          type: 'group',
-          position: { x: actualMinX - 25, y: actualMinY - 45 },
-          data: {
-            label: `Cụm phân vùng gom nhóm (${enclosedNodes.length} khối)`,
-            subtitle: `Tối ưu hóa tự động • ${enclosedNodes.length} khối xử lý`,
-            childCount: enclosedNodes.length,
-            width: Math.max(actualMaxX - actualMinX + 280, 540),
-            height: Math.max(actualMaxY - actualMinY + 160, 260),
-            isExpanded: true,
-            onToggleExpand: handleToggleExpandGroup,
-            onUngroup: handleUngroupGroup,
-            onResize: handleResizeGroup,
-          },
-        };
-
-        setNodes((nds) => [newGroupNode, ...nds]);
-        notify.success(`Đã quét chọn và gom thành công ${enclosedNodes.length} khối xử lý vào cụm phân vùng! 🎉`);
+        _createGroupFromNodes(enclosedNodes);
       } else {
-        notify.info('Không có khối xử lý nào nằm trong vùng vừa quét.');
+        notify.info('Không có khối xử lý nào nằm trọn trong vùng vừa quét.');
       }
     }
 
     setSnipStart(null);
     setSnipEnd(null);
     setIsSnipMode(false);
-  }, [isSnipMode, snipStart, screenToFlowPosition, nodes, setNodes, handleToggleExpandGroup, handleUngroupGroup, handleResizeGroup]);
+  }, [isSnipMode, snipStart, screenToFlowPosition, nodes, _createGroupFromNodes]);
 
   const selectWorkflow = (wf: WorkflowData) => {
     setCurrentWorkflow(wf);
     if (wf.nodes && wf.nodes.length > 0) {
-      const mappedNodes = wf.nodes.map((n) => ({
-        ...n,
-        type: n.type === 'group' || n.type?.toLowerCase().includes('group')
+      const mappedNodes = wf.nodes.map((n) => {
+        const resolvedType = n.type === 'group' || n.type?.toLowerCase().includes('group')
           ? 'group'
           : n.type?.toLowerCase().includes('trigger')
             ? 'trigger'
             : n.type?.toLowerCase().includes('ai')
               ? 'ai'
-              : 'action',
-        data: {
-          ...(n.data || { label: n.label, description: n.config?.eventType || 'Đã liên kết cơ sở dữ liệu' }),
-          onToggleExpand: handleToggleExpandGroup,
-          onUngroup: handleUngroupGroup,
-          onResize: handleResizeGroup,
-        },
-      }));
+              : 'action';
+
+        const nodeData = n.data || { label: n.label, description: n.config?.eventType || 'Đã liên kết cơ sở dữ liệu' };
+
+        // GroupNode cần style.width/height để ReactFlow biết kích thước
+        const nodeStyle = resolvedType === 'group'
+          ? { width: nodeData.width || n.style?.width || 560, height: nodeData.height || n.style?.height || 280, zIndex: -1, ...n.style }
+          : n.style;
+
+        return {
+          ...n,
+          type: resolvedType,
+          // parentId và extent được giữ nguyên từ DB nếu có
+          parentId: n.parentId,
+          extent: n.extent,
+          style: nodeStyle,
+          zIndex: n.parentId ? 10 : (resolvedType === 'group' ? -1 : 0),
+          data: {
+            ...nodeData,
+            onToggleExpand: handleToggleExpandGroup,
+            onUngroup: handleUngroupGroup,
+            onResize: handleResizeGroup,
+          },
+        };
+      });
       setNodes(mappedNodes);
     } else {
       setNodes([]);
@@ -369,8 +455,17 @@ const FlowContent: React.FC = () => {
     if (wf.edges && wf.edges.length > 0) {
       const mappedEdges = wf.edges.map((e) => ({
         ...e,
-        animated: true,
-        style: e.style || { stroke: '#ed1c24', strokeWidth: 2 },
+        type: 'directive',
+        animated: e.animated ?? true,
+        style: e.style || { stroke: e.data?.isInternal ? '#10B981' : '#2563EB', strokeWidth: 2 },
+        // Edge nội bộ trong group: tăng z-index để hiện rõ trên nền group
+        zIndex: e.data?.isInternal ? 20 : 1,
+        data: {
+          ...e.data,
+          label: e.data?.label || e.label || '',
+          onEditEdge: handleOpenEdgeModal,
+          onDeleteEdge: handleDeleteEdge,
+        },
       }));
       setEdges(mappedEdges);
     } else {
@@ -539,6 +634,99 @@ const FlowContent: React.FC = () => {
     }
   };
 
+  // ── XEM TOÀN BỘ: gộp tất cả workflow vào 1 canvas với offset lưới ────────
+  const handleShowAllWorkflows = useCallback(async () => {
+    if (isOverviewMode) {
+      setIsOverviewMode(false);
+      if (currentWorkflow) selectWorkflow(currentWorkflow);
+      return;
+    }
+    setIsOverviewMode(true);
+    setLoading(true);
+    try {
+      const allWfs = await workflowService.getAllWorkflows();
+      const COLS = 3;
+      const COL_GAP = 1800;
+      const ROW_GAP = 1200;
+      let allNodes: any[] = [];
+      let allEdges: any[] = [];
+
+      allWfs.forEach((wf: WorkflowData, wfIndex: number) => {
+        const col = wfIndex % COLS;
+        const row = Math.floor(wfIndex / COLS);
+        const offsetX = col * COL_GAP;
+        const offsetY = row * ROW_GAP;
+        const prefix = `ov_wf${wfIndex}_`;
+
+        // Label nhận dạng workflow
+        allNodes.push({
+          id: `${prefix}label`,
+          type: 'action',
+          position: { x: offsetX, y: offsetY - 70 },
+          draggable: false,
+          selectable: false,
+          data: {
+            label: `#${wfIndex + 1} ${wf.name}`,
+            description: wf.isActive ? '🟢 Đang kích hoạt' : '⚪ Bản nháp',
+            category: 'OVERVIEW',
+          },
+          style: { background: '#F3F4F6', border: '1px solid #D1D5DB', minWidth: 300, opacity: 0.92 },
+        });
+
+        (wf.nodes || []).forEach((n: any) => {
+          const resolvedType = n.type === 'group' ? 'group' : n.type?.includes('trigger') ? 'trigger' : n.type?.includes('ai') ? 'ai' : 'action';
+          const nodeStyle = resolvedType === 'group'
+            ? { width: n.data?.width || n.style?.width || 560, height: n.data?.height || n.style?.height || 280, zIndex: -1, ...n.style }
+            : n.style;
+
+          allNodes.push({
+            ...n,
+            id: `${prefix}${n.id}`,
+            type: resolvedType,
+            position: { x: (n.position?.x || 0) + offsetX, y: (n.position?.y || 0) + offsetY },
+            parentId: n.parentId ? `${prefix}${n.parentId}` : undefined,
+            extent: n.extent,
+            style: nodeStyle,
+            zIndex: n.parentId ? 10 : (resolvedType === 'group' ? -1 : 0),
+            draggable: false,
+            selectable: false,
+            data: { ...n.data, label: n.data?.label || n.label || 'Node', description: n.data?.description || '' },
+          });
+        });
+
+        (wf.edges || []).forEach((e: any) => {
+          allEdges.push({
+            ...e,
+            id: `${prefix}${e.id}`,
+            source: `${prefix}${e.source}`,
+            target: `${prefix}${e.target}`,
+            animated: false,
+            style: e.style || { stroke: '#CBD5E1', strokeWidth: 1.5 },
+          });
+        });
+      });
+
+      setNodes(allNodes);
+      setEdges(allEdges);
+      setTimeout(() => fitView({ duration: 600, padding: 0.06 }), 150);
+      notify.success(`Đang hiển thị toàn bộ ${allWfs.length} quy trình trên 1 canvas!`);
+    } catch (err: any) {
+      notify.error('Lỗi tải toàn bộ quy trình: ' + err.message);
+      setIsOverviewMode(false);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOverviewMode, currentWorkflow, setNodes, setEdges, fitView]);
+
+  // ── Drag stop handler ──────────────────────────────────────────────────────
+  const handleNodeDragStop = useCallback((_event: any, draggedNode: any) => {
+    if (draggedNode.type === 'group') {
+      // Khi kéo Group, giữ nguyên các node con thuộc group, không nuốt nhầm các node bên ngoài
+      return;
+    }
+  }, []);
+
   const handleTestRun = async () => {
     if (!currentWorkflow?._id) {
       notify.warning('Vui lòng chọn hoặc lưu một quy trình để chạy thử nghiệm!');
@@ -555,11 +743,60 @@ const FlowContent: React.FC = () => {
     try {
       const result = await workflowService.dryRun(currentWorkflow._id);
       setDryRunResult(result);
+
+      // Hiệu ứng dòng điện & sợi dây phát sáng tuần tự theo đúng các Node thực thi
+      const steps = result.steps || [];
+      const executedNodeIds = steps.map((s: any) => s.nodeId).filter(Boolean);
+
+      // Kích hoạt phát sáng từng cạnh kết nối theo luồng dữ liệu thực
+      for (let i = 0; i < executedNodeIds.length; i++) {
+        const currentNodeId = executedNodeIds[i];
+        const nextNodeId = executedNodeIds[i + 1];
+
+        setEdges((eds) =>
+          eds.map((e) => {
+            const matchesStep =
+              (e.source === currentNodeId && (!nextNodeId || e.target === nextNodeId)) ||
+              (e.target === currentNodeId);
+
+            if (matchesStep) {
+              return {
+                ...e,
+                animated: true,
+                style: {
+                  stroke: '#10B981',
+                  strokeWidth: 3.5,
+                  filter: 'drop-shadow(0 0 10px rgba(16, 185, 129, 0.95))',
+                },
+                zIndex: 50,
+              };
+            }
+            return e;
+          })
+        );
+
+        // Thời gian xung điện truyền qua khối
+        await new Promise((resolve) => setTimeout(resolve, 180));
+      }
+
       setDebugDrawerOpen(true);
       notify.success(
-        `Chạy thử nghiệm thành công: Đơn #${result.orderId} -> Vận đơn: ${result.waybillCode} (${result.durationMs}ms)`
+        `Chạy thử nghiệm thành công: Đơn #${result.orderId} ➔ Vận đơn: ${result.waybillCode} (${result.durationMs}ms)`
       );
       loadAllWorkflows(currentWorkflow._id);
+
+      // Khôi phục màu dây sau 4.5 giây
+      setTimeout(() => {
+        setEdges((eds) =>
+          eds.map((e) => ({
+            ...e,
+            style: e.data?.isInternal
+              ? { stroke: '#10B981', strokeWidth: 2 }
+              : { stroke: '#2563EB', strokeWidth: 2 },
+            zIndex: e.data?.isInternal ? 20 : 1,
+          }))
+        );
+      }, 4500);
     } catch (err: any) {
       notify.error('Lỗi khi chạy mô phỏng: ' + err.message);
     } finally {
@@ -580,6 +817,8 @@ const FlowContent: React.FC = () => {
           }}
         >
           {/* Nhóm 1: Thao tác sơ đồ & Khối */}
+          {!isOverviewMode && (
+            <>
           <Tooltip title="Thêm khối xử lý mới (Webhook, AI, Kho POS, ĐVVC)">
             <BaseButton
               variant="ghost"
@@ -630,8 +869,24 @@ const FlowContent: React.FC = () => {
               style={{ width: 32, height: 32, padding: 0 }}
             />
           </Tooltip>
+            </>
+          )}
 
           <div style={{ width: 1, height: 20, background: '#E5E7EB', margin: '0 4px' }} />
+
+          {/* Xem toàn bộ workflows */}
+          <Tooltip title={isOverviewMode ? 'Thoát chế độ xem toàn bộ' : 'Xem toàn bộ quy trình trên 1 canvas'}>
+            <BaseButton
+              variant={isOverviewMode ? 'primary' : 'ghost'}
+              size="small"
+              icon={<EyeOutlined style={{ color: isOverviewMode ? '#FFFFFF' : '#10B981' }} />}
+              onClick={handleShowAllWorkflows}
+              style={{
+                width: 32, height: 32, padding: 0,
+                ...(isOverviewMode ? { background: '#10B981', borderColor: '#10B981' } : {}),
+              }}
+            />
+          </Tooltip>
 
           {/* Nhóm 2: Quản lý quy trình & Thực thi */}
           <Tooltip title="Tạo quy trình xử lý đơn hàng mới">
@@ -715,6 +970,14 @@ const FlowContent: React.FC = () => {
         >
           <Space size="middle">
             <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Chọn quy trình:</span>
+            {isOverviewMode ? (
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <EyeOutlined /> Đang xem toàn bộ {workflowsList.length} quy trình
+                <BaseButton size="small" variant="ghost" onClick={handleShowAllWorkflows} style={{ marginLeft: 8 }}>
+                  Thoát xem toàn bộ
+                </BaseButton>
+              </span>
+            ) : (
             <Select
               value={currentWorkflow?._id}
               onChange={(val) => {
@@ -727,6 +990,7 @@ const FlowContent: React.FC = () => {
                 value: w._id,
               }))}
             />
+            )}
 
             {currentWorkflow && (
               <Space size={6}>
@@ -854,11 +1118,16 @@ const FlowContent: React.FC = () => {
               nodes={nodes}
               edges={edges}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeClick={handleNodeClick}
+              onConnect={isOverviewMode ? undefined : onConnect}
+              onNodeClick={isOverviewMode ? undefined : handleNodeClick}
+              onEdgeClick={isOverviewMode ? undefined : (_evt, edge) => handleOpenEdgeModal(edge.id)}
+              onNodeDragStop={handleNodeDragStop}
               fitView
+              elevateEdgesOnSelect
+              elevateNodesOnSelect={false}
             >
               <Background
                 variant={BackgroundVariant.Dots}
@@ -966,12 +1235,28 @@ const FlowContent: React.FC = () => {
         <NodeSettingsDrawer
           open={settingsOpen}
           selectedNode={selectedNode}
+          allNodes={nodes}
+          onSelectNode={(node) => setSelectedNode(node)}
           onClose={() => {
             setSettingsOpen(false);
             setSelectedNode(null);
           }}
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}
+        />
+
+        {/* Edge Directive & Condition Modal */}
+        <EdgeDirectiveModal
+          open={edgeModalOpen}
+          edge={selectedEdge}
+          sourceNode={nodes.find((n) => n.id === selectedEdge?.source)}
+          targetNode={nodes.find((n) => n.id === selectedEdge?.target)}
+          onClose={() => {
+            setEdgeModalOpen(false);
+            setSelectedEdge(null);
+          }}
+          onSave={handleSaveEdgeDirective}
+          onDelete={handleDeleteEdge}
         />
 
         {/* Create Workflow Modal */}
