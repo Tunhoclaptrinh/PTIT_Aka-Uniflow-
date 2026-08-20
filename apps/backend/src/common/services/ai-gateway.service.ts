@@ -12,24 +12,108 @@ import axios from 'axios';
 
 export interface AiGatewayResponse<T = any> {
   success: boolean;
-  provider: 'GEMINI' | 'OPENAI' | 'PYTHON_AI_ENGINE' | 'OLLAMA' | 'LOCAL_FALLBACK';
+  provider: 'FPT_GENAI' | 'GEMINI' | 'OPENAI' | 'PYTHON_AI_ENGINE' | 'OLLAMA' | 'LOCAL_FALLBACK';
   data: T;
   latencyMs: number;
   rawText?: string;
 }
 
+export const FPT_MODELS = {
+  // 1. LLM & Reasoning
+  FAST_LLM: process.env.FPT_AI_FAST_MODEL || 'DeepSeek-V4-Flash',
+  REASONING_LLM: process.env.FPT_AI_REASONING_MODEL || 'Llama-3.3-70B-Instruct',
+  GENERAL_LLM: process.env.FPT_AI_GENERAL_MODEL || 'Qwen3.6-27B',
+  DEFAULT_LLM: process.env.FPT_AI_MODEL || 'DeepSeek-V4-Flash',
+  
+  // 2. Vision & Multimodal
+  VISION: process.env.FPT_AI_VISION_MODEL || 'Qwen2.5-VL-7B-Instruct',
+  
+  // 3. Vector Embedding & Reranker
+  EMBEDDING: process.env.FPT_AI_EMBEDDING_MODEL || 'Vietnamese_Embedding',
+  RERANKER: process.env.FPT_AI_RERANK_MODEL || 'bge-reranker-v2-m3',
+  
+  // 4. Speech (STT & TTS)
+  STT: process.env.FPT_AI_STT_MODEL || 'FPT.AI-whisper-large-v3-turbo',
+  TTS: process.env.FPT_AI_TTS_MODEL || 'FPT.TTS-pro',
+};
+
 export class AiGatewayService {
   /**
+   * Trích xuất JSON an toàn từ phản hồi LLM
+   */
+  private static parseJsonSafely(text: string): any {
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Thử bóc tách JSON nằm trong markdown block ```json ... ```
+      const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match && match[1]) {
+        try {
+          return JSON.parse(match[1].trim());
+        } catch {
+          // ignore
+        }
+      }
+      return text;
+    }
+  }
+
+  /**
    * Gọi AI Prompt tổng quát với cơ chế dự phòng đa tầng (Multi-tier Failover)
+   * Thứ tự ưu tiên: 1. FPT GenAI -> 2. Gemini API -> 3. OpenAI -> 4. Python AI Engine -> 5. Ollama -> 6. Local Fallback
    */
   static async completePrompt(
     prompt: string,
     systemPrompt: string = 'Bạn là trợ lý AI chuyên gia tự động hóa TMĐT của UniFlow.',
-    jsonMode: boolean = true
+    jsonMode: boolean = true,
+    targetModel?: string
   ): Promise<AiGatewayResponse<any>> {
     const startTime = Date.now();
 
-    // 1. Thử gọi Google Gemini API
+    // 1. Thử gọi FPT GenAI / akaBot AI Gateway (DeepSeek-V4-Flash, Llama-3.3-70B, Qwen3.6-27B, etc.)
+    const fptKey = process.env.FPT_AI_API_KEY?.trim();
+    if (fptKey && fptKey !== 'your-fpt-ai-api-key-here' && fptKey.length > 5) {
+      try {
+        const baseUrl = (process.env.FPT_AI_BASE_URL || 'https://api.fpt.ai/v1').replace(/\/+$/, '');
+        const model = targetModel || process.env.FPT_AI_MODEL || FPT_MODELS.DEFAULT_LLM;
+        const url = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
+
+        const res = await axios.post(
+          url,
+          {
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: prompt },
+            ],
+            response_format: jsonMode ? { type: 'json_object' } : undefined,
+            temperature: 0.2,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${fptKey}`,
+              'api-key': fptKey,
+              'Content-Type': 'application/json',
+            },
+            timeout: 6000,
+          }
+        );
+
+        const text = res.data?.choices?.[0]?.message?.content || res.data?.data?.content || '';
+        const parsed = jsonMode ? this.parseJsonSafely(text) : text;
+        return {
+          success: true,
+          provider: 'FPT_GENAI',
+          data: parsed,
+          rawText: text,
+          latencyMs: Date.now() - startTime,
+        };
+      } catch (err: any) {
+        console.warn('[AiGateway] FPT GenAI call failed or timed out:', err?.response?.data || err.message);
+      }
+    }
+
+    // 2. Thử gọi Google Gemini API
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey && geminiKey !== 'your-gemini-api-key-here' && geminiKey.length > 10) {
       try {
@@ -51,7 +135,7 @@ export class AiGatewayService {
         );
 
         const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const parsed = jsonMode ? JSON.parse(text) : text;
+        const parsed = jsonMode ? this.parseJsonSafely(text) : text;
         return {
           success: true,
           provider: 'GEMINI',
@@ -64,7 +148,7 @@ export class AiGatewayService {
       }
     }
 
-    // 2. Thử gọi OpenAI API
+    // 3. Thử gọi OpenAI API
     const openAiKey = process.env.OPENAI_API_KEY;
     if (openAiKey && openAiKey.startsWith('sk-')) {
       try {
@@ -86,7 +170,7 @@ export class AiGatewayService {
         );
 
         const text = res.data?.choices?.[0]?.message?.content || '';
-        const parsed = jsonMode ? JSON.parse(text) : text;
+        const parsed = jsonMode ? this.parseJsonSafely(text) : text;
         return {
           success: true,
           provider: 'OPENAI',
@@ -99,7 +183,7 @@ export class AiGatewayService {
       }
     }
 
-    // 3. Thử gọi Python AI Engine (FastAPI port 8000)
+    // 4. Thử gọi Python AI Engine (FastAPI port 8000)
     const aiEngineUrl = process.env.AI_ENGINE_URL || 'http://localhost:8000';
     try {
       const res = await axios.post(
@@ -119,7 +203,7 @@ export class AiGatewayService {
       // Python AI service not running
     }
 
-    // 4. Thử gọi Ollama Local LLM (port 11434)
+    // 5. Thử gọi Ollama Local LLM (port 11434)
     const ollamaUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     const ollamaModel = process.env.OLLAMA_MODEL || 'llama3';
     try {
@@ -134,7 +218,7 @@ export class AiGatewayService {
         { timeout: 1500 }
       );
       if (res.data?.response) {
-        const parsed = jsonMode ? JSON.parse(res.data.response) : res.data.response;
+        const parsed = jsonMode ? this.parseJsonSafely(res.data.response) : res.data.response;
         return {
           success: true,
           provider: 'OLLAMA',
@@ -147,7 +231,7 @@ export class AiGatewayService {
       // Ollama not running
     }
 
-    // 5. Fallback qua Local Heuristic Engine
+    // 6. Fallback qua Local Heuristic Engine
     return {
       success: true,
       provider: 'LOCAL_FALLBACK',

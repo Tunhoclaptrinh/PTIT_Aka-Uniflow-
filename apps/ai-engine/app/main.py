@@ -81,8 +81,48 @@ def complete_prompt(req: CompletePromptRequest):
     is_json = req.json_mode if req.json_mode is not None else (req.jsonMode if req.jsonMode is not None else True)
     prompt_text = req.prompt
 
-    # 1. Thử gọi Google Gemini nếu có GEMINI_API_KEY
-    if settings.GEMINI_API_KEY and len(settings.GEMINI_API_KEY) > 10:
+    # 1. Thử gọi FPT GenAI nếu có FPT_AI_API_KEY
+    if settings.FPT_AI_API_KEY and settings.FPT_AI_API_KEY != "your-fpt-ai-api-key-here" and len(settings.FPT_AI_API_KEY) > 5:
+        try:
+            import requests
+            base_url = settings.FPT_AI_BASE_URL.rstrip('/')
+            url = base_url if base_url.endswith('/chat/completions') else f"{base_url}/chat/completions"
+            fpt_res = requests.post(
+                url,
+                json={
+                    "model": settings.FPT_AI_MODEL,
+                    "messages": [
+                        {"role": "system", "content": sys_prompt},
+                        {"role": "user", "content": prompt_text}
+                    ],
+                    "response_format": {"type": "json_object"} if is_json else None,
+                    "temperature": 0.2
+                },
+                headers={
+                    "Authorization": f"Bearer {settings.FPT_AI_API_KEY}",
+                    "api-key": settings.FPT_AI_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                timeout=6.0
+            )
+            if fpt_res.status_code == 200:
+                res_data = fpt_res.json()
+                raw_text = res_data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                try:
+                    data = json.loads(raw_text) if is_json else raw_text
+                except Exception:
+                    data = raw_text
+                return {
+                    "success": True,
+                    "provider": "AI_ENGINE_FPT_GENAI",
+                    "data": data,
+                    "raw_text": raw_text
+                }
+        except Exception as e:
+            logger.warning(f"Lỗi khi gọi FPT GenAI API: {e}")
+
+    # 2. Thử gọi Google Gemini nếu có GEMINI_API_KEY
+    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-gemini-api-key-here" and len(settings.GEMINI_API_KEY) > 10:
         try:
             # pyrefly: ignore [missing-import]
             # type: ignore
@@ -101,7 +141,7 @@ def complete_prompt(req: CompletePromptRequest):
         except Exception as e:
             logger.warning(f"Lỗi khi gọi Gemini SDK: {e}")
 
-    # 2. Xử lý suy luận thông minh dự phòng nội bộ
+    # 3. Xử lý suy luận thông minh dự phòng nội bộ
     lower = prompt_text.lower()
     is_shopee = "shopee" in lower
     is_lazada = "lazada" in lower
