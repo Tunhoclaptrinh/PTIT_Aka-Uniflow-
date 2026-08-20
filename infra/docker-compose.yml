@@ -1,94 +1,154 @@
-version: '3.8'
+# ==============================================================================
+# UniFlow AI — Full-stack Container Stack (Production-like)
+#
+#   Chạy:   docker compose -f infra/docker-compose.yml up -d --build
+#   Entry:  http://localhost:5173   (nginx trong container web proxy /api + /socket.io)
+#
+# Biến bí mật (GEMINI_API_KEY, JWT_SECRET, ...) đọc từ .env ở repo root.
+# ==============================================================================
+
+name: uniflow
+
+x-restart: &restart unless-stopped
 
 services:
-  # 1. MongoDB Service
+  # ── 1. MongoDB — Workflows, Mappings, Sync Logs ─────────────────────────────
   mongo:
     image: mongo:7.0
     container_name: uniflow_mongodb
-    restart: unless-stopped
+    restart: *restart
     ports:
-      - "27017:27017"
+      - "${MONGO_HOST_PORT:-27017}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: uniflow_admin
-      MONGO_INITDB_ROOT_PASSWORD: uniflow_secret_2026
-      MONGO_INITDB_DATABASE: uniflow_db
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-uniflow_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-uniflow_secret_2026}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-uniflow_db}
     volumes:
       - mongo_data:/data/db
       - ./mongo-init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
-  # 2. Redis Service
+  # ── 2. Redis — Idempotency 24h, Rate Limit, BullMQ ──────────────────────────
   redis:
     image: redis:7.2-alpine
     container_name: uniflow_redis
-    restart: unless-stopped
+    restart: *restart
     ports:
-      - "6379:6379"
-    command: ["redis-server", "--requirepass", "uniflow_redis_secret"]
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    command:
+      ["redis-server", "--requirepass", "${REDIS_PASSWORD:-uniflow_redis_secret}",
+       "--appendonly", "yes"]
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-uniflow_redis_secret}
 
-  # 3. Qdrant Vector Engine
+  # ── 3. Qdrant — SKU Vector Embeddings ───────────────────────────────────────
   qdrant:
     image: qdrant/qdrant:v1.9.0
     container_name: uniflow_qdrant
-    restart: unless-stopped
+    restart: *restart
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${QDRANT_HOST_PORT:-6333}:6333"        # HTTP REST
+      - "${QDRANT_GRPC_HOST_PORT:-6334}:6334"   # gRPC
     volumes:
       - qdrant_data:/qdrant/storage
+    healthcheck:
+      # image qdrant không có curl/wget -> dùng bash TCP redirect
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  # 4. Backend NestJS Service
-  backend:
-    build:
-      context: ../
-      dockerfile: apps/backend/Dockerfile
-    container_name: uniflow_backend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - MONGO_URI=mongodb://uniflow_admin:uniflow_secret_2026@mongo:27017/uniflow_db?authSource=admin
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=uniflow_redis_secret
-      - AI_ENGINE_URL=http://ai-engine:8000
-    depends_on:
-      - mongo
-      - redis
-
-  # 5. AI Engine Python FastAPI Service
+  # ── 4. AI Engine — FastAPI + Gemini + Qdrant ────────────────────────────────
   ai-engine:
     build:
       context: ../apps/ai-engine
       dockerfile: Dockerfile
+    image: uniflow/ai-engine:1.0.0
     container_name: uniflow_ai_engine
-    restart: unless-stopped
+    restart: *restart
     ports:
-      - "8000:8000"
+      - "${AI_ENGINE_HOST_PORT:-8000}:8000"
     environment:
-      - PORT=8000
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      PORT: 8000
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-uniflow_sku_vectors}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
     depends_on:
-      - qdrant
+      qdrant:
+        condition: service_healthy
 
-  # 6. Frontend Web Dashboard
+  # ── 5. Backend — NestJS API Gateway & Webhook Pipeline ──────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: apps/backend/Dockerfile
+    image: uniflow/backend:1.0.0
+    container_name: uniflow_backend
+    restart: *restart
+    ports:
+      - "${BACKEND_HOST_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # dbName trong app.module.ts GHI ĐÈ database trong URI -> phải khớp mongo-init
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-uniflow_admin}:${MONGO_ROOT_PASSWORD:-uniflow_secret_2026}@mongo:27017/${MONGO_DB_NAME:-uniflow_db}?authSource=admin
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-uniflow_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-uniflow_redis_secret}
+      REDIS_DB: 0
+      AI_ENGINE_URL: http://ai-engine:8000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET là bắt buộc - khai báo trong .env ở repo root}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY (64 hex chars) là bắt buộc - khai báo trong .env}
+      TIKTOK_WEBHOOK_SECRET: ${TIKTOK_WEBHOOK_SECRET:-}
+      SHOPEE_PARTNER_KEY: ${SHOPEE_PARTNER_KEY:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-engine:
+        condition: service_started
+
+  # ── 6. Web — React SPA sau Nginx (đồng thời là reverse proxy) ───────────────
   web:
     build:
-      context: ../apps/web
-      dockerfile: Dockerfile
+      # context = repo root: Dockerfile cần package-lock.json + packages/
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_APP_TITLE: ${VITE_APP_TITLE:-UniFlow AI - Nền tảng iPaaS TMĐT 0-Chạm}
+    image: uniflow/web:1.0.0
     container_name: uniflow_web
-    restart: unless-stopped
+    restart: *restart
     ports:
-      - "5173:80"
+      - "${WEB_HOST_PORT:-5173}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
 
 volumes:
   mongo_data:
+    name: uniflow_mongo_data
   redis_data:
+    name: uniflow_redis_data
   qdrant_data:
+    name: uniflow_qdrant_data

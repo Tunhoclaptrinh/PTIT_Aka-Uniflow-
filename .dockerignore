@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+**/dist
+**/build
+apps/web/dist
+apps/backend/dist
+packages/*/dist
+
+# Python
+**/venv
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+
+# Secrets & env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Git & editors
+.git
+.gitignore
+.vscode
+.idea
+.claude
+
+# Docs & assets không cần trong image
+docs
+logo
+*.md
+!README.md
+
+# Logs & local data
+**/*.log
+data
+mongo_data
+redis_data
+qdrant_data

@@ -108,6 +108,66 @@ Truy cập giao diện tại: `http://localhost:5173`
 
 ---
 
+## 🐳 **TRIỂN KHAI TRỌN GÓI BẰNG DOCKER COMPOSE (ONE-COMMAND)**
+
+Thay cho việc chạy tay 5 bước ở trên, toàn bộ hệ thống (6 service) có thể đóng gói và khởi chạy bằng một lệnh duy nhất.
+
+### **Bước 1 — Tạo file `.env`**
+```bash
+cp .env.example .env
+# Sinh secret thật (BẮT BUỘC — compose sẽ báo lỗi nếu thiếu 2 biến này)
+echo "JWT_SECRET=\"$(openssl rand -hex 32)\"" >> .env
+echo "ENCRYPTION_KEY=\"$(openssl rand -hex 32)\"" >> .env
+```
+
+### **Bước 2 — Build & khởi chạy toàn bộ Stack**
+```bash
+npm run docker:up        # build + up -d, chờ healthcheck theo đúng thứ tự phụ thuộc
+```
+
+Truy cập duy nhất một cổng vào: **`http://localhost:5173`**
+Nginx trong container `web` tự proxy `/api/`, `/socket.io/` sang backend và `/ai/` sang AI Engine.
+
+### **Các lệnh quản trị**
+| Lệnh | Tác dụng |
+| :--- | :--- |
+| `npm run docker:up` | Build và khởi chạy toàn bộ 6 service (chế độ nền) |
+| `npm run docker:build` | Chỉ build 3 image (`web`, `backend`, `ai-engine`) |
+| `npm run docker:ps` | Xem trạng thái và tình trạng healthcheck |
+| `npm run docker:logs` | Theo dõi log realtime toàn bộ stack |
+| `npm run docker:down` | Dừng và xóa container (volume dữ liệu vẫn giữ) |
+| `npm run dev:infra` | Chỉ chạy 3 DB (MongoDB, Redis, Qdrant) để dev local |
+| `npm run dev:infra:down` | Dừng stack DB local |
+
+### **Sơ đồ Service & Cổng**
+| Service | Image / Build | Cổng Host (mặc định) | Cổng Container | Healthcheck |
+| :--- | :--- | :--- | :--- | :--- |
+| `web` | `uniflow/web:1.0.0` | **5173** | 80 (nginx) | `wget /` |
+| `backend` | `uniflow/backend:1.0.0` | 3000 | 3000 | `GET /api/v1/metrics` |
+| `ai-engine` | `uniflow/ai-engine:1.0.0` | 8000 | 8000 | `GET /api/v1/ai/health` |
+| `mongo` | `mongo:7.0` | 27017 | 27017 | `db.adminCommand('ping')` |
+| `redis` | `redis:7.2-alpine` | 6379 | 6379 | `redis-cli ping` |
+| `qdrant` | `qdrant/qdrant:v1.9.0` | 6333 / 6334 | 6333 / 6334 | TCP probe |
+
+### **Xử lý xung đột cổng**
+Nếu một cổng trên máy đã bị project khác chiếm, override trong `.env` (chỉ ảnh hưởng cổng host, giao tiếp giữa các container không đổi):
+```bash
+BACKEND_HOST_PORT=3100
+AI_ENGINE_HOST_PORT=8100
+MONGO_HOST_PORT=27018
+REDIS_HOST_PORT=6380
+QDRANT_HOST_PORT=6343
+QDRANT_GRPC_HOST_PORT=6344
+WEB_HOST_PORT=5173
+```
+
+### **Lưu ý quan trọng**
+* **`--env-file` là bắt buộc.** Vì compose file nằm trong `infra/`, Docker Compose sẽ tìm `.env` tại `infra/.env` chứ không phải repo root. Các script `npm run docker:*` đã truyền `--env-file .env` sẵn — nếu gọi `docker compose` trực tiếp thì phải thêm cờ này.
+* **`VITE_API_URL` được inline lúc BUILD, không phải runtime.** Đổi giá trị này bắt buộc phải rebuild image `web` (`npm run docker:build`), sửa `.env` rồi restart là không có tác dụng.
+* **`MONGO_DB_NAME` phải khớp với `infra/mongo-init/init-mongo.js`.** `app.module.ts` truyền `dbName` riêng và giá trị đó **ghi đè** database nằm trong `MONGO_URI`; lệch tên sẽ khiến app ghi vào một DB không có index nào.
+
+---
+
 ## 📚 **DANH MỤC TÀI LIỆU CHI TIẾT**
 Mỗi thư mục trong dự án đều có tài liệu `README.md` độc lập mô tả chi tiết:
 * [apps/README.md](file:///g:/UniFlow-PTIT_Aka/apps/README.md): Tổng quan các ứng dụng frontend, backend, ai-engine.

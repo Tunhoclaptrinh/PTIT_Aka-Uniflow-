@@ -15,13 +15,19 @@
     "dev:backend": "npm run start:dev --workspace=apps/backend",
     "dev:ai": "cd apps/ai-engine && (venv\\Scripts\\uvicorn.exe app.main:app --reload --port 8000 || venv/bin/uvicorn app.main:app --reload --port 8000 || uvicorn app.main:app --reload --port 8000)",
     "build": "npm run build --workspace=apps/web",
-    "dev:infra": "docker-compose -f infra/docker-compose.dev.yml up -d",
+    "dev:infra": "docker compose --env-file .env -f infra/docker-compose.dev.yml up -d",
     "build:packages": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/udm-schema",
     "build:all": "npm run build:packages && npm run build --workspace=apps/backend && npm run build --workspace=apps/web",
     "seed": "node scripts/seed_database.js",
     "seed:connectors": "node scripts/seed_connectors.js",
     "lint:all": "npm run lint --workspaces",
-    "test:all": "npm run test --workspaces"
+    "test:all": "npm run test --workspaces",
+    "dev:infra:down": "docker compose --env-file .env -f infra/docker-compose.dev.yml down",
+    "docker:build": "docker compose --env-file .env -f infra/docker-compose.yml build",
+    "docker:up": "docker compose --env-file .env -f infra/docker-compose.yml up -d --build",
+    "docker:down": "docker compose --env-file .env -f infra/docker-compose.yml down",
+    "docker:logs": "docker compose --env-file .env -f infra/docker-compose.yml logs -f",
+    "docker:ps": "docker compose --env-file .env -f infra/docker-compose.yml ps"
   },
   "keywords": [
     "uniflow",
