@@ -74,7 +74,7 @@ export class AiGatewayService {
     const fptKey = process.env.FPT_AI_API_KEY?.trim();
     if (fptKey && fptKey !== 'your-fpt-ai-api-key-here' && fptKey.length > 5) {
       try {
-        const baseUrl = (process.env.FPT_AI_BASE_URL || 'https://api.fpt.ai/v1').replace(/\/+$/, '');
+        const baseUrl = (process.env.FPT_AI_BASE_URL || 'https://mkp-api.fptcloud.com/v1').replace(/\/+$/, '');
         const model = targetModel || process.env.FPT_AI_MODEL || FPT_MODELS.DEFAULT_LLM;
         const url = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl}/chat/completions`;
 
@@ -95,7 +95,7 @@ export class AiGatewayService {
               'api-key': fptKey,
               'Content-Type': 'application/json',
             },
-            timeout: 6000,
+            timeout: 25000,
           }
         );
 
@@ -314,4 +314,41 @@ Hãy phân tích yêu cầu sau và trả về JSON thuần túy (không markdow
       reasoning: `AI đã chốt ${sorted[0].carrier} với cước ${sorted[0].fee.toLocaleString('vi-VN')}đ (Tiết kiệm ${savings.toLocaleString('vi-VN')}đ).`,
     };
   }
+
+  /**
+   * Tạo Vector Embedding từ FPT GenAI (Vietnamese_Embedding)
+   */
+  static async generateEmbedding(text: string, model: string = FPT_MODELS.EMBEDDING): Promise<number[]> {
+    const fptKey = process.env.FPT_AI_API_KEY?.trim();
+    if (fptKey && fptKey !== 'your-fpt-ai-api-key-here' && fptKey.length > 5) {
+      try {
+        const baseUrl = (process.env.FPT_AI_BASE_URL || 'https://mkp-api.fptcloud.com').replace(/\/+$/, '');
+        const url = baseUrl.endsWith('/embeddings') ? baseUrl : `${baseUrl}/embeddings`;
+
+        const res = await axios.post(
+          url,
+          {
+            model: model || 'Vietnamese_Embedding',
+            input: [text],
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${fptKey}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 10000,
+          }
+        );
+
+        const vector = res.data?.data?.[0]?.embedding;
+        if (Array.isArray(vector) && vector.length > 0) {
+          return vector;
+        }
+      } catch (err: any) {
+        // Fallback gracefully
+      }
+    }
+    return [];
+  }
 }
+

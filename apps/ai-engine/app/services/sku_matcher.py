@@ -35,17 +35,42 @@ class HybridSKUMatcher:
         return cls._qdrant_client
 
     @staticmethod
-    def generate_text_embedding(text: str, dim: int = 128) -> List[float]:
-        """Tạo vector embedding 128 chiều từ nội dung văn bản tiếng Việt/Anh"""
+    def generate_text_embedding(text: str, dim: int = 1024) -> List[float]:
+        # """Tạo vector embedding 128 chiều từ nội dung văn bản tiếng Việt/Anh"""
+        """Tạo vector embedding (ưu tiên gọi FPT Vietnamese_Embedding, fallback về normalized L2 hash)"""
+        # 1. Thử gọi FPT Vietnamese_Embedding qua FPT AI Factory
+        if settings.FPT_AI_API_KEY and len(settings.FPT_AI_API_KEY) > 5:
+            try:
+                import requests
+                base_url = settings.FPT_AI_BASE_URL.rstrip('/')
+                endpoint_url = f"{base_url}/embeddings" if not base_url.endswith('/embeddings') else base_url
+                headers = {
+                    "Authorization": f"Bearer {settings.FPT_AI_API_KEY}",
+                    "Content-Type": "application/json",
+                }
+                payload = {
+                    "input": [text],
+                    "model": settings.FPT_AI_EMBEDDING_MODEL or "Vietnamese_Embedding"
+                }
+                res = requests.post(endpoint_url, headers=headers, json=payload, timeout=8)
+                if res.status_code == 200:
+                    data = res.json()
+                    vec = data.get("data", [{}])[0].get("embedding", [])
+                    if vec and isinstance(vec, list):
+                        return vec
+            except Exception:
+                pass
+
+        # 2. Fallback Heuristic Vector
         clean_text = re.sub(r'[^\w\s]', '', text.lower())
         tokens = clean_text.split()
         if not tokens:
-            return [0.0] * dim
+            return [0.0] * 128
 
-        vector = [0.0] * dim
+        vector = [0.0] * 128
         for token in tokens:
             h = int(hashlib.sha256(token.encode('utf-8')).hexdigest(), 16)
-            for i in range(dim):
+            for i in range(128):
                 vector[i] += ((h >> (i % 32)) & 0xFF) / 255.0 - 0.5
 
         # Chuẩn hóa L2 norm

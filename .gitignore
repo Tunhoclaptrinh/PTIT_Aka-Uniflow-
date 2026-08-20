@@ -59,9 +59,11 @@ qdrant_data/
 *.pem
 *.key
 
-# Logs
-logs/
+# Logs (Bỏ qua tất cả file log, chỉ giữ lại cấu trúc thư mục qua .gitkeep)
+logs/**/*.log
+logs/*.log
 *.log
+!logs/**/.gitkeep
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

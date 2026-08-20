@@ -181,11 +181,12 @@ export const CopilotAgentPage: React.FC = () => {
 
       setMessages((prev) => [...prev, responseMessage]);
     } catch (err: any) {
-      // Fallback cục bộ nếu mất kết nối mạng
+      console.error('[CopilotAgent] Lỗi khi gửi tin nhắn:', err);
+      const errMsg = err?.message || err?.error || 'Không thể kết nối đến máy chủ AI Gateway. Vui lòng kiểm tra lại kết nối mạng.';
       const fallbackMsg: ChatMessage = {
         id: `msg_agent_${Date.now()}`,
         sender: 'agent',
-        text: `Tôi đã tiếp nhận yêu cầu: "${text}". Hệ thống đang xử lý tác vụ tự động và đồng bộ cơ sở dữ liệu.`,
+        text: `⚠️ **Lỗi kết nối**: ${errMsg}\n\n*Vui lòng thử lại sau vài giây.*`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         actionType: 'GENERAL',
       };

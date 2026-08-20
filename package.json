@@ -11,6 +11,8 @@
     "rxjs": "7.8.2"
   },
   "scripts": {
+    "dev": "concurrently -n \"backend,web\" -c \"blue.bold,magenta.bold\" \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:all": "concurrently -n \"ai,backend,web\" -c \"green.bold,blue.bold,magenta.bold\" \"npm run dev:ai\" \"npm run dev:backend\" \"npm run dev:web\"",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:backend": "npm run start:dev --workspace=apps/backend",
     "dev:ai": "cd apps/ai-engine && (venv\\Scripts\\uvicorn.exe app.main:app --reload --port 8000 || venv/bin/uvicorn app.main:app --reload --port 8000 || uvicorn app.main:app --reload --port 8000)",
@@ -42,5 +44,8 @@
     "gemini"
   ],
   "author": "PTIT_Aka Team",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
 }

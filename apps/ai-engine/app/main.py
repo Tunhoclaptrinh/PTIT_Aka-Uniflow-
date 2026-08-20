@@ -15,8 +15,21 @@ from pydantic import BaseModel
 from app.core.config import settings
 from app.services.sku_matcher import HybridSKUMatcher
 from app.services.error_healer import AIErrorHealer
+from pathlib import Path
 
-logger = logging.getLogger("uniflow-ai-engine")
+# Cấu hình ghi log file phân vùng cho Python AI Engine
+try:
+    # pyrefly: ignore [missing-import]
+    # type: ignore
+    from loguru import logger as loguru_logger
+    # Tìm thư mục logs/ ở gốc workspace
+    root_logs = Path(__file__).resolve().parents[3] / "logs" / "ai-engine"
+    root_logs.mkdir(parents=True, exist_ok=True)
+    loguru_logger.add(str(root_logs / "error.log"), level="ERROR", rotation="10 MB", retention="14 days", backtrace=True, diagnose=True)
+    loguru_logger.add(str(root_logs / "ai-engine.log"), level="INFO", rotation="20 MB", retention="7 days")
+    logger = loguru_logger
+except Exception:
+    logger = logging.getLogger("uniflow-ai-engine")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

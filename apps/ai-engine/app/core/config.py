@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     # --- FPT GenAI / akaBot Model Suite ---
     FPT_AI_API_KEY: str = os.getenv("FPT_AI_API_KEY", "")
-    FPT_AI_BASE_URL: str = os.getenv("FPT_AI_BASE_URL", "https://api.fpt.ai/v1")
+    FPT_AI_BASE_URL: str = os.getenv("FPT_AI_BASE_URL", "https://mkp-api.fptcloud.com/v1")
     
     # 1. LLM Models
     FPT_AI_FAST_MODEL: str = os.getenv("FPT_AI_FAST_MODEL", "DeepSeek-V4-Flash")

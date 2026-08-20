@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { FileLogger } from '../utils/file-logger.util';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -32,11 +33,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? (message as any).message
         : message;
 
+    const stack = (exception as Error)?.stack;
+
+    // 1. Log ra terminal console
     this.logger.error(
       `[${request.method}] ${request.url} - Status: ${status} - Error: ${JSON.stringify(
         errorMessage
       )}`
     );
+
+    // 2. Tự động ghi vào file logs/backend/error.log
+    FileLogger.logError('backend', typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage), stack, {
+      method: request.method,
+      url: request.url,
+      statusCode: status,
+      body: request.body || {},
+      query: request.query || {},
+      ip: request.ip,
+      headers: {
+        userAgent: request.headers['user-agent'],
+        tenantId: request.headers['x-tenant-id'],
+      },
+    });
 
     response.status(status).json({
       success: false,

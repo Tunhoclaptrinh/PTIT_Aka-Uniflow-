@@ -158,7 +158,9 @@ curl -X POST http://localhost:3000/api/v1/workflows/generate-from-prompt \
 | **3. Backend Copilot Module** | • Tạo mới [copilot.service.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.service.ts), [copilot.controller.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.controller.ts), [copilot.module.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.module.ts).<br>• Đăng ký `CopilotModule` vào [app.module.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/app.module.ts).<br>• Tích hợp Function Calling: Truy vấn MongoDB xuất Excel thật, lấy SKU chờ duyệt thật. | ✅ **HOÀN TẤT** | `nest build` 0 Errors |
 | **4. Frontend Copilot Real-time** | • Tạo mới [copilot.service.ts](file:///g:/UniFlow-PTIT_Aka/apps/web/src/services/copilot.service.ts) giao tiếp API Backend.<br>• Nâng cấp [CopilotAgentPage.tsx](file:///g:/UniFlow-PTIT_Aka/apps/web/src/pages/CopilotAgentPage.tsx): Xóa bỏ hoàn toàn mảng tĩnh giả lập, kết nối trực tiếp vào AI Copilot Backend và hỗ trợ phê duyệt SKU thật vào MongoDB. | ✅ **HOÀN TẤT** | `vite build` 0 Errors |
 | **5. AI Flow Architect 2-Way Sync** | • Nâng cấp [AIFlowArchitectDrawer.tsx](file:///g:/UniFlow-PTIT_Aka/apps/web/src/components/workflow/panels/AIFlowArchitectDrawer.tsx): Khi chat yêu cầu tạo/sửa luồng, drawer tự động gọi `workflowService.generateFromPrompt()` và cập nhật trực tiếp sơ đồ Node/Edge lên màn hình Canvas 2D. | ✅ **HOÀN TẤT** | `vite build` 0 Errors |
+| **6. Cơ chế File Logging Phân vùng Subrepo** | • Xây dựng [FileLogger](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/common/utils/file-logger.util.ts) tự động tách log theo từng subrepo: `logs/backend/error.log`, `logs/ai-engine/error.log`, `logs/web/client-error.log`.<br>• Tích hợp `AllExceptionsFilter` & Global Error Listener bắt toàn bộ lỗi HTTP, Promise Rejection, Runtime Exception. | ✅ **HOÀN TẤT** | `build:all` Passed |
 
 ---
-*Báo cáo tiến độ được cập nhật và xác thực thành công vào lúc 16:52 ngày 20/08/2026.*
+*Báo cáo tiến độ được cập nhật và xác thực thành công vào lúc 16:59 ngày 20/08/2026.*
+
 

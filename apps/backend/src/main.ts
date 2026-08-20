@@ -1,3 +1,12 @@
+import * as dns from 'dns';
+
+// Khắc phục lỗi querySrv ECONNREFUSED của DNS cục bộ khi resolve MongoDB Atlas SRV
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch {
+  // ignore
+}
+
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';

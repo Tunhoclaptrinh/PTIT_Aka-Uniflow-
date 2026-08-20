@@ -7,7 +7,7 @@ class ChatDto {
   tenantId?: string;
 }
 
-@Controller('copilot')
+@Controller('api/v1/copilot')
 export class CopilotController {
   constructor(private readonly copilotService: CopilotService) {}
 

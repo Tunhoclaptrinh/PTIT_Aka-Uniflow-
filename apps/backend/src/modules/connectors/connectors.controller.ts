@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Post, Body, Param, Query } from '@nestjs/common';
 import { ConnectorsService } from './connectors.service';
 
-@Controller('connectors')
+@Controller('api/v1/connectors')
 export class ConnectorsController {
   constructor(private readonly connectorsService: ConnectorsService) {}
 
