@@ -148,4 +148,17 @@ curl -X POST http://localhost:3000/api/v1/workflows/generate-from-prompt \
 ```
 
 ---
-*Tài liệu được khởi tạo và phê duyệt cho dự án UniFlow AI ngày 20/08/2026.*
+
+## VI. BÁO CÁO TIẾN ĐỘ & TRẠNG THÁI TRIỂN KHAI THỰC TẾ (CẬP NHẬT 20/08/2026)
+
+| Hạng mục / Module | Chi tiết đã thực hiện | Trạng thái kỹ thuật | Kết quả kiểm thử |
+| :--- | :--- | :---: | :---: |
+| **1. Hạ tầng FPT GenAI Gateway** | • Bổ sung Model Registry: `DeepSeek-V4-Flash`, `Llama-3.3-70B-Instruct`, `Vietnamese_Embedding`, `bge-reranker-v2-m3`, `Qwen2.5-VL-7B-Instruct`.<br>• Cấu hình biến môi trường tại [.env](file:///g:/UniFlow-PTIT_Aka/.env) & [.env.example](file:///g:/UniFlow-PTIT_Aka/.env.example).<br>• Tích hợp Multi-tier Failover vào [ai-gateway.service.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/common/services/ai-gateway.service.ts). | ✅ **HOÀN TẤT** | Build Backend Passed |
+| **2. Python AI Engine Settings** | • Đồng bộ cấu hình FPT GenAI vào [config.py](file:///g:/UniFlow-PTIT_Aka/apps/ai-engine/app/core/config.py) & [main.py](file:///g:/UniFlow-PTIT_Aka/apps/ai-engine/app/main.py).<br>• Khắc phục cảnh báo import linter `pydantic_settings`. | ✅ **HOÀN TẤT** | Sẵn sàng cho FastAPI |
+| **3. Backend Copilot Module** | • Tạo mới [copilot.service.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.service.ts), [copilot.controller.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.controller.ts), [copilot.module.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/copilot/copilot.module.ts).<br>• Đăng ký `CopilotModule` vào [app.module.ts](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/app.module.ts).<br>• Tích hợp Function Calling: Truy vấn MongoDB xuất Excel thật, lấy SKU chờ duyệt thật. | ✅ **HOÀN TẤT** | `nest build` 0 Errors |
+| **4. Frontend Copilot Real-time** | • Tạo mới [copilot.service.ts](file:///g:/UniFlow-PTIT_Aka/apps/web/src/services/copilot.service.ts) giao tiếp API Backend.<br>• Nâng cấp [CopilotAgentPage.tsx](file:///g:/UniFlow-PTIT_Aka/apps/web/src/pages/CopilotAgentPage.tsx): Xóa bỏ hoàn toàn mảng tĩnh giả lập, kết nối trực tiếp vào AI Copilot Backend và hỗ trợ phê duyệt SKU thật vào MongoDB. | ✅ **HOÀN TẤT** | `vite build` 0 Errors |
+| **5. AI Flow Architect 2-Way Sync** | • Nâng cấp [AIFlowArchitectDrawer.tsx](file:///g:/UniFlow-PTIT_Aka/apps/web/src/components/workflow/panels/AIFlowArchitectDrawer.tsx): Khi chat yêu cầu tạo/sửa luồng, drawer tự động gọi `workflowService.generateFromPrompt()` và cập nhật trực tiếp sơ đồ Node/Edge lên màn hình Canvas 2D. | ✅ **HOÀN TẤT** | `vite build` 0 Errors |
+
+---
+*Báo cáo tiến độ được cập nhật và xác thực thành công vào lúc 16:52 ngày 20/08/2026.*
+

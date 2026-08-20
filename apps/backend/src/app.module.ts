@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { ConnectorsModule } from './modules/connectors/connectors.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { CopilotModule } from './modules/copilot/copilot.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { RedisModule } from './modules/redis/redis.module';
     AuthModule,
     TenantsModule,
     ConnectorsModule,
+    CopilotModule,
   ],
 })
 export class AppModule {}

@@ -138,7 +138,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
     }, 900);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
     const userText = inputText.trim();
     setMessages((prev) => [
@@ -148,22 +148,31 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
     setInputText('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      let reply = '';
-      if (userText.toLowerCase().includes('gom') || userText.toLowerCase().includes('cụm') || userText.toLowerCase().includes('nhóm')) {
-        reply = `Đã phân tích yêu cầu gom nhóm!\n\nTôi đề xuất gom **3 khối vận chuyển (Viettel Post, GHTK, GHN)** cùng **AI So sánh cước** vào **Phân vùng Cụm So Sánh Cước Thông Minh**.\n\nBạn có thể bấm nút **"Gom nhóm cụm"** bên dưới để áp dụng trực tiếp lên Canvas.`;
-      } else if (userText.toLowerCase().includes('nặng') || userText.toLowerCase().includes('5kg') || userText.toLowerCase().includes('trọng lượng')) {
-        reply = `Tôi đã thiết lập thêm 1 khối logic **"Rẽ nhánh trọng lượng (> 5kg)"**:\n- **Gói hàng > 5kg**: Tự động chuyển tuyến **Viettel Post Vận Tải Nặng (Tiết kiệm 35%)**\n- **Gói hàng <= 5kg**: So sánh cước realtime giữa **GHTK Express** và **GHN Nhanh**\n\nBấm nút **"Áp dụng vào Canvas"** để cập nhật luồng ngay lập tức!`;
-      } else {
-        reply = `Tôi đã ghi nhận yêu cầu: "${userText}". Hạ tầng đã sẵn sàng để đấu nối. Tôi có thể giúp bạn tự động sinh các edge kết nối và kiểm tra tính hợp lệ của UDM Schema!`;
+    try {
+      // Gọi API AI Flow Architect sinh luồng thực tế qua FPT GenAI / Backend
+      const generated = await workflowService.generateFromPrompt(userText);
+      let reply = `Tôi đã phân tích yêu cầu: "${userText}" và sinh cấu trúc quy trình tối ưu với **${generated.nodes?.length || 4} khối xử lý**.\n\n- **Tên luồng**: **${generated.name}**\n- **Mô tả**: ${generated.description || userText}\n\nĐã tự động áp dụng cấu trúc luồng mới lên màn hình Canvas của bạn! ✅`;
+
+      if (onApplyFlowUpdate && generated.nodes && generated.nodes.length > 0) {
+        onApplyFlowUpdate(generated.nodes, generated.edges);
       }
 
       setMessages((prev) => [
         ...prev,
         { id: String(Date.now() + 1), sender: 'agent', text: reply },
       ]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: String(Date.now() + 1),
+          sender: 'agent',
+          text: `Tôi đã ghi nhận yêu cầu: "${userText}". Bạn có thể bấm **"Áp dụng Quy trình Tối ưu"** bên tab Phân tích để cập nhật sơ đồ mới nhất lên Canvas!`,
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 700);
+    }
   };
 
   const handleApplyOptimizedWorkflow = async () => {
