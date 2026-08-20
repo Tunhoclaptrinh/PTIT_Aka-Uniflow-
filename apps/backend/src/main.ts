@@ -19,6 +19,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.getHttpAdapter().get('/', (_req, res) => {
+    res.status(200).json({ status: 'ok', service: 'uniflow-backend' });
+  });
+
   // Đăng ký Global Base Filters, Interceptors & Guards
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());

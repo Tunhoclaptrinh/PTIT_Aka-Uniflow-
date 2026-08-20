@@ -9,9 +9,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private memoryCache = new Map<string, { value: any; expiresAt: number }>();
 
   async onModuleInit() {
-    const host = process.env.REDIS_HOST || 'localhost';
+    const host = process.env.REDIS_HOST?.trim();
     const port = parseInt(process.env.REDIS_PORT || '6379', 10);
     const password = process.env.REDIS_PASSWORD || undefined;
+
+    if (!host || /^(xxxx(?:\.upstash\.io)?|your[-_]?redis|localhost)$/i.test(host)) {
+      this.logger.warn('⚠️ [Redis Offline] REDIS_HOST chưa được cấu hình. Kích hoạt chế độ In-Memory Idempotency & Cache fallback.');
+      return;
+    }
 
     try {
       this.client = new Redis({
@@ -26,6 +31,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         },
         lazyConnect: true,
       });
+
+      // ioredis emits connection errors asynchronously; handle them so a failed
+      // optional dependency does not become an unhandled process error.
+      this.client.on('error', () => undefined);
 
       await this.client.connect();
       this.isConnected = true;
