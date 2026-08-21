@@ -6,6 +6,7 @@ import {
   CodeOutlined,
   ArrowRightOutlined,
   CopyOutlined,
+  FireOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { metricsService, DashboardMetrics, SyncLogItem } from '../services/metrics.service';
@@ -29,6 +30,7 @@ export const DashboardPage: React.FC = () => {
   const [workflows, setWorkflows] = useState<WorkflowData[]>([]);
   const [loading, setLoading] = useState(true);
   const [dryRunning, setDryRunning] = useState(false);
+  const [mockFiring, setMockFiring] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>(new Date().toLocaleTimeString('vi-VN'));
 
   // Selected Log Drawer state
@@ -122,6 +124,25 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  // Fire Mock Webhooks for Demo
+  const handleFireMock = async () => {
+    setMockFiring(true);
+    try {
+      const targetTenant = '66c0e812a1b2c3d4e5f60001'; // Default tenant for demo
+      notify.loading('Đang bắn đồng loạt đơn hàng từ TikTok, Shopee, Lazada...', 'fireMock');
+      const res = await fetch(`http://localhost:3000/api/v1/mock/fire/all/${targetTenant}`, { method: 'POST' });
+      if (res.ok) {
+        notify.success('Đã bắn Webhook giả lập thành công! Dữ liệu đang chạy thời gian thực.');
+      } else {
+        notify.error('Lỗi khi gọi API Mock: ' + res.statusText);
+      }
+    } catch (err: any) {
+      notify.error('Lỗi mạng khi gọi API Mock: ' + err.message);
+    } finally {
+      setMockFiring(false);
+    }
+  };
+
   const handleCopyPayload = () => {
     if (selectedLog) {
       navigator.clipboard.writeText(JSON.stringify(selectedLog.rawPayload || selectedLog.payload || selectedLog, null, 2));
@@ -178,7 +199,18 @@ export const DashboardPage: React.FC = () => {
             loading={dryRunning}
             onClick={handleQuickDryRun}
           >
-            Chạy thử đơn mẫu 0-chạm
+            Chạy thử luồng AI
+          </BaseButton>
+
+          <BaseButton
+            variant="primary"
+            size="small"
+            icon={<FireOutlined />}
+            loading={mockFiring}
+            onClick={handleFireMock}
+            style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#fff' }}
+          >
+            🔥 Bắn Đơn Demo (TMĐT)
           </BaseButton>
         </Space>
       }

@@ -38,7 +38,7 @@ export class CopilotService {
     return this.sessionModel.findOne(filter).exec();
   }
 
-  async deleteSession(sessionId: string, tenantId?: string) {
+  async deleteSession(sessionId: string, tenantId?: string): Promise<any> {
     const filter: any = { sessionId };
     if (tenantId) filter.tenantId = new Types.ObjectId(tenantId);
     return this.sessionModel.deleteOne(filter).exec();

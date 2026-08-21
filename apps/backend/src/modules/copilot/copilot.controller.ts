@@ -32,7 +32,7 @@ export class CopilotController {
   }
 
   @Delete('sessions/:sessionId')
-  async deleteSession(@Param('sessionId') sessionId: string, @Req() req: any) {
+  async deleteSession(@Param('sessionId') sessionId: string, @Req() req: any): Promise<any> {
     const tenantId = req.headers?.['x-tenant-id'] || '66c0e812a1b2c3d4e5f60001';
     return this.copilotService.deleteSession(sessionId, tenantId);
   }

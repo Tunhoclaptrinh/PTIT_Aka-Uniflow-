@@ -15,11 +15,11 @@ import { WebSocketModule } from './modules/websocket/websocket.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { SKUMappingModule } from './modules/sku-mapping/sku-mapping.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
-
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { ConnectorsModule } from './modules/connectors/connectors.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { MockModule } from './modules/mock/mock.module';
 import { CopilotModule } from './modules/copilot/copilot.module';
 
 @Module({
@@ -63,6 +63,8 @@ import { CopilotModule } from './modules/copilot/copilot.module';
     TenantsModule,
     ConnectorsModule,
     CopilotModule,
+    // MockModule chỉ active trong dev/staging — tắt hoàn toàn trong production
+    ...(process.env.NODE_ENV !== 'production' ? [MockModule] : []),
   ],
 })
 export class AppModule {}
