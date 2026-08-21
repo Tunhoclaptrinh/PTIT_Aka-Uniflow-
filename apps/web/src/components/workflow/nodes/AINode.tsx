@@ -3,8 +3,11 @@ import { Handle, Position, NodeResizer } from '@xyflow/react';
 import { DownOutlined, UpOutlined, CheckCircleFilled, ExportOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 export const AINode: React.FC<any> = ({ id, data, selected }) => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [isHovered, setIsHovered] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const nodeColor = '#8B5CF6';
@@ -107,15 +110,15 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
           width: '100%',
           height: '100%',
           minWidth: data.isCompact ? 140 : (hasCarriers && expanded ? 260 : 200),
-          background: '#FFFFFF',
+          background: isLight ? '#FFFFFF' : '#111827',
           borderRadius: 6,
           border: selected ? `2px solid ${nodeColor}` : `1.5px solid ${nodeColor}`,
           boxShadow: selected
-            ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.08)`
+            ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.2)`
             : isHovered
               ? `0 4px 14px ${nodeColor}25`
-              : `0 1px 4px rgba(0, 0, 0, 0.04)`,
-          color: '#111827',
+              : `0 1px 4px rgba(0, 0, 0, 0.08)`,
+          color: isLight ? '#111827' : '#F9FAFB',
           cursor: 'pointer',
           userSelect: 'none',
           padding: data.isCompact ? '5px 8px' : '9px 12px',
@@ -133,8 +136,8 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                 width: 20,
                 height: 20,
                 borderRadius: 4,
-                background: '#FFFFFF',
-                border: '1px solid #E5E7EB',
+                background: isLight ? '#FFFFFF' : '#1F2937',
+                border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -148,7 +151,7 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
               style={{
                 fontWeight: 600,
                 fontSize: 11.5,
-                color: '#111827',
+                color: isLight ? '#111827' : '#F9FAFB',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -190,8 +193,8 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                   width: 32,
                   height: 32,
                   borderRadius: 6,
-                  background: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
+                  background: isLight ? '#FFFFFF' : '#1F2937',
+                  border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -207,7 +210,7 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                   style={{
                     fontWeight: 600,
                     fontSize: 13,
-                    color: '#111827',
+                    color: isLight ? '#111827' : '#F9FAFB',
                     lineHeight: 1.2,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -220,7 +223,7 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: isRateCompare ? '#059669' : '#6B7280',
+                    color: isRateCompare ? (isLight ? '#059669' : '#34D399') : (isLight ? '#64748B' : '#94A3B8'),
                     fontWeight: isRateCompare ? 600 : 400,
                     marginTop: 2,
                     whiteSpace: 'nowrap',
@@ -242,8 +245,8 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                   style={{
                     padding: '2px 4px',
                     borderRadius: 4,
-                    background: '#F3F4F6',
-                    color: '#4B5563',
+                    background: isLight ? '#F3F4F6' : '#1F2937',
+                    color: isLight ? '#4B5563' : '#9CA3AF',
                     fontSize: 10,
                     display: 'flex',
                     alignItems: 'center',
@@ -263,13 +266,13 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                 style={{
                   marginTop: 10,
                   paddingTop: 8,
-                  borderTop: '1px dashed #E5E7EB',
+                  borderTop: isLight ? '1px dashed #E5E7EB' : '1px dashed rgba(255, 255, 255, 0.1)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 6,
                 }}
               >
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: isLight ? '#6B7280' : '#94A3B8', textTransform: 'uppercase' }}>
                   Đối tác vận chuyển được phân tích:
                 </div>
                 {carriersComparison.map((c: any) => (
@@ -281,8 +284,12 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                       justifyContent: 'space-between',
                       padding: '4px 8px',
                       borderRadius: 6,
-                      background: c.isCheapest ? '#ECFDF5' : '#F9FAFB',
-                      border: c.isCheapest ? '1px solid #10B981' : '1px solid #E5E7EB',
+                      background: c.isCheapest
+                        ? (isLight ? '#ECFDF5' : 'rgba(16, 185, 129, 0.15)')
+                        : (isLight ? '#F9FAFB' : '#1E293B'),
+                      border: c.isCheapest
+                        ? '1px solid #10B981'
+                        : (isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)'),
                       fontSize: 11,
                     }}
                   >
@@ -290,12 +297,12 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                       {c.logo ? (
                         <img src={c.logo} alt={c.name} style={{ width: 16, height: 16, objectFit: 'contain' }} />
                       ) : null}
-                      <span style={{ fontWeight: c.isCheapest ? 700 : 500, color: c.isCheapest ? '#065F46' : '#374151' }}>
+                      <span style={{ fontWeight: c.isCheapest ? 700 : 500, color: c.isCheapest ? (isLight ? '#065F46' : '#34D399') : (isLight ? '#374151' : '#F9FAFB') }}>
                         {c.name}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontWeight: 700, color: c.isCheapest ? '#059669' : '#6B7280' }}>
+                      <span style={{ fontWeight: 700, color: c.isCheapest ? '#10B981' : (isLight ? '#6B7280' : '#94A3B8') }}>
                         {c.price}
                       </span>
                       {c.isCheapest && <CheckCircleFilled style={{ color: '#10B981', fontSize: 12 }} />}

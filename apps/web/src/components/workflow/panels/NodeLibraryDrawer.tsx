@@ -27,6 +27,7 @@ import { BaseButton } from '../../base/BaseButton';
 import { FormFooter } from '../../base/FormFooter';
 import { notify } from '../../../utils/notification';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 export interface CustomNodeTemplate {
   id: string;
@@ -115,6 +116,8 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
   onClose,
   onAddNode,
 }) => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [activeTab, setActiveTab] = useState<string>('standard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCat, setSelectedCat] = useState<string>('ALL');
@@ -249,6 +252,17 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
     },
   ];
 
+  const categoryPills = [
+    { key: 'ALL', label: 'Tất cả' },
+    { key: 'MARKETPLACE', label: 'Sàn TMĐT' },
+    { key: 'AI', label: 'AI Engine' },
+    { key: 'POS', label: 'Kho POS / ERP' },
+    { key: 'LOGISTICS', label: 'Vận chuyển' },
+    { key: 'ACCOUNTING', label: 'Kế toán & HĐĐT' },
+    { key: 'SPREADSHEET', label: 'Excel & Sheet' },
+    { key: 'NOTIFY', label: 'Thông báo & CRM' },
+  ];
+
   const filteredCategories = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     return nodeCategories
@@ -276,7 +290,9 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/favicon.svg" alt="UniFlow" style={{ width: 22, height: 22 }} />
-            <span style={{ fontWeight: 700, fontSize: 16 }}>Thư viện khối xử lý tự động</span>
+            <span style={{ fontWeight: 700, fontSize: 16, color: isLight ? '#0F172A' : '#F9FAFB' }}>
+              Thư viện khối xử lý tự động
+            </span>
           </div>
           <Tag color="purple" style={{ fontWeight: 600, borderRadius: 4, margin: 0 }}>
             {nodeCategories.reduce((acc, c) => acc + c.items.length, 0) + customNodes.length} Khối sẵn sàng
@@ -288,7 +304,15 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
       open={open}
       onClose={onClose}
       styles={{
-        body: { padding: '14px 18px', background: '#F8FAFC' },
+        header: {
+          background: isLight ? '#FFFFFF' : '#0B0F19',
+          borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '16px 20px',
+        },
+        body: {
+          padding: '14px 18px',
+          background: isLight ? '#F8FAFC' : '#0B0F19',
+        },
       }}
     >
       <Tabs
@@ -308,75 +332,63 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                 {/* Search Input */}
                 <Input
                   placeholder="Tìm kiếm khối mẫu (Ví dụ: So sánh cước, Viettel Post, Sapo, MISA...)"
-                  prefix={<SearchOutlined style={{ color: '#9CA3AF' }} />}
+                  prefix={<SearchOutlined style={{ color: isLight ? '#9CA3AF' : '#64748B' }} />}
                   allowClear
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ marginBottom: 12, borderRadius: 6, height: 36 }}
+                  style={{
+                    marginBottom: 12,
+                    borderRadius: 6,
+                    height: 38,
+                    background: isLight ? '#FFFFFF' : '#111827',
+                    borderColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.12)',
+                    color: isLight ? '#0F172A' : '#F9FAFB',
+                  }}
                 />
 
                 {/* Category Pills */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                  <Tag
-                    color={selectedCat === 'ALL' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('ALL')}
-                  >
-                    Tất cả
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'MARKETPLACE' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('MARKETPLACE')}
-                  >
-                    Sàn TMĐT
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'AI' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('AI')}
-                  >
-                    AI Engine
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'POS' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('POS')}
-                  >
-                    Kho POS / ERP
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'LOGISTICS' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('LOGISTICS')}
-                  >
-                    Vận chuyển
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'ACCOUNTING' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('ACCOUNTING')}
-                  >
-                    Kế toán & HĐĐT
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'SPREADSHEET' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('SPREADSHEET')}
-                  >
-                    Excel & Sheet
-                  </Tag>
-                  <Tag
-                    color={selectedCat === 'NOTIFY' ? '#8B5CF6' : 'default'}
-                    style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 500 }}
-                    onClick={() => setSelectedCat('NOTIFY')}
-                  >
-                    Thông báo & CRM
-                  </Tag>
+                  {categoryPills.map((pill) => {
+                    const isSelected = selectedCat === pill.key;
+                    return (
+                      <Tag
+                        key={pill.key}
+                        onClick={() => setSelectedCat(pill.key)}
+                        style={{
+                          cursor: 'pointer',
+                          borderRadius: 6,
+                          padding: '3px 10px',
+                          fontSize: 12,
+                          fontWeight: isSelected ? 700 : 500,
+                          background: isSelected
+                            ? '#8B5CF6'
+                            : isLight
+                            ? '#FFFFFF'
+                            : '#111827',
+                          color: isSelected
+                            ? '#FFFFFF'
+                            : isLight
+                            ? '#475569'
+                            : '#94A3B8',
+                          border: isSelected
+                            ? '1px solid #8B5CF6'
+                            : isLight
+                            ? '1px solid #E2E8F0'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
+                          boxShadow: isSelected
+                            ? '0 2px 6px rgba(139, 92, 246, 0.3)'
+                            : 'none',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {pill.label}
+                      </Tag>
+                    );
+                  })}
                 </div>
 
                 {filteredCategories.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '36px 0', color: '#9CA3AF' }}>
+                  <div style={{ textAlign: 'center', padding: '36px 0', color: isLight ? '#9CA3AF' : '#64748B' }}>
                     Không tìm thấy khối xử lý phù hợp với từ khóa "{searchQuery}"
                   </div>
                 ) : (
@@ -403,9 +415,9 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                             bordered={false}
                             style={{
                               borderRadius: 6,
-                              border: '1px solid #E2E8F0',
-                              background: '#FFFFFF',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                              border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
+                              background: isLight ? '#FFFFFF' : '#111827',
+                              boxShadow: isLight ? '0 1px 2px rgba(0, 0, 0, 0.02)' : '0 2px 4px rgba(0, 0, 0, 0.2)',
                               transition: 'all 0.15s ease',
                             }}
                             hoverable
@@ -421,8 +433,8 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                           width: 28,
                                           height: 28,
                                           borderRadius: 4,
-                                          background: '#F1F5F9',
-                                          border: '1px solid #E2E8F0',
+                                          background: isLight ? '#F1F5F9' : '#1E293B',
+                                          border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
@@ -440,8 +452,8 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                         width: 28,
                                         height: 28,
                                         borderRadius: 4,
-                                        background: '#FFFFFF',
-                                        border: '1px solid #E2E8F0',
+                                        background: isLight ? '#FFFFFF' : '#1E293B',
+                                        border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -458,7 +470,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                     style={{
                                       fontWeight: 600,
                                       fontSize: 12.5,
-                                      color: '#0F172A',
+                                      color: isLight ? '#0F172A' : '#F9FAFB',
                                       whiteSpace: 'nowrap',
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
@@ -468,7 +480,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                   </div>
                                   <div
                                     style={{
-                                      color: '#64748B',
+                                      color: isLight ? '#64748B' : '#94A3B8',
                                       fontSize: 11,
                                       marginTop: 2,
                                       whiteSpace: 'nowrap',
@@ -514,8 +526,8 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                 {/* Header banner for Custom Nodes */}
                 <div
                   style={{
-                    background: '#F0F9FF',
-                    border: '1px solid #BAE6FD',
+                    background: isLight ? '#F0F9FF' : 'rgba(2, 132, 199, 0.12)',
+                    border: isLight ? '1px solid #BAE6FD' : '1px solid rgba(2, 132, 199, 0.3)',
                     borderRadius: 6,
                     padding: '10px 14px',
                     marginBottom: 14,
@@ -525,10 +537,10 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#0369A1' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#0369A1' : '#38BDF8' }}>
                       Khối Lập Trình & Tự Định Nghĩa (Custom Developer Nodes)
                     </div>
-                    <div style={{ color: '#0284C7', fontSize: 11.5 }}>
+                    <div style={{ color: isLight ? '#0284C7' : '#7DD3FC', fontSize: 11.5 }}>
                       Toàn quyền kiểm soát 100% logic: Gọi REST API tùy ý, viết hàm JavaScript, truy vấn Database
                     </div>
                   </div>
@@ -550,9 +562,9 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                       bordered={false}
                       style={{
                         borderRadius: 6,
-                        border: '1px solid #E2E8F0',
-                        background: '#FFFFFF',
-                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+                        border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
+                        background: isLight ? '#FFFFFF' : '#111827',
+                        boxShadow: isLight ? '0 1px 2px rgba(0, 0, 0, 0.02)' : '0 2px 4px rgba(0, 0, 0, 0.2)',
                         transition: 'all 0.15s ease',
                       }}
                       hoverable
@@ -564,7 +576,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                               width: 32,
                               height: 32,
                               borderRadius: 4,
-                              background: '#F0FDF4',
+                              background: isLight ? '#F0FDF4' : 'rgba(16, 185, 129, 0.15)',
                               color: item.color || '#10B981',
                               border: `1px solid ${item.color || '#10B981'}33`,
                               display: 'flex',
@@ -581,7 +593,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                 style={{
                                   fontWeight: 600,
                                   fontSize: 12.5,
-                                  color: '#0F172A',
+                                  color: isLight ? '#0F172A' : '#F9FAFB',
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
@@ -595,7 +607,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                             </div>
                             <div
                               style={{
-                                color: '#64748B',
+                                color: isLight ? '#64748B' : '#94A3B8',
                                 fontSize: 11,
                                 marginTop: 2,
                                 whiteSpace: 'nowrap',
@@ -697,7 +709,7 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
               const cType = getFieldValue('customType');
               if (cType === 'HTTP_REQUEST') {
                 return (
-                  <div style={{ background: '#F8FAFC', padding: 12, borderRadius: 6, border: '1px solid #E2E8F0', marginBottom: 14 }}>
+                  <div style={{ background: isLight ? '#F8FAFC' : '#1E293B', padding: 12, borderRadius: 6, border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)', marginBottom: 14 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 8 }}>
                       <Form.Item name="httpMethod" label="Phương thức" initialValue="POST">
                         <Select

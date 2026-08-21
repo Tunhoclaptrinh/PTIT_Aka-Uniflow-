@@ -9,8 +9,11 @@ import {
 } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [isHovered, setIsHovered] = useState(false);
 
   const label = (data.label || '').toLowerCase();
@@ -167,15 +170,15 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
           width: '100%',
           height: '100%',
           minWidth: data.isCompact ? 140 : 200,
-          background: '#FFFFFF',
+          background: isLight ? '#FFFFFF' : '#111827',
           borderRadius: 6,
           border: selected ? `2px solid ${nodeColor}` : `1.5px solid ${nodeColor}`,
           boxShadow: selected
-            ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.08)`
+            ? `0 0 0 3px ${nodeColor}30, 0 6px 16px rgba(0, 0, 0, 0.2)`
             : isHovered
               ? `0 4px 14px ${nodeColor}25`
-              : `0 1px 4px rgba(0, 0, 0, 0.04)`,
-          color: '#111827',
+              : `0 1px 4px rgba(0, 0, 0, 0.08)`,
+          color: isLight ? '#111827' : '#F9FAFB',
           cursor: 'pointer',
           userSelect: 'none',
           padding: data.isCompact ? '5px 8px' : '9px 12px',
@@ -192,8 +195,8 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
                 width: 20,
                 height: 20,
                 borderRadius: 4,
-                background: '#FFFFFF',
-                border: '1px solid #E5E7EB',
+                background: isLight ? '#FFFFFF' : '#1F2937',
+                border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -221,7 +224,7 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
               style={{
                 fontWeight: 600,
                 fontSize: 11.5,
-                color: '#111827',
+                color: isLight ? '#111827' : '#F9FAFB',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -263,8 +266,8 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
                   width: 32,
                   height: 32,
                   borderRadius: 6,
-                  background: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
+                  background: isLight ? '#FFFFFF' : '#1F2937',
+                  border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -294,7 +297,7 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
                   style={{
                     fontWeight: 600,
                     fontSize: 13,
-                    color: '#111827',
+                    color: isLight ? '#111827' : '#F9FAFB',
                     lineHeight: 1.2,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -307,7 +310,7 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
                 <div
                   style={{
                     fontSize: 11,
-                    color: '#6B7280',
+                    color: isLight ? '#64748B' : '#94A3B8',
                     marginTop: 2,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',

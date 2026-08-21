@@ -30,6 +30,7 @@ import { notify } from '../../../utils/notification';
 import { MarkdownRenderer } from '../../common/MarkdownRenderer';
 import { metricsService } from '../../../services/metrics.service';
 import { workflowService } from '../../../services/workflow.service';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 const { TextArea } = Input;
 
@@ -71,6 +72,8 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
   onGroupSelectedNodes,
   onUngroupNodes,
 }) => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [activeTab, setActiveTab] = useState<string>('auto_architect');
   const [channels, setChannels] = useState<ChannelInfraItem[]>(defaultInfraChannels);
   const [scanning, setScanning] = useState(false);
@@ -211,10 +214,10 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/favicon.svg" alt="UniFlow" style={{ width: 22, height: 22 }} />
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: isLight ? '#111827' : '#F9FAFB' }}>
                 AI Kiến trúc & Tối ưu Hạ tầng Tự động hóa
               </div>
-              <div style={{ fontSize: 11, color: '#6B7280' }}>
+              <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8' }}>
                 Enterprise Auto-Architect & Continuous Learning Engine
               </div>
             </div>
@@ -229,7 +232,12 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
       open={open}
       onClose={onClose}
       styles={{
-        body: { padding: '12px 16px', background: '#F8FAFC', display: 'flex', flexDirection: 'column' },
+        header: {
+          padding: '16px 20px',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
+          borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+        },
+        body: { padding: '12px 16px', background: isLight ? '#F8FAFC' : '#0B0F19', display: 'flex', flexDirection: 'column' },
       }}
     >
       <Tabs
@@ -244,15 +252,15 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                 {/* 1. KHẢO SÁT HẠ TẦNG KẾT NỐI KHẢ DỤNG THỰC TẾ */}
                 <div
                   style={{
-                    background: '#FFFFFF',
+                    background: isLight ? '#FFFFFF' : '#111827',
                     borderRadius: 8,
-                    border: '1px solid #E2E8F0',
+                    border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                     padding: '12px 14px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.03)' : '0 2px 6px rgba(0,0,0,0.2)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <span style={{ fontWeight: 700, fontSize: 12.5, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 12.5, color: isLight ? '#1E293B' : '#F9FAFB', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <ApiOutlined style={{ color: '#8B5CF6' }} />
                       HẠ TẦNG KÊNH KẾT NỐI KHẢ DỤNG THỰC TẾ
                     </span>
@@ -281,20 +289,20 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '6px 10px',
-                          background: '#F8FAFC',
+                          background: isLight ? '#F8FAFC' : '#1E293B',
                           borderRadius: 6,
-                          border: '1px solid #EEF2F6',
+                          border: isLight ? '1px solid #EEF2F6' : '1px solid rgba(255, 255, 255, 0.06)',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: isLight ? '#334155' : '#F9FAFB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {c.name}
                           </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                           <span style={{ fontSize: 11, color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>{c.latency}</span>
-                          <span style={{ fontSize: 10, color: '#94A3B8' }}>• {c.ordersSynced.toLocaleString('vi-VN')} đơn</span>
+                          <span style={{ fontSize: 10, color: isLight ? '#94A3B8' : '#64748B' }}>• {c.ordersSynced.toLocaleString('vi-VN')} đơn</span>
                         </div>
                       </div>
                     ))}
@@ -481,25 +489,25 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                 {/* 3. GIẢI THÍCH CHI TIẾT & BÁO CÁO KHUYẾN NGHỊ KIẾN TRÚC */}
                 <div
                   style={{
-                    background: '#FFFFFF',
+                    background: isLight ? '#FFFFFF' : '#111827',
                     borderRadius: 8,
-                    border: '1px solid #E2E8F0',
+                    border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                     padding: '14px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 10,
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: 13, color: '#1E293B', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#1E293B' : '#F9FAFB', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <InfoCircleOutlined style={{ color: '#3B82F6' }} />
                     BÁO CÁO PHÂN TÍCH HẠ TẦNG & CƠ CHẾ TỐI ƯU HÓA QUY TRÌNH
                   </div>
 
-                  <div style={{ fontSize: 12.5, color: '#475569', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 12.5, color: isLight ? '#475569' : '#94A3B8', lineHeight: 1.6 }}>
                     Dựa trên việc xem xét toàn bộ ma trận dữ liệu <strong>8 cổng kết nối khả dụng</strong>, <strong>3 đơn vị vận chuyển</strong> và <strong>lưu lượng 38,900+ đơn hàng</strong> của bạn, AI UniFlow đã tự động đưa ra kết quả quy trình tối ưu:
                   </div>
 
-                  <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 12, color: '#334155' }}>
+                  <div style={{ background: isLight ? '#F8FAFC' : '#1E293B', padding: '10px 12px', borderRadius: 6, border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)', fontSize: 12, color: isLight ? '#334155' : '#E2E8F0' }}>
                     <div style={{ marginBottom: 4 }}>• <strong>Định tuyến Đa sàn</strong>: Tiếp nhận song song TikTok Shop & Shopee Open Platform qua Inbound Webhook chuẩn HMAC.</div>
                     <div style={{ marginBottom: 4 }}>• <strong>AI Vector & NER</strong>: Tự động đối sánh Master SKU với độ tin cậy trên 95% và bóc tách thực thể địa chỉ.</div>
                     <div style={{ marginBottom: 4 }}>• <strong>Cụm phân vùng So Sánh Cước Thông Minh</strong>: Tự động chốt hãng có giá tối ưu (Viettel Post tiết kiệm 20.4% cước trục Bắc - Nam).</div>
@@ -509,9 +517,9 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   {/* THỜI GIAN QUAY LẠI KIỂM TRA QUY TRÌNH */}
                   <div
                     style={{
-                      background: '#FEF3C7',
+                      background: isLight ? '#FEF3C7' : 'rgba(245, 158, 11, 0.15)',
                       borderRadius: 6,
-                      border: '1px solid #FDE68A',
+                      border: isLight ? '1px solid #FDE68A' : '1px solid rgba(245, 158, 11, 0.3)',
                       padding: '10px 12px',
                       display: 'flex',
                       alignItems: 'flex-start',
@@ -519,7 +527,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                     }}
                   >
                     <ClockCircleOutlined style={{ color: '#D97706', fontSize: 15, marginTop: 2, flexShrink: 0 }} />
-                    <div style={{ fontSize: 12, color: '#92400E', lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12, color: isLight ? '#92400E' : '#FCD34D', lineHeight: 1.5 }}>
                       <strong>Chu kỳ kiểm chuẩn tự động:</strong> Hãy <strong>quay lại sau 24 giờ</strong> (hoặc sau khi phát sinh tối thiểu 50 đơn hàng thực tế) để AI tiếp tục đánh giá độ trễ API, hiệu chỉnh tỷ lệ khớp SKU và tối ưu hóa chi phí vận chuyển theo lưu lượng thực tế!
                     </div>
                   </div>
@@ -530,7 +538,9 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   style={{
                     position: 'sticky',
                     bottom: -12,
-                    background: 'linear-gradient(to top, #F8FAFC 85%, rgba(248, 250, 252, 0.4) 100%)',
+                    background: isLight
+                      ? 'linear-gradient(to top, #F8FAFC 85%, rgba(248, 250, 252, 0.4) 100%)'
+                      : 'linear-gradient(to top, #0B0F19 85%, rgba(11, 15, 25, 0.4) 100%)',
                     padding: '12px 0 6px 0',
                     display: 'flex',
                     justifyContent: 'center',
@@ -563,9 +573,9 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
               <div
                 style={{
                   height: 'calc(100vh - 180px)',
-                  background: '#FFFFFF',
+                  background: isLight ? '#FFFFFF' : '#111827',
                   borderRadius: 8,
-                  border: '1px solid #E2E8F0',
+                  border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
@@ -576,9 +586,9 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                 {/* Grouping & Region Control Bar */}
                 <div
                   style={{
-                    background: '#F8FAFC',
+                    background: isLight ? '#F8FAFC' : '#1E293B',
                     borderRadius: 6,
-                    border: '1px solid #E2E8F0',
+                    border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
                     padding: '8px 12px',
                     marginBottom: 10,
                     display: 'flex',
@@ -587,10 +597,10 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 12, color: '#111827' }}>
+                    <div style={{ fontWeight: 600, fontSize: 12, color: isLight ? '#111827' : '#F9FAFB' }}>
                       Thao tác gom cụm trên Canvas:
                     </div>
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>
+                    <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8' }}>
                       {selectedNodesCount > 0
                         ? `Đang chọn ${selectedNodesCount} khối trên Canvas`
                         : 'Gom các khối thành Phân vùng cụm'}
@@ -641,8 +651,8 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                           size={30}
                           src={isUser ? undefined : '/favicon.svg'}
                           style={{
-                            backgroundColor: isUser ? '#8B5CF6' : '#FFFFFF',
-                            border: isUser ? 'none' : '1px solid #E2E8F0',
+                            backgroundColor: isUser ? '#8B5CF6' : (isLight ? '#FFFFFF' : '#1E293B'),
+                            border: isUser ? 'none' : (isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.1)'),
                             padding: isUser ? 0 : 3,
                             flexShrink: 0,
                           }}
@@ -655,9 +665,9 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                             maxWidth: '84%',
                             padding: '10px 14px',
                             borderRadius: isUser ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                            background: isUser ? '#8B5CF6' : '#F8FAFC',
-                            color: isUser ? '#FFFFFF' : '#1E293B',
-                            border: isUser ? 'none' : '1px solid #E2E8F0',
+                            background: isUser ? '#8B5CF6' : (isLight ? '#F8FAFC' : '#1E293B'),
+                            color: isUser ? '#FFFFFF' : (isLight ? '#1E293B' : '#F9FAFB'),
+                            border: isUser ? 'none' : (isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)'),
                             fontSize: 12.5,
                           }}
                         >
@@ -733,7 +743,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
         width={640}
         centered
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, color: isLight ? '#111827' : '#F9FAFB' }}>
             <RocketFilled style={{ color: '#ED1C24' }} />
             Xác nhận Áp dụng Quy trình Tự động hóa 0-Chạm Tối ưu
           </div>
@@ -741,8 +751,8 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
           {/* Mô tả các hoạt động */}
-          <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12.5, color: '#334155', lineHeight: 1.6 }}>
-            <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: 6 }}>
+          <div style={{ background: isLight ? '#F8FAFC' : '#1E293B', padding: '12px 14px', borderRadius: 8, border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)', fontSize: 12.5, color: isLight ? '#334155' : '#E2E8F0', lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 700, color: isLight ? '#0F172A' : '#F9FAFB', marginBottom: 6 }}>
               ⚙️ Các tác vụ tự động hóa sẽ được thiết lập & kích hoạt ngay:
             </div>
             <div style={{ marginBottom: 4 }}>• <strong>Định tuyến Đa sàn</strong>: Tiếp nhận song song TikTok Shop & Shopee Open Platform v2 qua Inbound Webhook chuẩn HMAC-SHA256.</div>
@@ -752,24 +762,24 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
           </div>
 
           {/* Giải thích hệ thống đang hoạt động */}
-          <div style={{ background: '#EFF6FF', borderRadius: 8, border: '1px solid #BFDBFE', padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ background: isLight ? '#EFF6FF' : 'rgba(37, 99, 235, 0.15)', borderRadius: 8, border: isLight ? '1px solid #BFDBFE' : '1px solid rgba(37, 99, 235, 0.3)', padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <InfoCircleOutlined style={{ color: '#2563EB', fontSize: 15, marginTop: 2, flexShrink: 0 }} />
-            <div style={{ fontSize: 12, color: '#1E40AF', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: isLight ? '#1E40AF' : '#93C5FD', lineHeight: 1.5 }}>
               <strong>Hệ thống đang hoạt động theo thời gian thực:</strong> Quy trình sẽ sẵn sàng tiếp nhận và điều phối đơn hàng 0-chạm ngay sau khi áp dụng. Hãy quay lại sau 24 giờ (hoặc sau tối thiểu 50 đơn hàng thực tế) để AI tiếp tục đánh giá và tối ưu hóa chi phí!
             </div>
           </div>
 
           {/* Khung Hỗ trợ & Tư vấn chuyên sâu */}
-          <div style={{ background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', padding: '12px 14px' }}>
-            <div style={{ fontSize: 12, color: '#92400E', lineHeight: 1.6 }}>
+          <div style={{ background: isLight ? '#FFFBEB' : 'rgba(245, 158, 11, 0.12)', borderRadius: 8, border: isLight ? '1px solid #FDE68A' : '1px solid rgba(245, 158, 11, 0.25)', padding: '12px 14px' }}>
+            <div style={{ fontSize: 12, color: isLight ? '#92400E' : '#FCD34D', lineHeight: 1.6 }}>
               💡 Nếu bạn thấy quy trình chưa thực sự tối ưu cho mô hình kinh doanh đặc thù hoặc muốn nhận tư vấn chuyên sâu riêng từ đội ngũ kỹ sư giải pháp UniFlow, vui lòng liên hệ trực tiếp:
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, marginTop: 8, fontSize: 12.5, fontWeight: 600 }}>
-              <div style={{ color: '#047857', display: 'flex', alignItems: 'center', gap: 6 }}>
-                📞 Hotline / Zalo: <a href="tel:0945650883" style={{ color: '#047857', textDecoration: 'underline' }}>0945 650 883</a>
+              <div style={{ color: isLight ? '#047857' : '#34D399', display: 'flex', alignItems: 'center', gap: 6 }}>
+                📞 Hotline / Zalo: <a href="tel:0945650883" style={{ color: isLight ? '#047857' : '#34D399', textDecoration: 'underline' }}>0945 650 883</a>
               </div>
-              <div style={{ color: '#B45309', display: 'flex', alignItems: 'center', gap: 6 }}>
-                ✉️ Email chuyên gia: <a href="mailto:tuannguyentien16@gmail.com" style={{ color: '#B45309', textDecoration: 'underline' }}>tuannguyentien16@gmail.com</a>
+              <div style={{ color: isLight ? '#B45309' : '#FBBF24', display: 'flex', alignItems: 'center', gap: 6 }}>
+                ✉️ Email chuyên gia: <a href="mailto:tuannguyentien16@gmail.com" style={{ color: isLight ? '#B45309' : '#FBBF24', textDecoration: 'underline' }}>tuannguyentien16@gmail.com</a>
               </div>
             </div>
           </div>

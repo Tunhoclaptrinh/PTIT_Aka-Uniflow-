@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import { FormFooter } from '../../base/FormFooter';
 import { notify } from '../../../utils/notification';
+import { useAppConfig } from '../../../context/AppConfigContext';
 
 interface EdgeDirectiveModalProps {
   open: boolean;
@@ -43,6 +44,8 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -99,14 +102,17 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
       styles={{
         header: {
           padding: '16px 20px',
-          borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
+          borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
         },
         body: {
           padding: '16px 20px',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
         },
         footer: {
           padding: '12px 20px',
-          borderTop: '1px solid var(--border-subtle, #E5E7EB)',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
+          borderTop: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
         },
       }}
       title={
@@ -116,7 +122,7 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
               width: 34,
               height: 34,
               borderRadius: 6,
-              background: '#F5F3FF',
+              background: isLight ? '#F5F3FF' : '#2E1065',
               color: '#8B5CF6',
               display: 'flex',
               alignItems: 'center',
@@ -126,11 +132,11 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
             <BranchesOutlined style={{ fontSize: 18 }} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: isLight ? '#111827' : '#F9FAFB' }}>
               Thiết lập chỉ lệnh & Điều kiện đường liên kết
             </div>
-            <div style={{ fontSize: 11, color: '#6B7280', fontWeight: 500 }}>
-              ID: <code>{edge.id}</code>
+            <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8', fontWeight: 500 }}>
+              ID: <code style={{ color: isLight ? '#4B5563' : '#CBD5E1' }}>{edge.id}</code>
             </div>
           </div>
         </div>
@@ -185,23 +191,23 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '10px 14px',
-          background: '#F8FAFC',
+          background: isLight ? '#F8FAFC' : '#111827',
           borderRadius: 8,
-          border: '1px solid #E2E8F0',
+          border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
           marginBottom: 16,
           fontSize: 12,
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: '#6B7280', fontSize: 10.5 }}>Khối nguồn (Source):</div>
-          <div style={{ fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 10.5 }}>Khối nguồn (Source):</div>
+          <div style={{ fontWeight: 600, color: isLight ? '#0F172A' : '#F9FAFB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {sourceNode?.data?.label || edge.source}
           </div>
         </div>
-        <div style={{ padding: '0 10px', color: '#94A3B8', fontWeight: 700 }}>➔</div>
+        <div style={{ padding: '0 10px', color: isLight ? '#94A3B8' : '#64748B', fontWeight: 700 }}>➔</div>
         <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-          <div style={{ color: '#6B7280', fontSize: 10.5 }}>Khối đích (Target):</div>
-          <div style={{ fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 10.5 }}>Khối đích (Target):</div>
+          <div style={{ fontWeight: 600, color: isLight ? '#0F172A' : '#F9FAFB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {targetNode?.data?.label || edge.target}
           </div>
         </div>
@@ -228,7 +234,7 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
           }
           extra={
             <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+              <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8', marginBottom: 4 }}>
                 Gợi ý biểu thức rẽ nhánh (Bấm để chèn):
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -269,7 +275,7 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
         <Form.Item
           name="strokeColor"
           label={
-            <div style={{ fontWeight: 600, fontSize: 13, color: '#374151' }}>
+            <div style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#374151' : '#F9FAFB' }}>
               Màu sắc đường nối (Dây tín hiệu)
             </div>
           }
@@ -288,7 +294,9 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
                     justifyContent: 'center',
                     gap: 8,
                     borderRadius: 6,
-                    border: '1px solid #E5E7EB',
+                    border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+                    background: isLight ? '#FFFFFF' : '#1E293B',
+                    color: isLight ? '#374151' : '#F9FAFB',
                     fontSize: 12,
                     fontWeight: 500,
                   }}
@@ -317,16 +325,16 @@ export const EdgeDirectiveModal: React.FC<EdgeDirectiveModalProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '12px 14px',
-            background: '#F8FAFC',
+            background: isLight ? '#F8FAFC' : '#111827',
             borderRadius: 8,
-            border: '1px solid #E2E8F0',
+            border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
           <div>
-            <div style={{ fontWeight: 600, fontSize: 13, color: '#1E293B' }}>
+            <div style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#1E293B' : '#F9FAFB' }}>
               Hiệu ứng xung điện chuyển động (Animated Flow)
             </div>
-            <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>
+            <div style={{ fontSize: 11.5, color: isLight ? '#64748B' : '#94A3B8', marginTop: 2 }}>
               Dòng hạt chuyển động liên tục trên đường liên kết để trực quan hóa luồng dữ liệu
             </div>
           </div>

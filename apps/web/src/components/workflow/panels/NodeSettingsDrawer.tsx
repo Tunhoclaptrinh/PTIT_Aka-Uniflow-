@@ -186,15 +186,17 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
         styles={{
           header: {
             padding: '16px 20px',
-            borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
-            background: '#FAF5FF',
+            borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+            background: isLight ? '#FAF5FF' : '#1E1B4B',
           },
           body: {
             padding: '16px 20px',
+            background: isLight ? '#FFFFFF' : '#111827',
           },
           footer: {
             padding: '12px 20px',
-            borderTop: '1px solid var(--border-subtle, #E5E7EB)',
+            borderTop: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+            background: isLight ? '#FFFFFF' : '#111827',
           },
         }}
         title={
@@ -204,7 +206,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 width: 38,
                 height: 38,
                 borderRadius: 6,
-                background: '#F3E8FF',
+                background: isLight ? '#F3E8FF' : '#2E1065',
                 color: '#8B5CF6',
                 display: 'flex',
                 alignItems: 'center',
@@ -221,7 +223,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                   style={{
                     fontWeight: 700,
                     fontSize: 15,
-                    color: '#111827',
+                    color: isLight ? '#111827' : '#F9FAFB',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -233,7 +235,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                   {childNodes.length} KHỐI THÀNH VIÊN
                 </Tag>
               </div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8', marginTop: 2 }}>
                 📌 Phân vùng ghi chú & Tổ chức trực quan (Canvas Section)
               </div>
             </div>
@@ -295,12 +297,12 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
             alignItems: 'flex-start',
             gap: 10,
             padding: '10px 14px',
-            background: '#F5F3FF',
+            background: isLight ? '#F5F3FF' : 'rgba(139, 92, 246, 0.12)',
             borderRadius: 6,
-            border: '1px solid #DDD6FE',
+            border: isLight ? '1px solid #DDD6FE' : '1px solid rgba(139, 92, 246, 0.3)',
             marginBottom: 16,
             fontSize: 12,
-            color: '#5B21B6',
+            color: isLight ? '#5B21B6' : '#C4B5FD',
             lineHeight: 1.5,
           }}
         >
@@ -334,14 +336,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
               alignItems: 'center',
               marginBottom: 16,
               padding: '10px 14px',
-              background: '#F9FAFB',
+              background: isLight ? '#F9FAFB' : '#1E293B',
               borderRadius: 6,
-              border: '1px solid var(--border-subtle, #E5E7EB)',
+              border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
             <div>
-              <div style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>Trạng thái mở rộng trên sơ đồ</div>
-              <div style={{ color: '#6B7280', fontSize: 12 }}>Bật để xem chi tiết tất cả các khối con, tắt để co gọn thành thẻ 1 khối</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>Trạng thái mở rộng trên sơ đồ</div>
+              <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Bật để xem chi tiết tất cả các khối con, tắt để co gọn thành thẻ 1 khối</div>
             </div>
             <Form.Item name="isExpanded" valuePropName="checked" noStyle>
               <Switch
@@ -361,7 +363,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
           {/* Danh sách các khối con */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontWeight: 700, fontSize: 13, color: '#1E293B' }}>
+              <span style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#1E293B' : '#F9FAFB' }}>
                 📦 Các khối thành viên ({childNodes.length} khối con):
               </span>
               {selectedNode.data?.onUngroup && (
@@ -383,11 +385,11 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
               <div
                 style={{
                   padding: '16px',
-                  background: '#F9FAFB',
+                  background: isLight ? '#F9FAFB' : '#1E293B',
                   borderRadius: 6,
-                  border: '1px dashed #D1D5DB',
+                  border: isLight ? '1px dashed #D1D5DB' : '1px dashed rgba(255, 255, 255, 0.15)',
                   textAlign: 'center',
-                  color: '#6B7280',
+                  color: isLight ? '#6B7280' : '#94A3B8',
                   fontSize: 12,
                 }}
               >
@@ -417,11 +419,11 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '10px 12px',
-                        background: '#FFFFFF',
+                        background: isLight ? '#FFFFFF' : '#1E293B',
                         border: `1.5px solid ${cColor}`,
                         borderRadius: 6,
                         cursor: 'pointer',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                        boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.03)' : '0 2px 6px rgba(0,0,0,0.2)',
                         transition: 'all 0.15s ease',
                       }}
                     >
@@ -431,7 +433,8 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                             width: 28,
                             height: 28,
                             borderRadius: 4,
-                            background: '#F3F4F6',
+                            background: isLight ? '#F3F4F6' : '#111827',
+                            border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -450,7 +453,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                             style={{
                               fontWeight: 600,
                               fontSize: 12.5,
-                              color: '#111827',
+                              color: isLight ? '#111827' : '#F9FAFB',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -461,7 +464,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                           <div
                             style={{
                               fontSize: 11,
-                              color: '#6B7280',
+                              color: isLight ? '#6B7280' : '#94A3B8',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -489,9 +492,9 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                                 width: 22,
                                 height: 22,
                                 borderRadius: 4,
-                                background: '#F5F3FF',
+                                background: isLight ? '#F5F3FF' : '#2E1065',
                                 color: '#8B5CF6',
-                                border: '1px solid #DDD6FE',
+                                border: isLight ? '1px solid #DDD6FE' : '1px solid rgba(139, 92, 246, 0.3)',
                                 cursor: 'pointer',
                               }}
                             >
@@ -534,14 +537,17 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
       styles={{
         header: {
           padding: '16px 20px',
-          borderBottom: '1px solid var(--border-subtle, #E5E7EB)',
+          borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
         },
         body: {
           padding: '16px 20px',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
         },
         footer: {
           padding: '12px 20px',
-          borderTop: '1px solid var(--border-subtle, #E5E7EB)',
+          borderTop: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+          background: isLight ? '#FFFFFF' : '#0B0F19',
         },
       }}
       title={
@@ -551,8 +557,8 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
               width: 38,
               height: 38,
               borderRadius: 6,
-              background: '#FFFFFF',
-              border: '1px solid #E5E7EB',
+              background: isLight ? '#FFFFFF' : '#1E293B',
+              border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -573,7 +579,7 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 style={{
                   fontWeight: 700,
                   fontSize: 15,
-                  color: '#111827',
+                  color: isLight ? '#111827' : '#F9FAFB',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -585,8 +591,8 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                 {currentCat.label}
               </Tag>
             </div>
-            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>
-              ID: <code style={{ color: '#4B5563' }}>{selectedNode.id}</code>
+            <div style={{ fontSize: 11, color: isLight ? '#6B7280' : '#94A3B8', marginTop: 2 }}>
+              ID: <code style={{ color: isLight ? '#4B5563' : '#CBD5E1' }}>{selectedNode.id}</code>
             </div>
           </div>
         </div>
@@ -892,14 +898,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       (selectedNode.data?.label || '').toLowerCase().includes('ghn')) && (
                         <div
                           style={{
-                            background: '#F0FDF4',
+                            background: isLight ? '#F0FDF4' : 'rgba(16, 185, 129, 0.1)',
                             borderRadius: 6,
-                            border: '1px solid #BBF7D0',
+                            border: isLight ? '1px solid #BBF7D0' : '1px solid rgba(16, 185, 129, 0.25)',
                             padding: '12px 14px',
                             marginBottom: 16,
                           }}
                         >
-                          <div style={{ fontWeight: 700, fontSize: 13, color: '#166534', marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#166534' : '#34D399', marginBottom: 8 }}>
                             Cấu hình Định tuyến & Tạo Vận đơn Đa hãng
                           </div>
 
@@ -942,14 +948,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                               alignItems: 'center',
                               marginBottom: 10,
                               padding: '8px 10px',
-                              background: '#FFFFFF',
+                              background: isLight ? '#FFFFFF' : '#111827',
                               borderRadius: 4,
-                              border: '1px solid #DCFCE7',
+                              border: isLight ? '1px solid #DCFCE7' : '1px solid rgba(16, 185, 129, 0.2)',
                             }}
                           >
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#166534' }}>Tự động in phiếu giao hàng A6 ngay</div>
-                              <div style={{ color: '#6B7280', fontSize: 11 }}>Tạo file PDF in vận đơn khi vừa sinh mã tracking</div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: isLight ? '#166534' : '#34D399' }}>Tự động in phiếu giao hàng A6 ngay</div>
+                              <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 11 }}>Tạo file PDF in vận đơn khi vừa sinh mã tracking</div>
                             </div>
                             <Form.Item name="autoPrint" valuePropName="checked" noStyle>
                               <Switch defaultChecked />
@@ -962,14 +968,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                               justifyContent: 'space-between',
                               alignItems: 'center',
                               padding: '8px 10px',
-                              background: '#FFFFFF',
+                              background: isLight ? '#FFFFFF' : '#111827',
                               borderRadius: 4,
-                              border: '1px solid #DCFCE7',
+                              border: isLight ? '1px solid #DCFCE7' : '1px solid rgba(16, 185, 129, 0.2)',
                             }}
                           >
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#166534' }}>Tự động đối soát tiền thu hộ COD</div>
-                              <div style={{ color: '#6B7280', fontSize: 11 }}>Đồng bộ số tiền COD với hóa đơn trên sàn TMĐT</div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: isLight ? '#166534' : '#34D399' }}>Tự động đối soát tiền thu hộ COD</div>
+                              <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 11 }}>Đồng bộ số tiền COD với hóa đơn trên sàn TMĐT</div>
                             </div>
                             <Form.Item name="autoCod" valuePropName="checked" noStyle>
                               <Switch defaultChecked />
@@ -986,14 +992,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       (selectedNode.data?.label || '').toLowerCase().includes('vat')) && (
                         <div
                           style={{
-                            background: '#F0F9FF',
+                            background: isLight ? '#F0F9FF' : 'rgba(2, 132, 199, 0.1)',
                             borderRadius: 6,
-                            border: '1px solid #BAE6FD',
+                            border: isLight ? '1px solid #BAE6FD' : '1px solid rgba(2, 132, 199, 0.25)',
                             padding: '12px 14px',
                             marginBottom: 16,
                           }}
                         >
-                          <div style={{ fontWeight: 700, fontSize: 13, color: '#0369A1', marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#0369A1' : '#38BDF8', marginBottom: 8 }}>
                             Cấu hình Hóa đơn Điện tử & Kế toán MISA
                           </div>
 
@@ -1033,14 +1039,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                               justifyContent: 'space-between',
                               alignItems: 'center',
                               padding: '8px 10px',
-                              background: '#FFFFFF',
+                              background: isLight ? '#FFFFFF' : '#111827',
                               borderRadius: 4,
-                              border: '1px solid #E0F2FE',
+                              border: isLight ? '1px solid #E0F2FE' : '1px solid rgba(2, 132, 199, 0.2)',
                             }}
                           >
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: 12.5, color: '#0369A1' }}>Tự động ký số điện tử HSM</div>
-                              <div style={{ color: '#6B7280', fontSize: 11 }}>Phát hành HĐĐT ngay khi đơn hoàn tất giao</div>
+                              <div style={{ fontWeight: 600, fontSize: 12.5, color: isLight ? '#0369A1' : '#38BDF8' }}>Tự động ký số điện tử HSM</div>
+                              <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 11 }}>Phát hành HĐĐT ngay khi đơn hoàn tất giao</div>
                             </div>
                             <Form.Item name="autoSignInvoice" valuePropName="checked" noStyle>
                               <Switch defaultChecked />
@@ -1085,14 +1091,14 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
                       (selectedNode.data?.label || '').toLowerCase().includes('script')) && (
                         <div
                           style={{
-                            background: '#F0F9FF',
+                            background: isLight ? '#F0F9FF' : 'rgba(2, 132, 199, 0.1)',
                             borderRadius: 6,
-                            border: '1px solid #BAE6FD',
+                            border: isLight ? '1px solid #BAE6FD' : '1px solid rgba(2, 132, 199, 0.25)',
                             padding: '12px 14px',
                             marginBottom: 16,
                           }}
                         >
-                          <div style={{ fontWeight: 700, fontSize: 13, color: '#0369A1', marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: isLight ? '#0369A1' : '#38BDF8', marginBottom: 8 }}>
                             Cấu hình Khối Tùy chỉnh (Custom Developer Node)
                           </div>
 

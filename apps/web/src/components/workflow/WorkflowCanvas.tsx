@@ -42,6 +42,7 @@ import { AIFlowArchitectDrawer } from './panels/AIFlowArchitectDrawer';
 import { EdgeDirectiveModal } from './panels/EdgeDirectiveModal';
 import { BaseButton, PageContainer, ConfirmModal, FormFooter } from '../base';
 import { notify } from '../../utils/notification';
+import { useAppConfig } from '../../context/AppConfigContext';
 
 // Khối tiêu đề quy trình 1 dòng siêu tối giản (không khung, không handle chấm kết nối)
 const WorkflowHeaderNode: React.FC<any> = ({ data }) => {
@@ -66,18 +67,18 @@ const WorkflowHeaderNode: React.FC<any> = ({ data }) => {
           boxShadow: data.isActive ? '0 0 6px rgba(16, 185, 129, 0.5)' : 'none',
         }}
       />
-      <span style={{ color: '#0F172A', fontSize: 13.5, fontWeight: 700 }}>
+      <span style={{ color: 'var(--text-primary, #0F172A)', fontSize: 13.5, fontWeight: 700 }}>
         {data.title || data.label}
       </span>
       <span
         style={{
           fontSize: 10.5,
-          color: data.isActive ? '#059669' : '#64748B',
+          color: data.isActive ? '#10B981' : '#94A3B8',
           fontWeight: 600,
-          background: data.isActive ? '#ECFDF5' : '#F1F5F9',
+          background: data.isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(148, 163, 184, 0.12)',
           padding: '1px 7px',
           borderRadius: 10,
-          border: `1px solid ${data.isActive ? '#A7F3D0' : '#E2E8F0'}`,
+          border: `1px solid ${data.isActive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(148, 163, 184, 0.25)'}`,
         }}
       >
         {data.isActive ? 'Đang kích hoạt' : 'Bản nháp'}
@@ -87,6 +88,8 @@ const WorkflowHeaderNode: React.FC<any> = ({ data }) => {
 };
 
 const FlowContent: React.FC = () => {
+  const { themeMode } = useAppConfig();
+  const isLight = themeMode === 'light';
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
   const [workflowsList, setWorkflowsList] = useState<WorkflowData[]>([]);
@@ -1562,6 +1565,8 @@ const FlowContent: React.FC = () => {
                   variant={BackgroundVariant.Dots}
                   gap={16}
                   size={1.5}
+                  color={isLight ? '#CBD5E1' : '#334155'}
+                  bgColor={isLight ? '#F8FAFC' : '#0B0F19'}
                 />
                 <Controls style={{ left: 16, bottom: 16 }} />
               </ReactFlow>
@@ -1839,46 +1844,58 @@ const FlowContent: React.FC = () => {
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <CheckCircleFilled style={{ color: '#10B981' }} />
-              <span style={{ fontWeight: 600 }}>Kết quả chạy thử nghiệm quy trình</span>
+              <span style={{ fontWeight: 600, color: isLight ? '#0F172A' : '#F9FAFB' }}>Kết quả chạy thử nghiệm quy trình</span>
             </div>
           }
           placement="right"
           width={600}
           open={debugDrawerOpen}
           onClose={() => setDebugDrawerOpen(false)}
+          styles={{
+            header: {
+              background: isLight ? '#FFFFFF' : '#0B0F19',
+              borderBottom: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '16px 20px',
+            },
+            body: {
+              background: isLight ? '#F8FAFC' : '#0B0F19',
+              padding: '16px 20px',
+            },
+          }}
         >
           {dryRunResult && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Summary Card */}
               <div
                 style={{
-                  background: '#F9FAFB',
-                  border: '1px solid #E5E7EB',
+                  background: isLight ? '#FFFFFF' : '#111827',
+                  border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 10,
                   padding: '14px 16px',
+                  boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.03)' : '0 2px 6px rgba(0, 0, 0, 0.2)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Mã đơn mẫu:</span>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Mã đơn mẫu:</span>
                   <Tag color="#ed1c24" style={{ fontWeight: 600, borderRadius: 4 }}>
                     #{dryRunResult.orderId}
                   </Tag>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Mã vận đơn khởi tạo:</span>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Mã vận đơn khởi tạo:</span>
                   <Tag color="#10B981" style={{ fontWeight: 600, borderRadius: 4 }}>
                     {dryRunResult.waybillCode}
                   </Tag>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Độ trễ toàn trình (E2E):</span>
-                  <span style={{ fontWeight: 600, color: '#111827', fontSize: 12 }}>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Độ trễ toàn trình (E2E):</span>
+                  <span style={{ fontWeight: 600, color: isLight ? '#111827' : '#F9FAFB', fontSize: 12 }}>
                     <ClockCircleOutlined style={{ marginRight: 4, color: '#10B981' }} />
                     {dryRunResult.durationMs}ms
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#6B7280', fontSize: 12 }}>Độ tin cậy AI SKU:</span>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Độ tin cậy AI SKU:</span>
                   <span style={{ fontWeight: 700, color: '#8B5CF6', fontSize: 12 }}>
                     <ThunderboltFilled style={{ marginRight: 4 }} />
                     {(dryRunResult.aiScore * 100).toFixed(1)}% ({dryRunResult.aiDecision})
@@ -1889,12 +1906,12 @@ const FlowContent: React.FC = () => {
               {/* AI Reasoning Text */}
               <div
                 style={{
-                  background: 'rgba(139, 92, 246, 0.06)',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  background: isLight ? 'rgba(139, 92, 246, 0.06)' : 'rgba(139, 92, 246, 0.12)',
+                  border: isLight ? '1px solid rgba(139, 92, 246, 0.2)' : '1px solid rgba(139, 92, 246, 0.3)',
                   borderRadius: 8,
                   padding: '10px 14px',
                   fontSize: 12,
-                  color: '#4B5563',
+                  color: isLight ? '#4B5563' : '#E0E7FF',
                   lineHeight: 1.5,
                 }}
               >
@@ -1904,7 +1921,7 @@ const FlowContent: React.FC = () => {
 
               {/* Step by step timeline */}
               <div>
-                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: '#111827' }}>
+                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: isLight ? '#111827' : '#F9FAFB' }}>
                   Tiến trình thực thi từng bước (Execution Telemetry):
                 </div>
 
@@ -1915,12 +1932,12 @@ const FlowContent: React.FC = () => {
                     children: (
                       <div style={{ paddingBottom: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 600, fontSize: 13, color: '#111827' }}>
+                          <span style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>
                             Bước {st.step}: {st.name}
                           </span>
                           <Tag style={{ fontSize: 10, borderRadius: 4 }}>{st.latencyMs}ms</Tag>
                         </div>
-                        <div style={{ color: '#6B7280', fontSize: 12, marginTop: 4 }}>
+                        <div style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12, marginTop: 4 }}>
                           {st.detail}
                         </div>
                       </div>
