@@ -29,6 +29,14 @@
 5. **Bước 5 — Thông điệp chốt hạ:**
    > *"Như Ban giám khảo vừa thấy, UniFlow AI đã san phẳng hoàn toàn ốc đảo dữ liệu. Không còn nhân viên nhập liệu, không còn rủi ro lệch kho. Một luồng Logistics 0-chạm đã được hoàn thành với chi phí tối giản nhất."*
 
+### **3. Kịch bản Demo Phụ (Bonus Wow Factor): Trợ Lý AI Agent Copilot & Mini-Window Inspector**
+* **Mục tiêu:** Chứng minh năng lực tương tác ra lệnh điều hành và đối soát đa nền tảng không cần rời màn hình chính.
+1. **Thao tác 1 (Chat-to-SKU):** Thuyết trình viên gõ lệnh vào ô chat AI Copilot: *"Kiểm tra các mã SKU áo polo mới đồng bộ từ TikTok và Shopee hôm nay"*.
+2. **Hiệu ứng AI:** Lõi Gemini Flash + Qdrant phản hồi trong $0.3\text{s}$, trả về **Thẻ Action Card tương tác** phân luồng trực quan: Có mã tự động duyệt, có mã chờ 1-click. Thuyết trình viên bấm *"Phê duyệt 1-click"* ngay trong khung chat $\rightarrow$ Trạng thái chuyển xanh và đồng bộ tức thì.
+3. **Thao tác 2 (Mini-Window Inspector):** Bấm mở Mini-Window **Pancake CRM** & **Viettel Post Live Tracking** ngay góc màn hình để soi tin nhắn chốt đơn livestream và lộ trình xe giao hàng thời gian thực.
+4. **Thông điệp chốt:**
+   > *"UniFlow AI không chỉ là middleware chạy ngầm, mà còn là một Trợ lý điều hành toàn năng (Actionable AI Copilot), giúp chủ doanh nghiệp ra lệnh, kiểm soát SKU và quản trị toàn bộ hệ sinh thái chỉ bằng một câu chat."*
+
 ---
 
 ## **PHẦN II: BỘ TIÊU CHÍ CHẤM THI CHUYÊN GIA & LUẬN ĐIỂM BẢO VỆ**

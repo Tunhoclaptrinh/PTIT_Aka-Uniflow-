@@ -1,7 +1,7 @@
 # **UNIFLOW AI — BẢN THIẾT KẾ ĐỀ ÁN TỔNG THỂ SIÊU CHI TIẾT (MASTER DOCUMENT)**
 
 ### **Nền tảng trung gian tự động hóa & đồng bộ chuỗi cung ứng đa kênh (Omnichannel Supply Chain iPaaS)**
-*Tài liệu tổng hợp toàn diện 100% nội dung đề án: Cơ sở khoa học & số liệu thực tế có dẫn chứng, phân tích thị trường & chân dung khách hàng, kiến trúc kỹ thuật & thẩm định API (TikTok Shop/Shopee), 4 trụ cột sản phẩm & tính năng đột phá, mô hình kinh doanh & doanh thu mở rộng, lộ trình GTM, kịch bản demo sân khấu 5 bước, phân vai đội ngũ và bộ câu hỏi phản biện chuyên sâu.*
+*Tài liệu tổng hợp toàn diện 100% nội dung đề án: Cơ sở khoa học & số liệu thực tế có dẫn chứng, phân tích thị trường & chân dung khách hàng, kiến trúc kỹ thuật & thẩm định API (TikTok Shop/Shopee), 5 trụ cột sản phẩm & tính năng đột phá, mô hình kinh doanh & doanh thu mở rộng, lộ trình GTM, kịch bản demo sân khấu 5 bước, phân vai đội ngũ và bộ câu hỏi phản biện chuyên sâu.*
 
 ---
 
@@ -9,7 +9,7 @@
 1. **PHẦN I: SƠ LƯỢC DỰ ÁN, CƠ SỞ KHOA HỌC & BỐI CẢNH THỊ TRƯỜNG**
 2. **PHẦN II: KHÁCH HÀNG MỤC TIÊU, CHÂN DUNG ĐẠI DIỆN & QUY MÔ THỊ TRƯỜNG (TAM/SAM/SOM)**
 3. **PHẦN III: PHÂN TÍCH ĐỐI THỦ CẠNH TRANH, KHOẢNG TRỐNG THỊ TRƯỜNG & ĐỊNH VỊ USP**
-4. **PHẦN IV: ĐỊNH HÌNH 4 TRỤ CỘT SẢN PHẨM & MA TRẬN CÔNG NGHỆ (TECH STACK)**
+4. **PHẦN IV: ĐỊNH HÌNH 5 TRỤ CỘT SẢN PHẨM & MA TRẬN CÔNG NGHỆ (TECH STACK)**
 5. **PHẦN V: QUY TRÌNH THẨM ĐỊNH, CẤP PHÉP & TÍCH HỢP API CHUYÊN SÂU**
 6. **PHẦN VI: KIẾN TRÚC DỮ LIỆU CỐT LÕI (UDM), LÕI AI & CƠ CHẾ BẢO MẬT ZERO-TRUST**
 7. **PHẦN VII: CÁC Ý TƯỞNG TÍNH NĂNG ĐỘT PHÁ THẾ HỆ MỚI**
@@ -117,7 +117,7 @@ Một trong những câu hỏi hóc búa nhất của Ban giám khảo và Nhà 
 
 ---
 
-## **PHẦN IV: ĐỊNH HÌNH 4 TRỤ CỘT SẢN PHẨM & MA TRẬN CÔNG NGHỆ (TECH STACK)**
+## **PHẦN IV: ĐỊNH HÌNH 5 TRỤ CỘT SẢN PHẨM & MA TRẬN CÔNG NGHỆ (TECH STACK)**
 
 ### **Trụ cột 1: Landing Page & Cổng Quản Lý Tích Hợp (Integration Hub)**
 Giao diện giúp người dùng cấp quyền và thiết lập kết nối không cần biết lập trình (*Zero-Code*):
@@ -136,22 +136,41 @@ Công cụ kéo-thả quy trình tự động hóa (lấy cảm hứng từ N8n 
 
 ### **Trụ cột 3: Hệ Thống API, Webhook & Server Lắng Nghe 24/7 (Real-time Engine)**
 * **Server Listener 24/7:** Cổng tiếp nhận Webhook phản hồi siêu tốc độ trễ $< 0.5\text{s}$.
-* **Hàng đợi Redis Queue / RabbitMQ:** Xếp hàng và xử lý lưu lượng khổng lồ trong các đợt Siêu Sale / Livestream (*High Concurrency*) mà không gây sập hệ thống.
-* **Universal JSON Schema (Chuẩn hóa dữ liệu):** Dịch mọi cấu trúc dữ liệu JSON rườm rà của các bên về một định dạng chuẩn chung của UniFlow AI.
+* **Hàng đợi Redis Queue / BullMQ:** Xếp hàng và xử lý lưu lượng khổng lồ trong các đợt Siêu Sale / Livestream (*High Concurrency*) mà không gây sập hệ thống.
+* **Universal JSON Schema (Chuẩn hóa dữ liệu):** Dịch mọi cấu trúc dữ liệu JSON rườm rà của các bên về một định dạng chuẩn chung của UniFlow AI (`uniflow.order.v1`).
 
-### **Trụ cột 4: AI Agent Tự Động Hóa, Đồng Bộ & Điều Trị Lỗi (Core AI Engine)**
-* **AI Auto-Mapping (Khớp danh mục NLP):** Tự động hiểu ngữ nghĩa và khớp mã SKU lệch tên giữa các nền tảng (VD: Nhận diện "Áo Thun Đen L" và "Áo Phông Cotton Đen Size L" là một sản phẩm).
-* **AI Error-Healing (Tự chữa lỗi luồng):** Khi API của hãng vận chuyển A sập, AI tự động "bẻ lái" luồng dữ liệu, chọn hãng vận chuyển B thay thế và gửi thông báo khẩn qua Zalo/Email cho quản lý.
+### **Trụ cột 4: AI Tự Động Hóa, Khớp SKU & Tự Điều Trị Lỗi (Core AI Engine)**
+* **AI Auto-Mapping (Khớp danh mục NLP & Vector):** Kết hợp Vector Embedding Qdrant (1536 chiều) và Gemini 1.5 Flash NER để tự động hiểu ngữ nghĩa và khớp mã SKU lệch tên giữa các nền tảng (VD: Nhận diện "Áo Thun Đen L" và "Áo Phông Cotton Đen Size L" là một sản phẩm đạt độ tin cậy $>98.5\%$).
+* **AI Error-Healing (Tự chữa lỗi luồng):** Khi API của hãng vận chuyển A sập hoặc timeout (504), AI tự động "bẻ lái" luồng dữ liệu, chọn hãng vận chuyển B thay thế và gửi thông báo khẩn cho quản lý.
 * **AI Dynamic Routing & Pricing:** Quét cước phí và thời gian giao hàng thực tế theo thời gian thực (*Real-time*) để chia đơn tự động (*Smart Splitting*), tối ưu hóa bài toán chi phí Logistics.
+
+### **Trụ cột 5: Bộ Điều Khiển AI Agent Copilot & Trung Tâm Đa Nhiệm Mini-Window Inspector (Next-Gen Conversational Operations Hub)**
+Trợ lý AI đàm thoại thông minh kết hợp hệ thống cửa sổ kiểm tra đa nhiệm, trao quyền cho chủ shop và đội ngũ vận hành điều phối toàn bộ hệ thống bằng ngôn ngữ tự nhiên:
+* **Chat-to-SKU & Tra cứu/Phê duyệt Danh mục Realtime:**
+  * Người dùng ra lệnh bằng tiếng Việt tự nhiên (VD: *"Kiểm tra mã SKU áo polo mới đồng bộ từ TikTok và Shopee hôm nay"*).
+  * Lõi AI Agent truy vấn trực tiếp cơ sở dữ liệu MongoDB Atlas và không gian Vector Qdrant, trả về thẻ tương tác trực quan (**Interactive Actionable Cards**) hiển thị chi tiết tên sàn, Channel SKU, Master SKU, mức độ tin cậy và thẻ trạng thái (`Tự động duyệt`, `Chờ duyệt 1-click`, `Cần ghép tay`).
+  * Cho phép thao tác phê duyệt ngay trên giao diện chat: **Phê duyệt 1-click**, **Ghép tay**, **Sửa ghép**, hoặc thêm mới Master SKU bằng trích xuất NER tức thì.
+* **Ra lệnh Điều hành Toàn hệ thống (Actionable Commands):**
+  * Tự động tổng hợp doanh thu và lập tờ khai thuế GTGT / TNCN (tuân thủ Nghị định 117/2025/NĐ-CP & Thông tư 40/2021/TT-BTC).
+  * Tự động đồng bộ sổ cái MISA AMIS / Fast / Bravo và xuất hóa đơn điện tử MISA meInvoice.
+  * Xuất & xem trước bảng tính Excel báo cáo doanh thu, tồn kho theo mẫu biểu kế toán.
+* **Trung tâm Đa nhiệm Mini-Window Inspector (Agentic Mini-Hub):**
+  * Tích hợp các cửa sổ kiểm tra con độc lập ngay trong phiên chat:
+    * 📱 *Pancake POS & Social CRM Window:* Soi lịch sử hội thoại, chốt đơn livestream và tin nhắn khách hàng.
+    * 🚚 *Viettel Post / GHTK Live Tracking Window:* Theo dõi lộ trình vận đơn realtime trên bản đồ vệ tinh và camera quét mã QR.
+    * 📦 *Sapo / KiotViet Live Stock Window:* Soi chi tiết thẻ kho, số lượng tồn thực tế/tạm giữ và cảnh báo dưới định mức.
+    * 📑 *MISA Accounting & Tax Window:* Kiểm tra bảng kê hóa đơn và trạng thái cấp mã CQT.
+* **Quản lý Phiên Đa nhiệm & Lưu vết Lịch sử (MongoDB Persistence):** Lưu trữ toàn bộ phiên hội thoại và thao tác AI Agent lên MongoDB Atlas, hỗ trợ khôi phục phiên và kiểm toán hoạt động vận hành 24/7.
 
 ### **Ma trận phân hệ công nghệ lựa chọn (Tech Stack Matrix)**
 
 | Phân hệ Kỹ thuật | Công nghệ Lựa chọn | Mô tả Chức năng & Vai trò Chuyên sâu |
 | :--- | :--- | :--- |
-| **Backend Core** | Node.js (NestJS) / GoLang | Xử lý bất đồng bộ cao (High Concurrency), Webhook Receiver độ trễ $< 0.5\text{s}$. |
-| **Frontend Dashboard** | React.js / Next.js + TailwindCSS | Single Page Application (SPA), tích hợp thư viện **React Flow** cho Canvas Node Builder. |
-| **Database & Queue** | PostgreSQL + Redis Queue | Lưu trữ tài khoản, Token mã hóa AES-256; Redis làm Message Queue xếp hàng chống nghẽn và lưu Idempotency Key. |
-| **AI Engine** | Gemini 1.5 Flash API + Python (FastAPI) | Xử lý NLP khớp danh mục sản phẩm, phân tích lý do lỗi API, kết hợp cơ sở dữ liệu vectơ Qdrant. |
+| **Backend Core** | Node.js (NestJS) / TypeScript | Xử lý bất đồng bộ cao (High Concurrency), Webhook Receiver độ trễ $< 0.5\text{s}$, điều phối UDM Transformer. |
+| **Frontend Dashboard** | React.js (TypeScript) + Ant Design + Less | Single Page Application (SPA), tích hợp **React Flow** cho Canvas Node Builder và **Agent Omni Inspector Modal**. |
+| **Database & Queue** | MongoDB Atlas + Redis 7.2 | MongoDB lưu trữ Documents, Workflows, Phiên chat Copilot; Redis làm Message Queue (BullMQ) chống nghẽn và lưu Idempotency Key 24h. |
+| **AI Engine & Vector DB** | Gemini 1.5 Flash API + Python FastAPI + Qdrant | Xử lý NLP/NER trích xuất thuộc tính sản phẩm, Vector Search Cosine Similarity khớp SKU, chẩn đoán lỗi API và điều phối lệnh Copilot. |
+| **AI Copilot & Mini-Window** | Action Engine + Multi-Window Virtualizers | Đàm thoại 2 chiều, sinh Action Cards điều khiển đơn hàng/SKU, mô phỏng Mini-Windows tích hợp Pancake, VTP, Sapo, MISA. |
 | **Giao thức Kết nối** | RESTful API, Webhook, WebSocket | WebSocket đẩy dữ liệu thời gian thực và nhật ký AI (*AI Action Logs*) lên màn hình Dashboard. |
 
 ---

@@ -110,7 +110,7 @@ export const LandingPage: React.FC = () => {
       setSpotlightMatrix((prev) => (prev + 1) % 5);
     }, 3200);
     const pillarTimer = setInterval(() => {
-      setSpotlightPillar((prev) => (prev + 1) % 4);
+      setSpotlightPillar((prev) => (prev + 1) % 5);
     }, 3500);
     const conveyorTimer = setInterval(() => {
       setConveyorCenter((prev) => (prev + 1) % 10);
@@ -1401,14 +1401,14 @@ export function verifyTikTokWebhook(
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
-          4. 4 CORE TECHNOLOGY PILLARS
+          4. 5 CORE TECHNOLOGY PILLARS
       ══════════════════════════════════════════════════════════════════ */}
       <section id="features" className="lp-section bg-alt" style={{ scrollMarginTop: 80 }}>
         <div className="section-header">
           <div className="section-badge">CÔNG NGHỆ CỐT LÕI</div>
-          <h2 className="section-title">4 trụ cột nền tảng của UniFlow AI</h2>
+          <h2 className="section-title">5 trụ cột nền tảng của UniFlow AI</h2>
           <p className="section-desc">
-            Được thiết kế chuyên biệt cho nhà bán hàng và thương hiệu TMĐT lớn tại Việt Nam để chịu tải Mega Sale.
+            Được thiết kế chuyên biệt cho nhà bán hàng và thương hiệu TMĐT lớn tại Việt Nam để chịu tải Mega Sale và điều hành tự động hóa thông minh.
           </p>
         </div>
 
@@ -1418,6 +1418,7 @@ export function verifyTikTokWebhook(
             { icon: <CodeFilled />, title: 'Universal Data Model', desc: 'Rút gọn N×N kết nối thành N+N. Chuẩn hóa mọi payload về uniflow.order.v1 dùng chung cho toàn bộ hệ sinh thái.' },
             { icon: <RocketFilled />, title: 'AI Hybrid SKU Mapper', desc: 'Kết hợp Vector Embedding Qdrant 1536 chiều và Gemini 1.5 Flash NER trích xuất màu sắc, size, chất liệu đạt >98.5%.' },
             { icon: <SafetyCertificateFilled />, title: 'AI tự phục hồi & đổi tuyến', desc: 'Tự phát hiện lỗi timeout ĐVVC, chẩn đoán nguyên nhân gốc và tự đổi sang hãng dự phòng tối ưu chi phí.' },
+            { icon: <RobotOutlined />, title: 'AI Agent & Mini-Window', desc: 'Trợ lý AI đàm thoại ra lệnh toàn hệ thống, tra cứu & duyệt SKU tức thì, tích hợp cửa sổ Mini-Window Pancake, Viettel Post, Sapo, MISA.' },
           ].map((item, idx) => (
             <div key={item.title} className={`bento-card ${spotlightPillar === idx ? 'auto-spotlight' : ''}`}>
               <div className="card-icon-badge">

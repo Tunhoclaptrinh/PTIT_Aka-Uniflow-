@@ -50,17 +50,25 @@ UniFlow-PTIT_Aka/
 └── README.md                               # Tài liệu hướng dẫn tổng quan (File này)
 ```
 
+## 🏛️ **5 TRỤ CỘT NỀN TẢNG CÔNG NGHỆ (5 CORE PILLARS)**
+
+1. **⚡ Inbound Webhook 0-chạm:** Tiếp nhận tức thì webhook từ TikTok Shop, Shopee, Lazada trong $< 0.5\text{s}$, xác thực chữ ký HMAC-SHA256 và chống trùng lặp Idempotency Key 24h qua Redis Cluster.
+2. **🌐 Universal Data Model (UDM):** Chuẩn hóa mọi cấu trúc dữ liệu JSON đa nền tảng về một schema duy nhất `uniflow.order.v1`, rút gọn bài toán tích hợp từ $N \times N$ thành $N + N$.
+3. **🎯 AI Hybrid SKU Mapper:** Kết hợp Vector Embedding Qdrant (1536 chiều) và Google Gemini 1.5 Flash NER trích xuất thực thể, khớp tên sản phẩm sàn TMĐT và SKU kho POS đạt độ chính xác $>98.5\%$.
+4. **🛡️ AI Tự Phục Hồi & Đổi Tuyến (Self-Healing):** Tự phát hiện sự cố sập cổng ĐVVC (504 Gateway Timeout), chẩn đoán nguyên nhân gốc và tự bẻ lái luồng dữ liệu sang hãng dự phòng có cước phí tối ưu nhất.
+5. **🤖 Bộ Điều Khiển AI Agent Copilot & Mini-Window Inspector:** Trợ lý AI đàm thoại ra lệnh toàn hệ thống bằng tiếng Việt tự nhiên, tra cứu & duyệt SKU thời gian thực (Interactive Actionable Cards), lập tờ khai thuế GTGT/TNCN (NĐ 117/2025/NĐ-CP & TT 40/2021/TT-BTC), đồng bộ MISA meInvoice và tích hợp hệ thống cửa sổ kiểm tra đa nhiệm Mini-Windows (Pancake, Viettel Post, Sapo, MISA).
+
 ---
 
 ## 🧩 **MA TRẬN CÔNG NGHỆ (TECH STACK MATRIX)**
 
 | Phân hệ | Ngôn ngữ / Framework | Thư viện & Công cụ cốt lõi | Vai trò & Mục đích sử dụng |
 | :--- | :--- | :--- | :--- |
-| **Frontend Web** | React 18, TypeScript | **Ant Design (`antd`)**, **Less**, **React Flow**, Axios, Socket.io-client | Giao diện Dashboard quản trị, Canvas kéo-thả luồng dữ liệu trực quan, Bảng khớp SKU, Real-time Live Log. |
-| **Backend Core** | Node.js, TypeScript, **NestJS** | BullMQ, Redis, Mongoose, Crypto (HMAC, AES-256-GCM), WebSockets | Bộ tiếp nhận Webhook $< 0.5\text{s}$, Xác thực chữ ký số, Idempotency 24h, UDM Normalizer, Connectors POS/Logistics. |
-| **AI Engine** | Python 3.10+, **FastAPI** | **Google Gemini 1.5 Flash**, **Qdrant Vector DB**, Pydantic, Loguru | Thuật toán Hybrid Scoring khớp SKU kho, Chẩn đoán lỗi & Tự chữa lành luồng (Self-Healing), Định tuyến cước thông minh. |
-| **Databases** | MongoDB & Redis | MongoDB 7.0 (Documents, Workflows), Redis 7.2 (Idempotency, Queue) | Lưu trữ linh hoạt, đảm bảo độ trễ phản hồi thấp và chống trùng lặp đơn hàng. |
-| **Vector Engine**| Qdrant | HNSW Cosine Similarity Index (768 chiều) | So khớp ngữ nghĩa tên sản phẩm sàn TMĐT và SKU kho POS. |
+| **Frontend Web** | React 18, TypeScript | **Ant Design (`antd`)**, **Less**, **React Flow**, Axios, Socket.io-client | Dashboard quản trị, Canvas kéo-thả luồng dữ liệu, AI Agent Copilot, Omni Inspector Modal, Real-time Live Logs. |
+| **Backend Core** | Node.js, TypeScript, **NestJS** | BullMQ, Redis 7.2, Mongoose, Crypto (HMAC, AES-256-GCM), WebSockets | Bộ tiếp nhận Webhook $< 0.5\text{s}$, Xác thực chữ ký số, Idempotency 24h, UDM Normalizer, Connectors POS/Logistics/ERP. |
+| **AI Engine & Copilot** | Python 3.10+, **FastAPI** | **Google Gemini 1.5 Flash**, **Qdrant Vector DB**, Pydantic, Loguru | Thuật toán Hybrid Scoring khớp SKU, Trợ lý Copilot ra lệnh hệ thống, Chẩn đoán lỗi & Tự chữa lành (Self-Healing). |
+| **Databases** | MongoDB Atlas & Redis | MongoDB 7.0 (Documents, Workflows, Copilot Sessions), Redis 7.2 (Idempotency, Message Queue) | Lưu trữ linh hoạt, hỗ trợ truy vấn siêu tốc và chống trùng lặp đơn hàng tuyệt đối. |
+| **Vector Engine** | Qdrant | HNSW Cosine Similarity Index (1536 chiều) | So khớp ngữ nghĩa tên sản phẩm sàn TMĐT và Master SKU kho POS. |
 
 ---
 
