@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export * from './misa-meinvoice.dto';
+export * from './logistics-expanded.dto';
 
 export class MisaSyncCustomerDto {
   @ApiProperty({ example: 'Nguyễn Văn Minh', description: 'Tên khách hàng' })

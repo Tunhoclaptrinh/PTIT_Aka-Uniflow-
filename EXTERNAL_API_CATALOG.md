@@ -31,7 +31,7 @@ Mỗi API tích hợp đều tuân thủ nguyên tắc:
 | **POS & CMS** | **Haravan Omnichannel** | `controllers/haravan/` (9 controller files, 12 official categories) | 12 categories | 197 endpoints | [docs.haravan.com/docs/omni-apis/](https://docs.haravan.com/docs/omni-apis/) |
 | **Social POS** | **Pancake POS** | `controllers/pancake/` (11 controller files, 11 official modules) | 11 modules | 120 endpoints (103 official + 17 legacy) | [docs.pancake.biz/pos/api/](https://docs.pancake.biz/pos/api/) |
 | **Hệ sinh thái MISA** | **eShop, meInvoice, AMIS CRM v2, AMIS Kế toán ACT Open API** | `controllers/misa/` (4 controller files, 23 resource groups across 4 major platforms) | 23 modules | 115 endpoints | [crmconnect.misa.vn](https://crmconnect.misa.vn/docs-v2/index.html) / [actdocs.misa.vn](https://actdocs.misa.vn/g2/graph/ACTOpenAPIHelp/index.html) / [meinvoice.vn](https://meinvoice.vn/) / [eshop.misa.vn](https://eshop.misa.vn/) |
-| **Logistics** | **GHTK / GHN / Viettel Post** | `controllers/logistics/logistics.controller.ts` (3 carrier groups) | 3 modules | 28 endpoints | [docs.giaohangtietkiem.vn](https://docs.giaohangtietkiem.vn/) / [api.ghn.vn](https://api.ghn.vn/) |
+| **Logistics** | **GHTK / GHN / Viettel Post / VNPost / J&T / Ninja Van / Ahamove / GrabExpress** | `controllers/logistics/` (6 controller files, 6 carrier modules) | 6 modules | 96 endpoints | [docs.giaohangtietkiem.vn](https://docs.giaohangtietkiem.vn/) / [developer.ghn.vn](https://developer.ghn.vn/) / [partner.viettelpost.vn](https://partner.viettelpost.vn/) / [api.vnpost.vn](https://api.vnpost.vn/) |
 | **Sàn TMĐT** | **Shopee, TikTok, Lazada, Tiki, Shopify** | `controllers/marketplaces.controller.ts` (5 platform groups) | 5 modules | 23 endpoints | Shopee Open API / TikTok Shop Open API |
 | **UniFlow Core** | **Infra Gateway, Promotions, Gateways** | `infra-gateway.controller.ts`, `core/`, `gateways/` | 3 modules | 11 endpoints | UniFlow Master Control Plane |
 
@@ -772,41 +772,117 @@ Docs chính thức: `https://actdocs.misa.vn/g2/graph/ACTOpenAPIHelp/index.html`
 
 ---
 
-### 3.6. Logistics Vận đơn (GHTK, GHN, Viettel Post — 3 Carrier Resources, 28 Endpoints, đánh số 01..03)
+### 3.6. Hệ Sinh Thái Logistics Vận Chuyển Việt Nam (6 Modules, 96 Endpoints, đánh số 01..06 Chuẩn 1:1 Docs Hãng)
 
-- **`[Logistics-VN] 01. Giao Hàng Tiết Kiệm (GHTK)`** — [`logistics.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/logistics.controller.ts)
-  + `POST /api/v1/infra/logistics/ghtk/services/shipment/fee`: Tính cước phí giao hàng GHTK (đường bay / đường bộ)
-  + `POST /api/v1/infra/logistics/ghtk/services/shipment/order`: Đẩy tạo vận đơn GHTK Express
-  + `GET /api/v1/infra/logistics/ghtk/tracking/:trackingCode`: Tra cứu hành trình bưu kiện GHTK v2
-  + `POST /api/v1/infra/logistics/ghtk/cancel/:trackingCode`: Hủy vận đơn GHTK
-  + `GET /api/v1/infra/logistics/ghtk/services/label/:trackingCode`: Tải mã tem in phiếu gửi hàng khổ A6 kèm barcode
-  + `GET /api/v1/infra/logistics/ghtk/services/shipment/pick-shifts`: Danh sách ca lấy hàng linh hoạt (Sáng, Chiều, Tối)
-  + `GET /api/v1/infra/logistics/ghtk/services/shipment/list_hub`: Danh sách bưu cục / Hub nhận hàng GHTK toàn quốc
-  + `POST /api/v1/infra/logistics/ghtk/services/statement/reconciliation`: Báo cáo đối soát tiền thu hộ COD
+Toàn bộ hệ thống giao vận thương mại điện tử, bưu chính và giao hàng hỏa tốc nội đô tại Việt Nam được chuẩn hóa đồng nhất vào 6 module accordion collapsible trên Swagger UI:
 
-- **`[Logistics-VN] 02. Giao Hàng Nhanh (GHN)`** — [`logistics.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/logistics.controller.ts)
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/available-services`: Tra cứu gói cước khả dụng theo tuyến đường
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/fee`: Tính cước vận chuyển chuẩn GHN Express
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/leadtime`: Tính thời gian dự kiến giao hàng (Leadtime)
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/create`: Tạo vận đơn Giao Hàng Nhanh
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/detail`: Xem chi tiết gói hàng và tiến độ giao vận
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/switch-status/cancel`: Hủy vận đơn giao hàng GHN
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/a5/gen-token`: Tạo token in phiếu gửi hàng A5 / 80x80
-  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/master-data/province`: Danh mục Tỉnh/Thành phố GHN
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/master-data/district`: Danh mục Quận/Huyện GHN
-  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/master-data/ward`: Danh mục Phường/Xã GHN
-  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/station/get`: Danh bạ bưu cục / Điểm gửi GHN Station
+- **`[Logistics-VN] 01. Giao Hàng Tiết Kiệm (GHTK)`** — [`ghtk.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/ghtk.controller.ts) (21 endpoints)
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/fee`: [Fee - Tính cước] Tính cước phí giao hàng đường bộ/bay và bảo hiểm
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/order`: [Order - Tạo vận đơn] Đẩy tạo vận đơn giao hàng chuẩn GHTK Express
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/b2c/order`: [Order - B2C Đăng đơn] Đăng đơn hàng B2C cho sàn TMĐT & doanh nghiệp
+  + `GET /api/v1/infra/logistics/ghtk/tracking/:trackingCode`: [Tracking - Hành trình] Tra cứu tiến độ giao hàng và thông tin shipper
+  + `POST /api/v1/infra/logistics/ghtk/cancel/:trackingCode`: [Cancel - Hủy đơn] Hủy vận đơn trước khi shipper đến lấy hàng
+  + `GET /api/v1/infra/logistics/ghtk/services/label/:trackingCode`: [Label - In tem] Tải file PDF/PNG in tem bưu phẩm A6 có barcode
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/update_cod`: [COD - Đổi tiền thu hộ] Điều chỉnh số tiền thu hộ COD khi đơn đang giao
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/resend_otp`: [OTP - Gửi lại OTP] Gửi lại mã OTP giao hàng an toàn cho người nhận
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/solutions`: [Solutions - Gói giải pháp] Danh sách giải pháp giao vận (Chuẩn, XFast, BBS)
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/b2c/account`: [B2C - Tạo tài khoản] Khởi tạo tài khoản shop đối tác B2C
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/b2c/account/:partnerCode`: [B2C - Kiểm tra tài khoản] Tra cứu trạng thái kích hoạt shop B2C
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/list_pick_add`: [Warehouse - Danh sách kho] Danh sách địa chỉ kho lấy hàng của shop
+  + `POST /api/v1/infra/logistics/ghtk/services/shipment/pick_add`: [Warehouse - Thêm kho] Thêm địa chỉ kho hàng mới lấy bưu phẩm
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/specific_addresses`: [Address - Địa chỉ đặc biệt] Danh mục tuyến địa bàn đặc biệt / hải đảo
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/pick-shifts`: [PickShift - Ca lấy hàng] Danh sách ca lấy hàng linh hoạt (Sáng, Chiều, Tối)
+  + `GET /api/v1/infra/logistics/ghtk/services/shipment/list_hub`: [Hub - Điểm gửi hàng] Danh sách bưu cục / Hub GHTK toàn quốc
+  + `GET /api/v1/infra/logistics/ghtk/services/products/list`: [Product - Danh sách SP] Tra cứu thông tin sản phẩm đã đăng ký GHTK
+  + `POST /api/v1/infra/logistics/ghtk/services/products/add`: [Product - Khai báo SP] Khai báo sản phẩm mới lên hệ thống GHTK
+  + `POST /api/v1/infra/logistics/ghtk/services/statement/reconciliation`: [Statement - Đối soát COD] Báo cáo đối soát tiền thu hộ COD
+  + `GET /api/v1/infra/logistics/ghtk/services/statement/cod_history`: [Statement - Lịch sử chuyển tiền] Lịch sử thanh toán & biến động tiền COD
+  + `POST /api/v1/infra/logistics/ghtk/services/webhook/callback`: [Webhook - Cập nhật trạng thái] Webhook nhận sự kiện đổi trạng thái đơn realtime
 
-- **`[Logistics-VN] 03. Viettel Post`** — [`logistics.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/logistics.controller.ts)
-  + `POST /api/v1/infra/logistics/viettel-post/order/getPrice`: Tính cước dịch vụ vận chuyển Viettel Post
-  + `POST /api/v1/infra/logistics/viettel-post/v2/order/createOrder`: Tạo đơn vận chuyển Viettel Post
-  + `POST /api/v1/infra/logistics/viettel-post/order/updateOrder`: Cập nhật thông tin đơn giao (địa chỉ, tiền COD, ghi chú)
-  + `GET /api/v1/infra/logistics/viettel-post/tracking/:orderNumber`: Theo dõi lộ trình thời gian thực bưu gửi Viettel Post
-  + `POST /api/v1/infra/logistics/viettel-post/order/cancelOrder`: Hủy đơn vận chuyển Viettel Post
-  + `GET /api/v1/infra/logistics/viettel-post/order/printOrder/:orderNumber`: In phiếu gửi bưu phẩm Viettel Post khổ A6
-  + `GET /api/v1/infra/logistics/viettel-post/categories/listProvince`: Danh sách Tỉnh/Thành phố Viettel Post
-  + `GET /api/v1/infra/logistics/viettel-post/categories/listDistrict`: Danh sách Quận/Huyện Viettel Post
-  + `GET /api/v1/infra/logistics/viettel-post/categories/listPostOffice`: Danh bạ Bưu cục Viettel Post gần nhất
+- **`[Logistics-VN] 02. Giao Hàng Nhanh (GHN)`** — [`ghn.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/ghn.controller.ts) (27 endpoints)
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/available-services`: [Services - Gói cước] Tra cứu gói cước GHN khả dụng theo tuyến đường
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/fee`: [Fee - Tính cước] Tính cước vận chuyển chuẩn GHN Express
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/leadtime`: [Leadtime - Thời gian giao] Dự báo ngày giờ bưu tá phát hàng
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/create`: [Order - Tạo vận đơn] Tạo vận đơn và hẹn tài xế lấy hàng GHN
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/preview`: [Order - Xem trước] Xem trước thông tin và cước phí vận đơn
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/detail`: [Order - Chi tiết đơn] Xem chi tiết vận đơn theo Order Code
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/detail-by-client-code`: [Order - Tra cứu mã đối tác] Xem chi tiết đơn theo Client Order Code
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/update`: [Order - Sửa đơn] Cập nhật địa chỉ nhận, SĐT và ghi chú giao
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/update_cod`: [COD - Đổi tiền COD] Điều chỉnh số tiền thu hộ COD
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/return`: [Return - Yêu cầu hoàn] Chuyển hoàn đơn hàng về kho người gửi
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/switch-status/cancel`: [Cancel - Hủy đơn] Hủy vận đơn giao hàng GHN
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/switch-status/storing`: [Storing - Lưu kho] Chuyển trạng thái lưu kho hẹn ngày giao lại
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/a5/gen-token`: [Print - Tạo Token in] Tạo token in phiếu gửi hàng A5 / 80x80 / 52x70
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/printA5`: [Print - In A5] URL xem và in phiếu gửi khổ A5
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/print80x80`: [Print - In 80x80] URL xem và in tem nhiệt 80x80mm
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/shipping-order/print52x70`: [Print - In 52x70] URL xem và in tem nhỏ 52x70mm
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/master-data/province`: [Location - Tỉnh/Thành] Danh mục Tỉnh/Thành phố GHN
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/master-data/district`: [Location - Quận/Huyện] Danh mục Quận/Huyện GHN
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/master-data/ward`: [Location - Phường/Xã] Danh mục Phường/Xã GHN
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/station/get`: [Station - Bưu cục Station] Danh bạ bưu cục GHN Station gần nhất
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/master-data/pick-shift`: [PickShift - Ca lấy hàng] Danh mục ca lấy hàng GHN (Sáng, Chiều, Tối)
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/shop/register`: [Shop - Tạo kho] Tạo mới cửa hàng / kho lấy hàng GHN
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/shop/all`: [Shop - Danh sách kho] Danh sách cửa hàng / kho đã tạo
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/ticket/create`: [Ticket - Mở khiếu nại] Tạo yêu cầu khiếu nại / hỗ trợ giao hàng Ticket
+  + `GET /api/v1/infra/logistics/ghn/shiip/public-api/v2/ticket/detail`: [Ticket - Chi tiết khiếu nại] Chi tiết ticket và phản hồi của CSKH
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/ticket/reply`: [Ticket - Phản hồi] Gửi tin nhắn phản hồi ticket hỗ trợ
+  + `POST /api/v1/infra/logistics/ghn/shiip/public-api/v2/webhook/order-callback`: [Webhook - Sự kiện đơn] Webhook nhận sự kiện đổi trạng thái đơn realtime
+
+- **`[Logistics-VN] 03. Viettel Post`** — [`viettel-post.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/viettel-post.controller.ts) (21 endpoints)
+  + `POST /api/v1/infra/logistics/viettel-post/v2/user/Login`: [Auth - Login Đối tác] Đăng nhập tài khoản đối tác Viettel Post lấy Token
+  + `POST /api/v1/infra/logistics/viettel-post/v2/user/LoginVTP`: [Auth - Login VTP] Đăng nhập tài khoản cá nhân Viettel Post
+  + `GET /api/v1/infra/logistics/viettel-post/v2/user/owner`: [User - Thông tin tài khoản] Thông tin tài khoản và hạn mức tín dụng
+  + `POST /api/v1/infra/logistics/viettel-post/order/getPrice`: [Price - Tính cước 1 gói] Tính cước dịch vụ vận chuyển Viettel Post
+  + `POST /api/v1/infra/logistics/viettel-post/order/getPriceAll`: [Price - So sánh tất cả gói] So sánh cước tất cả các gói dịch vụ VTP (VCN, VTK, VBS, VHT)
+  + `POST /api/v1/infra/logistics/viettel-post/v2/order/createOrder`: [Order - Tạo vận đơn] Tạo đơn vận chuyển Viettel Post Express
+  + `POST /api/v1/infra/logistics/viettel-post/order/updateOrder`: [Order - Cập nhật đơn] Đổi địa chỉ giao, đổi tiền COD hoặc yêu cầu giao lại
+  + `GET /api/v1/infra/logistics/viettel-post/tracking/:orderNumber`: [Tracking - Lộ trình bưu gửi] Theo dõi hành trình di chuyển thời gian thực
+  + `POST /api/v1/infra/logistics/viettel-post/order/cancelOrder`: [Cancel - Hủy đơn] Hủy đơn vận chuyển Viettel Post
+  + `GET /api/v1/infra/logistics/viettel-post/order/printOrder/:orderNumber`: [Print - In 1 đơn] In phiếu gửi bưu phẩm Viettel Post khổ A6
+  + `POST /api/v1/infra/logistics/viettel-post/v2/order/printMultiOrder`: [Print - In hàng loạt] In hàng loạt phiếu gửi Viettel Post
+  + `POST /api/v1/infra/logistics/viettel-post/v2/order/updateCOD`: [COD - Đổi tiền COD] Điều chỉnh số tiền thu hộ COD khi đơn đang phát
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listProvince`: [Category - Tỉnh/Thành] Danh sách Tỉnh/Thành phố Viettel Post
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listDistrict`: [Category - Quận/Huyện] Danh sách Quận/Huyện Viettel Post
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listWards`: [Category - Phường/Xã] Danh mục Phường/Xã Viettel Post
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listPostOffice`: [Category - Bưu cục] Danh bạ Bưu cục Viettel Post gần nhất
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listService`: [Category - Dịch vụ cước] Danh sách gói dịch vụ chuyển phát VTP
+  + `GET /api/v1/infra/logistics/viettel-post/categories/listServiceExtra`: [Category - Dịch vụ gia tăng] Danh mục dịch vụ gia tăng VAS (Đồng kiểm, Báo phát)
+  + `GET /api/v1/infra/logistics/viettel-post/v2/user/listInventory`: [Inventory - Danh sách kho] Danh sách kho lấy hàng của shop
+  + `POST /api/v1/infra/logistics/viettel-post/v2/user/registerInventory`: [Inventory - Thêm kho mới] Đăng ký thêm kho lấy hàng mới
+  + `POST /api/v1/infra/logistics/viettel-post/v2/webhook/callback`: [Webhook - Trạng thái realtime] Webhook nhận trạng thái giao hàng realtime
+
+- **`[Logistics-VN] 04. Vietnam Post (VNPost & EMS)`** — [`vnpost.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/vnpost.controller.ts) (9 endpoints)
+  + `POST /api/v1/infra/logistics/vnpost/v1/auth/token`: [Auth - Token] Lấy Bearer Token xác thực đối tác VNPost
+  + `POST /api/v1/infra/logistics/vnpost/v1/orders/calculate-rate`: [Rate - Tính cước] Tính cước chuyển phát Bưu điện / EMS
+  + `POST /api/v1/infra/logistics/vnpost/v1/orders/create`: [Order - Tạo bưu gửi] Tạo bưu gửi chuyển phát bưu điện VNPost
+  + `GET /api/v1/infra/logistics/vnpost/v1/orders/:itemCode/tracking`: [Tracking - Định vị bưu gửi] Định vị bưu gửi & lịch sử hành trình VNPost
+  + `POST /api/v1/infra/logistics/vnpost/v1/orders/:itemCode/cancel`: [Cancel - Hủy bưu gửi] Hủy bưu gửi chuyển phát
+  + `GET /api/v1/infra/logistics/vnpost/v1/orders/:itemCode/print`: [Print - In bưu phẩm A6] Tải file in phiếu gửi bưu phẩm A6
+  + `GET /api/v1/infra/logistics/vnpost/v1/categories/post-offices`: [PostOffice - Danh bạ bưu cục] Danh bạ Bưu cục VNPost toàn quốc
+  + `POST /api/v1/infra/logistics/vnpost/v1/statement/reconciliation`: [Reconciliation - Đối soát COD] Đối soát tiền COD bưu điện
+  + `POST /api/v1/infra/logistics/vnpost/v1/webhook/status`: [Webhook - Cập nhật trạng thái] Webhook nhận trạng thái bưu gửi realtime
+
+- **`[Logistics-VN] 05. J&T Express & Ninja Van`** — [`jt-ninjavan.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/jt-ninjavan.controller.ts) (9 endpoints)
+  + `POST /api/v1/infra/logistics/jt/v1/orders/create`: [J&T - Tạo vận đơn] Tạo đơn giao hàng J&T Express
+  + `POST /api/v1/infra/logistics/jt/v1/orders/fee`: [J&T - Tính cước] Tính cước vận chuyển chuẩn J&T Express
+  + `GET /api/v1/infra/logistics/jt/v1/orders/:billCode/track`: [J&T - Tra cứu vận đơn] Tra cứu hành trình vận đơn J&T Express
+  + `POST /api/v1/infra/logistics/jt/v1/orders/:billCode/cancel`: [J&T - Hủy đơn] Hủy đơn hàng J&T Express
+  + `GET /api/v1/infra/logistics/jt/v1/orders/:billCode/print`: [J&T - In nhãn Barcode] In nhãn vận đơn J&T Express
+  + `POST /api/v1/infra/logistics/ninjavan/v1/orders/create`: [Ninja Van - Tạo vận đơn] Tạo đơn giao hàng Ninja Van Vietnam
+  + `GET /api/v1/infra/logistics/ninjavan/v1/orders/:trackingId/events`: [Ninja Van - Sự kiện giao vận] Lịch sử sự kiện giao vận Ninja Van
+  + `POST /api/v1/infra/logistics/ninjavan/v1/orders/pricing`: [Ninja Van - Báo giá] Dự toán chi phí giao hàng Ninja Van
+  + `POST /api/v1/infra/logistics/ninjavan/v1/orders/:trackingId/cancel`: [Ninja Van - Hủy đơn] Hủy đơn giao Ninja Van
+
+- **`[Logistics-VN] 06. Instant & On-Demand Delivery (Ahamove & GrabExpress)`** — [`ondemand-logistics.controller.ts`](file:///g:/UniFlow-PTIT_Aka/apps/backend/src/modules/connectors/controllers/logistics/ondemand-logistics.controller.ts) (9 endpoints)
+  + `POST /api/v1/infra/logistics/ahamove/v1/order/estimated-fee`: [Ahamove - Tính cước tức thì] Dự toán cước phí xe máy / xe tải Ahamove
+  + `POST /api/v1/infra/logistics/ahamove/v1/order/create`: [Ahamove - Tạo đơn gọi tài xế] Tạo đơn điều phối shipper Ahamove lấy hàng ngay
+  + `GET /api/v1/infra/logistics/ahamove/v1/order/:orderId/tracking`: [Ahamove - Định vị GPS tài xế] Tọa độ GPS tài xế và lộ trình di chuyển thời gian thực
+  + `POST /api/v1/infra/logistics/ahamove/v1/order/cancel`: [Ahamove - Hủy chuyến] Hủy chuyến giao hàng Ahamove
+  + `GET /api/v1/infra/logistics/ahamove/v1/order/active-orders`: [Ahamove - Đơn đang chạy] Danh sách các chuyến đang giao
+  + `POST /api/v1/infra/logistics/instant/grabexpress/quotes`: [GrabExpress - Báo giá tức thì] Báo giá chuyến giao GrabExpress
+  + `POST /api/v1/infra/logistics/instant/grabexpress/delivery`: [GrabExpress - Tạo chuyến giao] Khởi tạo chuyến giao GrabExpress
+  + `GET /api/v1/infra/logistics/instant/grabexpress/delivery/:deliveryId`: [GrabExpress - Trạng thái & Tài xế] Chi tiết trạng thái và vị trí tài xế Grab
+  + `POST /api/v1/infra/logistics/instant/grabexpress/delivery/:deliveryId/cancel`: [GrabExpress - Hủy chuyến] Hủy chuyến giao GrabExpress
 
 ---
 
@@ -992,11 +1068,11 @@ Tất cả 91 module hiển thị dưới dạng accordion collapsible groups đ
 - `[MISA-meInvoice] 01` đến `04` (4 Modules MISA meInvoice — 13 endpoints)
 - `[MISA-AMIS-CRM] 01` đến `05` (5 Modules MISA AMIS CRM — 16 endpoints)
 - `[MISA-AMIS-Accounting] 01` đến `03` (3 Modules MISA AMIS Kế toán — 10 endpoints)
-- `[Logistics-VN] 01` đến `03` (3 Modules GHTK, GHN, Viettel Post — 28 endpoints)
+- `[Logistics-VN] 01` đến `06` (6 Modules GHTK, GHN, Viettel Post, VNPost, J&T/NinjaVan, Ahamove/GrabExpress — 96 endpoints)
 - `[Marketplace] 01` đến `05` (5 Modules Shopee, TikTok, Lazada, Tiki, Shopify — 23 endpoints)
 - `[UniFlow-Infra] 01`, `[UniFlow-Core] 01`, `[UniFlow-Gateways] 01` (3 Modules UniFlow Core — 11 endpoints)
 
-**Tổng cộng:** **882 Endpoints — 98 Tags — 0 Tag Rỗng.** Mọi khối collapse đều chứa trọn vẹn các endpoint có thể gửi request LIVE / SANDBOX ngay trên giao diện.
+**Tổng cộng:** **950 Endpoints — 101 Tags — 0 Tag Rỗng.** Mọi khối collapse đều chứa trọn vẹn các endpoint có thể gửi request LIVE / SANDBOX ngay trên giao diện.
 
 ### 4.2. Chạy Kiểm Thử Toàn Diện Tự Động
 Chạy các file test suite xác minh tất cả các endpoint:

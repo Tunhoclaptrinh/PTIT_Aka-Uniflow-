@@ -31,7 +31,10 @@ import {
   LogisticsGhtkController,
   LogisticsGhnController,
   LogisticsViettelPostController,
-} from './controllers/logistics/logistics.controller';
+  LogisticsVnpostController,
+  LogisticsJtNinjaVanController,
+  LogisticsOnDemandController,
+} from './controllers/logistics';
 import { CorePromotionsController } from './controllers/core/core-promotions.controller';
 import { NotificationGatewaysController } from './controllers/gateways/notification-gateways.controller';
 
@@ -193,10 +196,13 @@ import {
     PancakeChannelsController,
     PancakeSystemController,
 
-    // Logistics VN (3)
+    // Logistics VN Ecosystem (6 Modules: GHTK, GHN, Viettel Post, VNPost, J&T/NinjaVan, Ahamove/GrabExpress)
     LogisticsGhtkController,
     LogisticsGhnController,
     LogisticsViettelPostController,
+    LogisticsVnpostController,
+    LogisticsJtNinjaVanController,
+    LogisticsOnDemandController,
     CorePromotionsController,
     NotificationGatewaysController,
 
