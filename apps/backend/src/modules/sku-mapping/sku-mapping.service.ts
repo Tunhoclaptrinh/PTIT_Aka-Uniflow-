@@ -24,7 +24,17 @@ export class SKUMappingService extends BaseService<SKUMappingDocument> {
   }
 
   async findAllMappings(tenantId?: string): Promise<SKUMapping[]> {
-    const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
+    let filter: any = {};
+    if (tenantId) {
+      filter = Types.ObjectId.isValid(tenantId)
+        ? {
+            $or: [
+              { tenantId: new Types.ObjectId(tenantId) },
+              { tenantId: tenantId.toString() },
+            ],
+          }
+        : { tenantId };
+    }
     return this.model.find(filter).sort({ confidenceScore: -1 }).exec();
   }
 

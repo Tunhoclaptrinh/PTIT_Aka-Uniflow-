@@ -345,11 +345,11 @@ export const LiveLogsPage: React.FC = () => {
                 {JSON.stringify(selectedLog.rawPayload || selectedLog.payload || {
                   orderId: selectedLog.sourceOrderId,
                   platform: selectedLog.platform,
+                  status: selectedLog.status,
+                  durationMs: selectedLog.durationMs,
+                  message: selectedLog.message,
+                  aiHealed: selectedLog.aiHealed,
                   processedAt: selectedLog.createdAt || selectedLog.timestamp,
-                  canonicalLineItems: [
-                    { sku: 'TTS-TSHIRT-01', masterSku: 'SAPO_POLO_01', quantity: 1, unitPrice: 250000 },
-                  ],
-                  shippingAddress: { city: 'Hà Nội', district: 'Hà Đông', country: 'VN' },
                 }, null, 2)}
               </pre>
             </div>

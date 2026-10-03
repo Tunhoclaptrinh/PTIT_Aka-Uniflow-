@@ -12,10 +12,10 @@ import { formatVND, formatLatency } from '../../utils/formatters';
 
 export const KpiCards: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalSyncedOrders: 42850,
-    averageLatencyMs: 180,
-    successRate: 99.98,
-    costSavedVND: 21500000,
+    totalSyncedOrders: 0,
+    averageLatencyMs: 0,
+    successRate: '100%',
+    costSavedVND: 0,
     healedOrdersCount: 0,
     totalLogsCount: 0,
   });
@@ -63,7 +63,7 @@ export const KpiCards: React.FC = () => {
       <Col xs={24} sm={12} lg={6}>
         <StatisticCard
           title="Tỷ lệ thành công (Success Rate)"
-          value={`${metrics.successRate || 99.8}%`}
+          value={metrics.successRate ? (metrics.successRate.includes('%') ? metrics.successRate : `${metrics.successRate}%`) : '100%'}
           icon={<CheckCircleOutlined style={{ color: '#10B981' }} />}
           tag={{ text: '99.98% High SLA', color: '#10B981' }}
           valueColor="#10B981"
@@ -75,11 +75,15 @@ export const KpiCards: React.FC = () => {
       <Col xs={24} sm={12} lg={6}>
         <StatisticCard
           title="Chi phí nhân sự tiết kiệm"
-          value={formatVND(metrics.costSavedVND || 0, true)}
+          value={formatVND(metrics.costSavedVND || (metrics.totalSyncedOrders ? metrics.totalSyncedOrders * 1450 : 0), true)}
           icon={<DollarOutlined style={{ color: '#8B5CF6' }} />}
-          trend={{ value: '142 Giờ', isIncrease: true, label: 'Giảm 90% thao tác' }}
+          trend={{
+            value: `~${metrics.totalSyncedOrders ? Math.round((metrics.totalSyncedOrders * 3) / 60) : 0} Giờ`,
+            isIncrease: true,
+            label: 'Tiết kiệm thao tác',
+          }}
           valueColor="#8B5CF6"
-          subText="Quy đổi chi phí nhân lực tháng"
+          subText="Quy đổi chi phí nhân lực xử lý tay"
         />
       </Col>
     </Row>

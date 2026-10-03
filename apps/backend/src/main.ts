@@ -10,6 +10,7 @@ try {
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -36,6 +37,49 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
   app.useGlobalGuards(new RolesGuard(new Reflector()));
+
+  // Cấu hình Swagger OpenAPI Documentation & Testing Portal
+  const config = new DocumentBuilder()
+    .setTitle('UniFlow Enterprise — Trung Tâm Điều Khiển Hạ Tầng Phần Mềm Doanh Nghiệp')
+    .setDescription(
+      'Cổng API Gateway điều khiển toàn bộ hệ sinh thái phần mềm: Sàn TMĐT (Shopee, TikTok Shop, Lazada, Tiki, Shopify), POS & Bán lẻ (Sapo, Nhanh.vn, Pancake), Hóa đơn điện tử & Kế toán (MISA meInvoice, AMIS), Đơn vị vận chuyển (GHTK, GHN, Viettel Post), Chăm sóc khách hàng & Cảnh báo (Telegram, Zalo ZNS), Quản lý Voucher & Khuyến mãi, và Động cơ Workflow DAG.',
+    )
+    .setVersion('2.5.0-Enterprise')
+    .addTag('Infra-Control-Gateway', 'Điều khiển thực thi API mọi nền tảng (Unified Master Dispatcher)')
+    .addTag('Marketplaces-Shopee', 'Shopee Open Platform v2 (Orders, Inventory, Vouchers, Logistics, Escrow)')
+    .addTag('Marketplaces-TikTok', 'TikTok Shop Open API (Orders, Products, Fulfillment, Marketing Promotions)')
+    .addTag('Marketplaces-Lazada', 'Lazada Open Platform (Orders, Catalog, Price, Inventory)')
+    .addTag('Marketplaces-Tiki', 'Tiki Open API (Orders, Inventory, Sync)')
+    .addTag('POS-Sapo', 'Sapo POS & Omnichannel (Orders, Variants, Adjust Stock, Fulfillments, Discounts, Loyalty)')
+    .addTag('POS-Nhanh', 'Nhanh.vn Open API (Orders, Stock, Depots, Products, Shipping Fee)')
+    .addTag('POS-Pancake', 'Pancake POS & Social (Orders, Conversations, Chat messages, Tags)')
+    .addTag('POS-KiotViet', 'KiotViet Retail Platform (Invoices, Products, Multi-branches, Stock)')
+    .addTag('POS-Haravan', 'Haravan Omnichannel Platform (Orders, Stocks, Discounts, Webhooks)')
+    .addTag('POS-MISA-eShop', 'MISA eShop Retail & F&B (Orders, Shifts, Realtime Cashier, Stock)')
+    .addTag('Finance-MISA', 'MISA meInvoice & AMIS CRM (HSM Cloud Signing, Invoices, Customers)')
+    .addTag('Logistics-Express', 'Đơn vị vận chuyển (GHTK, GHN, Viettel Post - Waybill, Tracking, Fee)')
+    .addTag('Promotions-Vouchers', 'Quản lý Vòng đời Voucher & Khuyến mãi đa sàn')
+    .addTag('Workflows-Engine', 'Động cơ Workflow DAG, Cron Scheduler & AI Self-Healing')
+    .addTag('Webhooks-Inbound', 'Universal Inbound Webhook Gateway & Chống trùng lặp 24h')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document, {
+    customSiteTitle: 'UniFlow Enterprise API & Infrastructure Portal',
+    customCss: `
+      .swagger-ui .topbar { background-color: #0f172a; border-bottom: 2px solid #3b82f6; }
+      .swagger-ui .info { margin: 20px 0; }
+      .swagger-ui .info .title { color: #1e293b; font-family: Inter, sans-serif; font-weight: 800; }
+      .swagger-ui .scheme-container { background: #f8fafc; padding: 15px 0; box-shadow: none; }
+    `,
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+      docExpansion: 'none',
+    },
+  });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

@@ -463,6 +463,29 @@ export class UniflowMcpServer {
   }
 
   private async executeTool(name: string, args: any): Promise<any> {
+    const backendUrl = process.env.UNIFLOW_BACKEND_URL || 'http://localhost:3000';
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(`${backendUrl}/api/v1/actions/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: name,
+          payload: args,
+          mode: process.env.DEMO_MODE === 'false' ? 'LIVE' : 'SANDBOX',
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const json = await res.json();
+        return json.result || json;
+      }
+    } catch {
+      // Backend not running or timeout -> fallback to embedded standalone logic
+    }
+
     switch (name) {
       case 'uniflow_normalize_to_udm':
         return {

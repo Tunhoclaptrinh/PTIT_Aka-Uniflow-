@@ -6,9 +6,11 @@ import { SapoWebhookController } from './sapo.webhook.controller';
 import { NhanhWebhookController } from './nhanh.webhook.controller';
 import { PancakeWebhookController } from './pancake.webhook.controller';
 import { TelegramWebhookController } from './telegram.webhook.controller';
+import { UniversalWebhookController } from './universal.webhook.controller';
 import { SecurityService } from '../../security/security.service';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { NormalizerModule } from '../normalizer/normalizer.module';
+import { WorkflowsModule } from '../workflows/workflows.module';
 import { SyncEventLog, SyncEventLogSchema } from '../../database/schemas/sync-event-log.schema';
 import { Workflow, WorkflowSchema } from '../../database/schemas/workflow.schema';
 import { Connector, ConnectorSchema } from '../../database/schemas/connector.schema';
@@ -18,6 +20,7 @@ import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping
   imports: [
     WebSocketModule,
     NormalizerModule,
+    WorkflowsModule, // ← Import để inject WorkflowExecutionEngine vào Webhook controllers
     MongooseModule.forFeature([
       { name: SyncEventLog.name, schema: SyncEventLogSchema },
       { name: Workflow.name, schema: WorkflowSchema },
@@ -32,6 +35,7 @@ import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping
     NhanhWebhookController,
     PancakeWebhookController,
     TelegramWebhookController,
+    UniversalWebhookController,
   ],
   providers: [SecurityService],
 })

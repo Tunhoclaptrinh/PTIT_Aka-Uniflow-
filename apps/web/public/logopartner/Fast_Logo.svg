@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <rect width="120" height="120" rx="24" fill="#E65100"/>
+  <g transform="translate(15, 20)">
+    <!-- Fast stylized double speed arrows -->
+    <path d="M15 40 L40 18 L32 40 L60 40 L35 62 L43 40 Z" fill="#FFFFFF"/>
+    <text x="45" y="54" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#FFFFFF" letter-spacing="-1">AST</text>
+  </g>
+  <rect x="20" y="80" width="80" height="18" rx="4" fill="#0D47A1"/>
+  <text x="60" y="93" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="11" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">ACCOUNTING</text>
+</svg>

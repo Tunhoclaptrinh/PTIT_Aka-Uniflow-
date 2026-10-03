@@ -45,10 +45,11 @@ export const PromptBar: React.FC<PromptBarProps> = ({ onGenerate, loading = fals
   };
 
   const samplePrompts = [
-    { label: 'TikTok -> Sapo -> GHTK', full: 'Đồng bộ đơn TikTok Shop sang Sapo POS và tạo vận đơn GHTK khi đã thanh toán' },
-    { label: 'Shopee -> KiotViet -> GHN', full: 'Bắt sự kiện Shopee sẵn sàng giao, trừ kho KiotViet và tạo đơn GHN Nhanh' },
-    { label: 'Lazada -> Haravan -> Viettel Post', full: 'Đồng bộ đơn Lazada sang Haravan ERP và đẩy đơn Viettel Post tự động' },
+    { label: 'TikTok ➔ Sapo ➔ Viettel Post ➔ MISA', full: 'Đồng bộ đơn TikTok Shop sang Sapo POS, tự động chọn cước rẻ nhất Viettel Post và phát hành HĐĐT MISA meInvoice' },
+    { label: 'Đơn >= 1tr ➔ MISA VAT 1% ➔ Telegram', full: 'Nhận đơn Shopee, nếu đơn hàng trên 1 triệu thì tự động phát hành HĐĐT MISA meInvoice VAT 1% và báo Telegram' },
     { label: 'So sánh cước & Chốt rẻ nhất', full: 'Tự động so sánh cước vận chuyển giữa GHTK, GHN, Viettel Post và tự động chốt hãng rẻ nhất' },
+    { label: 'Bắn Webhook ERP nội bộ', full: 'Đồng bộ đơn TikTok Shop, trừ kho Sapo POS và bắn webhook REST API sang ERP nội bộ https://api.myerp.vn/v1/orders' },
+    { label: 'Shopee ➔ KiotViet ➔ GHN', full: 'Bắt sự kiện Shopee sẵn sàng giao, trừ kho KiotViet và tạo đơn GHN Nhanh' },
   ];
 
   return (

@@ -36,8 +36,13 @@ class BaseApiClient {
 
         // Inject default tenant id
         const tenantId = localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
+        // Inject runtime mode (DEMO vs LIVE)
+        const storedMode = localStorage.getItem('uniflow_demo_mode');
+        const isDemo = storedMode !== null ? storedMode === 'true' : (import.meta.env.VITE_DEMO_MODE !== 'false');
+
         if (config.headers) {
           config.headers['x-tenant-id'] = tenantId;
+          config.headers['x-uniflow-mode'] = isDemo ? 'SANDBOX' : 'LIVE';
           config.headers['x-client-request-id'] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
         }
 
@@ -110,4 +115,15 @@ class BaseApiClient {
 
 export const baseApi = new BaseApiClient();
 export const apiClient = baseApi.getAxiosInstance();
+
+export function isDemoModeActive(): boolean {
+  const storedMode = localStorage.getItem('uniflow_demo_mode');
+  return storedMode !== null ? storedMode === 'true' : (import.meta.env.VITE_DEMO_MODE !== 'false');
+}
+
+export function setDemoModeActive(enabled: boolean) {
+  localStorage.setItem('uniflow_demo_mode', String(enabled));
+  window.dispatchEvent(new Event('uniflow_mode_changed'));
+}
+
 export default baseApi;

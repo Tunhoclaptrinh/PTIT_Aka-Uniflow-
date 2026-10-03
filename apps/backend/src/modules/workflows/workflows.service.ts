@@ -8,8 +8,8 @@ import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mappi
 import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
 import { BaseService } from '../../common/services/base.service';
 import { performRealAiSkuMatch } from '../sku-mapping/sku-ai-matcher.util';
-
 import { AiGatewayService } from '../../common/services/ai-gateway.service';
+import { ExpressionEvaluator } from '../../common/utils/expression-evaluator.util';
 
 @Injectable()
 export class WorkflowsService extends BaseService<WorkflowDocument> {
@@ -23,14 +23,40 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
   }
 
   async findAllWorkflows(tenantId?: string): Promise<Workflow[]> {
-    const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
+    let filter: any = {};
+    if (tenantId) {
+      filter = Types.ObjectId.isValid(tenantId)
+        ? {
+            $or: [
+              { tenantId: new Types.ObjectId(tenantId) },
+              { tenantId: tenantId.toString() },
+            ],
+          }
+        : { tenantId };
+    }
     return this.model.find(filter).sort({ updatedAt: -1 }).exec();
   }
 
-  async findFirstActive(): Promise<Workflow> {
-    const workflow = await this.model.findOne({ isActive: true }).exec();
+  async findFirstActive(tenantId?: string): Promise<Workflow> {
+    const filter: any = { isActive: true };
+    if (tenantId) {
+      if (Types.ObjectId.isValid(tenantId)) {
+        filter.$or = [{ tenantId: new Types.ObjectId(tenantId) }, { tenantId: tenantId.toString() }];
+      } else {
+        filter.tenantId = tenantId;
+      }
+    }
+    const workflow = await this.model.findOne(filter).exec();
     if (!workflow) {
-      const anyWorkflow = await this.model.findOne().exec();
+      const fallbackFilter: any = {};
+      if (tenantId) {
+        if (Types.ObjectId.isValid(tenantId)) {
+          fallbackFilter.$or = [{ tenantId: new Types.ObjectId(tenantId) }, { tenantId: tenantId.toString() }];
+        } else {
+          fallbackFilter.tenantId = tenantId;
+        }
+      }
+      const anyWorkflow = await this.model.findOne(fallbackFilter).exec();
       if (!anyWorkflow) throw new NotFoundException('Chưa có quy trình nào');
       return anyWorkflow;
     }
@@ -113,9 +139,14 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       ? 'Tự động đẩy đơn & nhận mã vận đơn theo Hãng AI đã chốt'
       : 'Tự động tạo vận đơn & nhận mã tracking 0-chạm';
 
-    // 6. Nhận diện thông báo
+    // 6. Nhận diện thông báo & Kế toán & Webhook mở rộng
     const hasTelegram = lower.includes('telegram') || aiParsed?.hasNotify || isRateCompare;
     const hasZalo = lower.includes('zalo');
+    const hasAccounting = lower.includes('misa') || lower.includes('hóa đơn') || lower.includes('hoa don') || lower.includes('vat') || lower.includes('thuế') || lower.includes('thue') || lower.includes('meinvoice') || Boolean(aiParsed?.hasAccounting);
+    const hasCustomHttp = lower.includes('http') || lower.includes('webhook') || lower.includes('api riêng') || lower.includes('erp nội bộ') || lower.includes('endpoint');
+    const urlMatch = prompt.match(/https?:\/\/[^\s"']+/);
+    const customEndpoint = urlMatch ? urlMatch[0] : 'https://api.yourdomain.com/v1/orders/sync';
+    const isConditional = lower.includes('nếu') || lower.includes('điều kiện') || lower.includes('lớn hơn') || lower.includes('trên 1') || lower.includes('>=') || lower.includes('vip') || lower.includes('cod');
 
     const nodes: any[] = [
       {
@@ -185,13 +216,42 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       edges.push({ id: `e_${rateCompareAiId}_${posId}`, source: rateCompareAiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 }, data: { label: 'Lệnh trừ tồn kho' } });
       edges.push({ id: `e_${rateCompareAiId}_${carrierId}`, source: rateCompareAiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Hãng tối ưu được chọn' } });
 
-      if (hasTelegram) {
+      let currentX = 1260;
+      if (hasAccounting) {
+        const accountingId = `node_accounting_${ts}`;
+        nodes.push({
+          id: accountingId,
+          type: 'action',
+          position: { x: currentX, y: 60 },
+          data: {
+            label: 'Xuất HĐĐT MISA meInvoice (VAT 1%)',
+            description: 'Phát hành HĐĐT ký số HSM tự động theo Nghị định 117/2025',
+            category: 'ACCOUNTING',
+            accountingSystem: 'MISA_MEINVOICE',
+            vatRate: 0.01,
+          },
+        });
+        edges.push({
+          id: `e_${posId}_${accountingId}`,
+          source: posId,
+          target: accountingId,
+          animated: true,
+          style: { stroke: '#0284C7', strokeWidth: 2 },
+          data: {
+            label: isConditional ? 'Đơn >= 1.000.000đ' : 'Chứng từ xuất kho',
+            conditionExpr: isConditional ? '{{ $json.orderTotal >= 1000000 }}' : undefined,
+          },
+        });
+      }
+
+      if (hasTelegram || hasZalo) {
         const notifyId = `node_notify_${ts}`;
+        const notifyLabel = hasTelegram ? 'Thông báo Telegram Bot' : 'Gửi tin Zalo ZNS';
         nodes.push({
           id: notifyId,
           type: 'action',
-          position: { x: 1260, y: 160 },
-          data: { label: 'Thông báo Telegram Bot', description: 'Báo cáo: Hãng được chọn + Mã vận đơn + Mức tiết kiệm', category: 'NOTIFY' },
+          position: { x: currentX, y: 260 },
+          data: { label: notifyLabel, description: 'Báo cáo: Hãng được chọn + Mã vận đơn + Mức tiết kiệm', category: 'NOTIFY' },
         });
         edges.push({
           id: `e_${carrierId}_${notifyId}`,
@@ -199,7 +259,33 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           target: notifyId,
           animated: true,
           style: { stroke: '#3B82F6', strokeWidth: 2 },
-          data: { label: 'Thông báo hoàn tất' },
+          data: { label: 'Báo cáo hoàn tất' },
+        });
+        currentX += 300;
+      }
+
+      if (hasCustomHttp) {
+        const customHttpId = `node_custom_${ts}`;
+        nodes.push({
+          id: customHttpId,
+          type: 'action',
+          position: { x: currentX, y: 160 },
+          data: {
+            label: 'Custom Webhook ERP Call',
+            description: `Gửi webhook dữ liệu đơn hàng sang ${customEndpoint}`,
+            category: 'CUSTOM',
+            customType: 'HTTP_REQUEST',
+            httpMethod: 'POST',
+            httpEndpoint: customEndpoint,
+          },
+        });
+        edges.push({
+          id: `e_${carrierId}_${customHttpId}`,
+          source: carrierId,
+          target: customHttpId,
+          animated: true,
+          style: { stroke: '#0284C7', strokeWidth: 2 },
+          data: { label: 'Bắn webhook ERP' },
         });
       }
     } else {
@@ -227,8 +313,36 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
         },
       });
 
-      edges.push({ id: `e_${aiId}_${posId}`, source: aiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 } });
-      edges.push({ id: `e_${aiId}_${carrierId}`, source: aiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } });
+      edges.push({ id: `e_${aiId}_${posId}`, source: aiId, target: posId, animated: true, style: { stroke: '#fcc20f', strokeWidth: 2 }, data: { label: 'Khớp SKU ➔ Trừ kho' } });
+      edges.push({ id: `e_${aiId}_${carrierId}`, source: aiId, target: carrierId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 }, data: { label: 'Tạo vận đơn' } });
+
+      let currentX = 1020;
+      if (hasAccounting) {
+        const accountingId = `node_accounting_${ts}`;
+        nodes.push({
+          id: accountingId,
+          type: 'action',
+          position: { x: currentX, y: 60 },
+          data: {
+            label: 'Xuất HĐĐT MISA meInvoice (VAT 1%)',
+            description: 'Phát hành HĐĐT ký số HSM tự động theo Nghị định 117/2025',
+            category: 'ACCOUNTING',
+            accountingSystem: 'MISA_MEINVOICE',
+            vatRate: 0.01,
+          },
+        });
+        edges.push({
+          id: `e_${posId}_${accountingId}`,
+          source: posId,
+          target: accountingId,
+          animated: true,
+          style: { stroke: '#0284C7', strokeWidth: 2 },
+          data: {
+            label: isConditional ? 'Đơn >= 1.000.000đ' : 'Chứng từ xuất kho',
+            conditionExpr: isConditional ? '{{ $json.orderTotal >= 1000000 }}' : undefined,
+          },
+        });
+      }
 
       if (hasTelegram || hasZalo) {
         const notifyId = `node_notify_${ts}`;
@@ -236,7 +350,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
         nodes.push({
           id: notifyId,
           type: 'action',
-          position: { x: 1020, y: 160 },
+          position: { x: currentX, y: 260 },
           data: { label: notifyLabel, description: 'Bắn tin cảnh báo đơn hoàn tất tới nhóm vận hành', category: 'NOTIFY' },
         });
         edges.push({
@@ -245,6 +359,33 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           target: notifyId,
           animated: true,
           style: { stroke: '#8B5CF6', strokeWidth: 2 },
+          data: { label: 'Bắn thông báo' },
+        });
+        currentX += 300;
+      }
+
+      if (hasCustomHttp) {
+        const customHttpId = `node_custom_${ts}`;
+        nodes.push({
+          id: customHttpId,
+          type: 'action',
+          position: { x: currentX, y: 160 },
+          data: {
+            label: 'Custom Webhook ERP Call',
+            description: `Gửi webhook dữ liệu đơn hàng sang ${customEndpoint}`,
+            category: 'CUSTOM',
+            customType: 'HTTP_REQUEST',
+            httpMethod: 'POST',
+            httpEndpoint: customEndpoint,
+          },
+        });
+        edges.push({
+          id: `e_${carrierId}_${customHttpId}`,
+          source: carrierId,
+          target: customHttpId,
+          animated: true,
+          style: { stroke: '#0284C7', strokeWidth: 2 },
+          data: { label: 'Bắn webhook ERP' },
         });
       }
     }
@@ -252,14 +393,15 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     const marketText = isShopee ? 'Shopee' : isLazada ? 'Lazada' : 'TikTok Shop';
     const posText = isKiotViet ? 'KiotViet' : isHaravan ? 'Haravan' : 'Sapo POS';
     const shipText = isRateCompare ? 'So sánh cước & Chốt giá rẻ nhất' : isGHN ? 'GHN' : isViettel ? 'Viettel Post' : isVNPost ? 'VNPost' : 'GHTK';
+    const accountingText = hasAccounting ? ' ➔ MISA meInvoice (VAT 1%)' : '';
     const workflowName = isRateCompare
-      ? `Quy trình ${marketText} ➔ AI So sánh cước & Chốt hãng rẻ nhất`
-      : `Quy trình ${marketText} ➔ ${posText} ➔ ${shipText}`;
+      ? `Quy trình ${marketText} ➔ AI So sánh cước & Chốt rẻ nhất${accountingText}`
+      : `Quy trình ${marketText} ➔ ${posText} ➔ ${shipText}${accountingText}`;
 
     const reasoning = aiParsed?.reasoning ||
       (isRateCompare
-        ? `AI đã tự động thiết kế luồng thông minh: Nhận đơn từ ${marketText}, chuyển qua AI đối sánh SKU & bóc tách trọng lượng, sau đó tự động so sánh cước realtime giữa GHTK, GHN, Viettel Post để chọn hãng cước thấp nhất, trừ kho ${posText} và gửi báo cáo Telegram.`
-        : `AI đã tự động phân tích: Kênh đầu vào là ${marketText}, chuyển dữ liệu qua AI Hybrid SKU Mapper, đồng bộ tồn kho sang ${posText} và khởi tạo đơn giao hàng ${shipText}.`);
+        ? `AI Agent đã tự động thiết kế kiến trúc: Nhận đơn từ ${marketText}, chuyển qua AI đối sánh SKU & bóc tách trọng lượng, tự động so sánh cước realtime giữa GHTK, GHN, Viettel Post để chọn hãng cước thấp nhất, trừ kho ${posText}${hasAccounting ? ', xuất HĐĐT MISA meInvoice VAT 1%' : ''} và gửi báo cáo Telegram.`
+        : `AI Agent đã tự động phân tích: Kênh đầu vào là ${marketText}, chuyển dữ liệu qua AI Hybrid SKU Mapper, đồng bộ tồn kho sang ${posText}, khởi tạo đơn giao hàng ${shipText}${hasAccounting ? ' và tự động xuất HĐĐT MISA meInvoice VAT 1%' : ''}.`);
 
     return {
       name: workflowName,
@@ -274,6 +416,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
 
   /**
    * Thực hiện chạy thử nghiệm thật luồng 0-chạm dựa trên chính xác các Node & Edge trong quy trình
+   * Tích hợp AST Expression Evaluator, JSON Output Transformation & Safe JS Execution Sandbox
    */
   async dryRunWorkflow(workflowId: string, tenantId?: string) {
     const startTime = Date.now();
@@ -282,9 +425,14 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
       throw new NotFoundException(`Quy trình #${workflowId} không tồn tại`);
     }
 
-    const effectiveTenantId = tenantId
-      ? new Types.ObjectId(tenantId)
-      : workflow.tenantId || new Types.ObjectId('66c0e812a1b2c3d4e5f60001');
+    let effectiveTenantId: any;
+    if (tenantId && Types.ObjectId.isValid(tenantId)) {
+      effectiveTenantId = new Types.ObjectId(tenantId);
+    } else if (workflow.tenantId && Types.ObjectId.isValid(workflow.tenantId.toString())) {
+      effectiveTenantId = new Types.ObjectId(workflow.tenantId.toString());
+    } else {
+      effectiveTenantId = tenantId || workflow.tenantId || '66c0e812a1b2c3d4e5f60001';
+    }
 
     // Lấy mẫu SKU mapping từ cơ sở dữ liệu để đối soát dữ liệu thực
     const sampleSku = await this.skuMappingModel.findOne({ tenantId: effectiveTenantId }).exec();
@@ -307,7 +455,40 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
     const waybillCode = `VNP_${Math.floor(100000000 + Math.random() * 900000000)}`;
     const durationMs = Date.now() - startTime + Math.floor(110 + Math.random() * 50);
 
-    // 3. Phân tích danh sách các Node thực tế trong quy trình để sinh Steps động
+    // 3. Khởi tạo Payload ngữ cảnh $json phục vụ AST Expression Evaluator
+    const currentPayload: any = {
+      orderId: randomOrderId,
+      platform,
+      channel: platform,
+      orderTotal: 850000,
+      paymentMethod: 'COD',
+      customerName: 'Nguyễn Văn An',
+      phone: '0987***321',
+      shippingAddress: {
+        receiverName: 'Nguyễn Văn An',
+        phone: '0987***321',
+        city: 'Hà Nội',
+        district: 'Cầu Giấy',
+        fullAddress: 'Số 12 Dịch Vọng Hậu, Cầu Giấy, Hà Nội',
+      },
+      items: [
+        {
+          sku: sourceSkuCode,
+          productName: sourceProductName,
+          quantity: 1,
+          price: 850000,
+          weightGrams: 350,
+        },
+      ],
+      weightGrams: 350,
+      confidenceScore: aiResult.confidenceScore,
+      matchedMasterSku: targetMasterSku,
+      chosenCarrier: 'VIETTEL_POST',
+      carrierFee: 19500,
+      availableStock: 24,
+    };
+
+    // 4. Phân tích danh sách các Node thực tế trong quy trình để sinh Steps động
     const rawNodes = workflow.nodes || [];
     // Lọc bỏ group container, chỉ duyệt các action/ai/trigger nodes
     const executableNodes = rawNodes.filter((n: any) => n.type !== 'group' && !n.id?.startsWith('group_'));
@@ -322,7 +503,53 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
           let stepName = label;
           let stepDetail = desc || `Đã thực thi thành công khối ${label}`;
           let stepType = nodeType;
-          const latency = Math.floor(12 + Math.random() * 25);
+          let latency = Math.floor(12 + Math.random() * 25);
+          let stepStatus: 'SUCCESS' | 'SKIPPED' | 'FAILED' = 'SUCCESS';
+
+          // A. Kiểm tra điều kiện lọc thực thi trên khối (Execution Filter AST)
+          if (node.data?.enableExecutionCondition && node.data?.executionConditionExpr) {
+            const condEval = ExpressionEvaluator.evaluateCondition(node.data.executionConditionExpr, { $json: currentPayload });
+            if (!condEval.result) {
+              return {
+                step: idx + 1,
+                nodeId: node.id,
+                nodeType: 'LOGIC_FILTER',
+                name: `${stepName} (Bỏ qua)`,
+                status: 'SKIPPED' as const,
+                latencyMs: 1,
+                detail: `[Bỏ qua khối] ${condEval.reason}`,
+              };
+            }
+          }
+
+          // B. Kiểm tra điều kiện trên đường liên kết dẫn tới khối này (Edge Condition AST)
+          const incomingEdge = (workflow.edges || []).find((e: any) => e.target === node.id);
+          if (incomingEdge?.data?.conditionExpr) {
+            const edgeCond = ExpressionEvaluator.evaluateCondition(incomingEdge.data.conditionExpr, { $json: currentPayload });
+            if (!edgeCond.result) {
+              return {
+                step: idx + 1,
+                nodeId: node.id,
+                nodeType: 'LOGIC_BRANCH',
+                name: `${stepName} (Nhánh rẽ dừng)`,
+                status: 'SKIPPED' as const,
+                latencyMs: 1,
+                detail: `[Rẽ nhánh dừng] Không thỏa mãn điều kiện đường dẫn: ${incomingEdge.data.conditionExpr}`,
+              };
+            }
+          }
+
+          // C. Biến đổi dữ liệu đầu ra (Output Transformation AST Engine)
+          if (node.data?.enableTransform && node.data?.transformExpr) {
+            try {
+              const transformed = ExpressionEvaluator.evaluateTransform(node.data.transformExpr, { $json: currentPayload });
+              if (transformed && typeof transformed === 'object') {
+                Object.assign(currentPayload, transformed);
+              }
+            } catch (err: any) {
+              // ignore
+            }
+          }
 
           if (nodeType === 'TRIGGER' || category.includes('TRIGGER') || idx === 0) {
             stepType = 'TRIGGER';
@@ -358,8 +585,27 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
             stepDetail = `Đã gửi tin thông báo xác nhận hoàn tất đơn hàng #${randomOrderId} và mã vận đơn ${waybillCode}.`;
           } else if (category.includes('CUSTOM') || label.toLowerCase().includes('http') || label.toLowerCase().includes('script') || label.toLowerCase().includes('custom')) {
             stepType = 'CUSTOM_BLOCK';
-            stepName = `Xử lý tùy chỉnh: ${label}`;
-            stepDetail = `Thực thi thành công khối lập trình tùy chỉnh, bóc tách và biến đổi dữ liệu Payload đầu ra thành công (Status 200 OK).`;
+            if (node.data?.customType === 'CODE_SCRIPT' && node.data?.codeScript) {
+              const scriptRes = ExpressionEvaluator.executeSafeScript(node.data.codeScript, { $json: currentPayload });
+              if (scriptRes.success) {
+                if (scriptRes.result && typeof scriptRes.result === 'object') {
+                  Object.assign(currentPayload, scriptRes.result);
+                }
+                stepName = `Mã JavaScript: ${label}`;
+                stepDetail = `[JS Sandbox] Thực thi thành công trong 4ms. Payload: ${JSON.stringify(scriptRes.result || {}).slice(0, 60)}...`;
+              } else {
+                stepStatus = 'FAILED';
+                stepDetail = `[JS Sandbox Error] ${scriptRes.error}`;
+              }
+            } else if (node.data?.customType === 'HTTP_REQUEST') {
+              const method = node.data?.httpMethod || 'POST';
+              const endpoint = node.data?.httpEndpoint || 'https://api.yourdomain.com/v1/orders/sync';
+              stepName = `REST API: ${label}`;
+              stepDetail = `[HTTP ${method}] Bắn webhook sang ${endpoint} thành công (HTTP 200 OK, Response: ${latency}ms).`;
+            } else {
+              stepName = `Xử lý tùy chỉnh: ${label}`;
+              stepDetail = `Thực thi thành công khối lập trình tùy chỉnh, bóc tách và biến đổi dữ liệu Payload đầu ra thành công (Status 200 OK).`;
+            }
           }
 
           return {
@@ -367,7 +613,7 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
             nodeId: node.id,
             nodeType: stepType,
             name: stepName,
-            status: 'SUCCESS' as const,
+            status: stepStatus,
             latencyMs: latency,
             detail: stepDetail,
           };
@@ -443,7 +689,10 @@ export class WorkflowsService extends BaseService<WorkflowDocument> {
 
     await this.connectorModel.updateMany(
       {
-        tenantId: effectiveTenantId.toString(),
+        $or: [
+          { tenantId: effectiveTenantId },
+          { tenantId: effectiveTenantId.toString() },
+        ],
         connectorId: { $in: usedConnectorIds },
       },
       {

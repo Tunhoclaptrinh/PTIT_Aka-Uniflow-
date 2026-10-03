@@ -40,15 +40,21 @@ export interface ConnectorTestResult {
 class ConnectorsApiService extends BaseApiService<DbConnectorItem> {
   protected endpoint = '/connectors';
 
+  private getEffectiveTenantId(tenantId?: string): string {
+    return tenantId || localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
+  }
+
   async getConnectors(tenantId?: string): Promise<DbConnectorItem[]> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.get<DbConnectorItem[]>(this.endpoint, {
-      params: tenantId ? { tenantId } : undefined,
+      params: { tenantId: effTenantId },
     });
   }
 
   async getConnectorById(connectorId: string, tenantId?: string): Promise<DbConnectorItem> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.get<DbConnectorItem>(`${this.endpoint}/${connectorId}`, {
-      params: tenantId ? { tenantId } : undefined,
+      params: { tenantId: effTenantId },
     });
   }
 
@@ -57,8 +63,16 @@ class ConnectorsApiService extends BaseApiService<DbConnectorItem> {
     data: Partial<DbConnectorItem>,
     tenantId?: string,
   ): Promise<DbConnectorItem> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.put<DbConnectorItem>(`${this.endpoint}/${connectorId}`, data, {
-      params: tenantId ? { tenantId } : undefined,
+      params: { tenantId: effTenantId },
+    });
+  }
+
+  async deleteConnector(connectorId: string, tenantId?: string): Promise<any> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
+    return baseApi.delete(`${this.endpoint}/${connectorId}`, {
+      params: { tenantId: effTenantId },
     });
   }
 
@@ -68,10 +82,11 @@ class ConnectorsApiService extends BaseApiService<DbConnectorItem> {
     customEndpoint?: string,
     tenantId?: string,
   ): Promise<ConnectorTestResult> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.post<ConnectorTestResult>(
       `${this.endpoint}/${connectorId}/test`,
       { appKey, customEndpoint },
-      { params: tenantId ? { tenantId } : undefined },
+      { params: { tenantId: effTenantId } },
     );
   }
 }

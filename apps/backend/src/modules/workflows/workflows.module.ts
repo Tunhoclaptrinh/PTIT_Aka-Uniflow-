@@ -6,9 +6,13 @@ import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping
 import { Connector, ConnectorSchema } from '../../database/schemas/connector.schema';
 import { WorkflowsService } from './workflows.service';
 import { WorkflowsController } from './workflows.controller';
+import { WorkflowExecutionEngine } from './workflow-execution.engine';
+import { WorkflowSchedulerService } from './workflow-scheduler.service';
+import { ConnectorsModule } from '../connectors/connectors.module';
 
 @Module({
   imports: [
+    ConnectorsModule,
     MongooseModule.forFeature([
       { name: Workflow.name, schema: WorkflowSchema },
       { name: SyncEventLog.name, schema: SyncEventLogSchema },
@@ -17,7 +21,7 @@ import { WorkflowsController } from './workflows.controller';
     ]),
   ],
   controllers: [WorkflowsController],
-  providers: [WorkflowsService],
-  exports: [WorkflowsService],
+  providers: [WorkflowsService, WorkflowExecutionEngine, WorkflowSchedulerService],
+  exports: [WorkflowsService, WorkflowExecutionEngine],
 })
 export class WorkflowsModule {}

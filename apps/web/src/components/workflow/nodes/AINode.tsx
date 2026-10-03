@@ -295,7 +295,14 @@ export const AINode: React.FC<any> = ({ id, data, selected }) => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       {c.logo ? (
-                        <img src={c.logo} alt={c.name} style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                        <img
+                          src={c.logo}
+                          alt={c.name}
+                          style={{ width: 16, height: 16, objectFit: 'contain' }}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
                       ) : null}
                       <span style={{ fontWeight: c.isCheapest ? 700 : 500, color: c.isCheapest ? (isLight ? '#065F46' : '#34D399') : (isLight ? '#374151' : '#F9FAFB') }}>
                         {c.name}

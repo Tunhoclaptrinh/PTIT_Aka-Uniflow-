@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <rect width="120" height="120" rx="24" fill="#0096C7"/>
+  <!-- Rocket Icon -->
+  <path d="M60 20 C72 32 78 52 74 68 L66 66 L62 76 L58 76 L54 66 L46 68 C42 52 48 32 60 20 Z" fill="#FFFFFF"/>
+  <circle cx="60" cy="42" r="5" fill="#0096C7"/>
+  <!-- Rocket fire -->
+  <polygon points="56,78 60,94 64,78" fill="#F59E0B"/>
+</svg>

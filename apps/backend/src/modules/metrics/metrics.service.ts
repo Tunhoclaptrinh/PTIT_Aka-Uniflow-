@@ -20,14 +20,21 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
 
   async getDashboardMetrics(tenantId?: string) {
     const effectiveTenantId = tenantId || '66c0e812a1b2c3d4e5f60001';
-    const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
+    const filter: any = Types.ObjectId.isValid(effectiveTenantId)
+      ? {
+          $or: [
+            { tenantId: new Types.ObjectId(effectiveTenantId) },
+            { tenantId: effectiveTenantId },
+          ],
+        }
+      : { tenantId: effectiveTenantId };
     const stringFilter = { tenantId: effectiveTenantId };
 
     // 1. Đếm tổng số sự kiện đồng bộ từ MongoDB Atlas
     const totalLogsCount = await this.model.countDocuments(filter).exec();
 
     // 2. Lấy dữ liệu connectors thực tế từ MongoDB
-    const connectors = await this.connectorModel.find(stringFilter).exec();
+    const connectors = await this.connectorModel.find(filter).exec();
     const connectorMap = new Map<string, ConnectorDocument>();
     connectors.forEach((c) => connectorMap.set(c.connectorId.toLowerCase(), c));
 
@@ -35,11 +42,11 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     const successCount = await this.model.countDocuments({ ...filter, status: 'COMPLETED' }).exec();
     const failedCount = await this.model.countDocuments({ ...filter, status: 'FAILED' }).exec();
     const totalProcessed = successCount + failedCount;
-    const successRate = totalProcessed > 0 ? ((successCount / totalProcessed) * 100).toFixed(1) : '99.8';
+    const successRate = totalProcessed > 0 ? ((successCount / totalProcessed) * 100).toFixed(1) : '100.0';
 
     // 4. Tính độ trễ trung bình E2E từ 100 logs gần nhất hoặc từ connectors
     const recentLogs = await this.model.find(filter).sort({ createdAt: -1 }).limit(100).lean().exec();
-    let avgLatency = 142;
+    let avgLatency = 0;
     if (recentLogs.length > 0) {
       const sumDuration = recentLogs.reduce((acc, cur) => acc + (cur.durationMs || 150), 0);
       avgLatency = Math.round(sumDuration / recentLogs.length);
@@ -69,25 +76,25 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
       else if (c._id === 'LAZADA') lazadaOrders = Math.max(lazadaOrders, c.count);
     });
 
-    const sumChannels = tikTokOrders + shopeeOrders + lazadaOrders || 1;
+    const sumChannels = tikTokOrders + shopeeOrders + lazadaOrders;
     const channels = {
       tiktok: {
         orderCount: tikTokOrders,
-        percentage: Math.round((tikTokOrders / sumChannels) * 100) || 0,
-        status: tikTokConn?.status || 'CONNECTED',
-        latency: tikTokConn?.latency || '185ms',
+        percentage: sumChannels > 0 ? Math.round((tikTokOrders / sumChannels) * 100) : 0,
+        status: tikTokConn ? tikTokConn.status : 'DISCONNECTED',
+        latency: tikTokConn?.latency || (tikTokConn ? `${tikTokConn.latencyMs || 0}ms` : '--'),
       },
       shopee: {
         orderCount: shopeeOrders,
-        percentage: Math.round((shopeeOrders / sumChannels) * 100) || 0,
-        status: shopeeConn?.status || 'CONNECTED',
-        latency: shopeeConn?.latency || '210ms',
+        percentage: sumChannels > 0 ? Math.round((shopeeOrders / sumChannels) * 100) : 0,
+        status: shopeeConn ? shopeeConn.status : 'DISCONNECTED',
+        latency: shopeeConn?.latency || (shopeeConn ? `${shopeeConn.latencyMs || 0}ms` : '--'),
       },
       lazada: {
         orderCount: lazadaOrders,
-        percentage: Math.round((lazadaOrders / sumChannels) * 100) || 0,
-        status: lazadaConn?.status || 'DISCONNECTED',
-        latency: lazadaConn?.latency || '230ms',
+        percentage: sumChannels > 0 ? Math.round((lazadaOrders / sumChannels) * 100) : 0,
+        status: lazadaConn ? lazadaConn.status : 'DISCONNECTED',
+        latency: lazadaConn?.latency || (lazadaConn ? `${lazadaConn.latencyMs || 0}ms` : '--'),
       },
     };
 
@@ -96,7 +103,7 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     const pendingCount = await this.skuMappingModel.countDocuments({ ...filter, mappingStatus: 'PENDING_REVIEW' }).exec();
     const manualCount = await this.skuMappingModel.countDocuments({ ...filter, mappingStatus: 'MANUAL_REQUIRED' }).exec();
     const totalSkus = autoApprovedCount + pendingCount + manualCount;
-    const autoRate = totalSkus > 0 ? `${((autoApprovedCount / totalSkus) * 100).toFixed(1)}%` : '98.5%';
+    const autoRate = totalSkus > 0 ? `${((autoApprovedCount / totalSkus) * 100).toFixed(1)}%` : '0%';
 
     const skuHealth = {
       autoApproved: autoApprovedCount,
@@ -113,7 +120,7 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
     const totalSyncedOrders = Math.max(totalLogsCount, totalConnectorOrders);
 
     // 9. Ước tính chi phí tiết kiệm được (mỗi đơn 0-chạm tiết kiệm ~ 1,450 VNĐ chi phí nhân sự xử lý tay)
-    const costSavedMillionVnd = ((totalSyncedOrders * 1450) / 1000000).toFixed(1);
+    const costSavedMillionVnd = totalSyncedOrders > 0 ? ((totalSyncedOrders * 1450) / 1000000).toFixed(1) : '0.0';
 
     const isRedisLive = await this.redisService.isHealthy();
 
@@ -136,13 +143,27 @@ export class MetricsService extends BaseService<SyncEventLogDocument> {
   }
 
   async getRecentLogs(limit = 20, tenantId?: string): Promise<SyncEventLog[]> {
-    const filter = tenantId ? { tenantId: new Types.ObjectId(tenantId) } : {};
+    const effectiveTenantId = tenantId || '66c0e812a1b2c3d4e5f60001';
+    const filter: any = Types.ObjectId.isValid(effectiveTenantId)
+      ? {
+          $or: [
+            { tenantId: new Types.ObjectId(effectiveTenantId) },
+            { tenantId: effectiveTenantId },
+          ],
+        }
+      : { tenantId: effectiveTenantId };
     return this.model.find(filter).sort({ createdAt: -1 }).limit(limit).lean().exec();
   }
 
   async retryLogSync(orderId: string, tenantId?: string) {
     const filter: any = { sourceOrderId: orderId };
-    if (tenantId) filter.tenantId = new Types.ObjectId(tenantId);
+    if (tenantId) {
+      if (Types.ObjectId.isValid(tenantId)) {
+        filter.$or = [{ tenantId: new Types.ObjectId(tenantId) }, { tenantId }];
+      } else {
+        filter.tenantId = tenantId;
+      }
+    }
 
     const log = await this.model.findOne(filter).exec();
     if (log) {

@@ -114,14 +114,30 @@ export const TriggerNode: React.FC<any> = ({ id, data, selected }) => {
               {partnerLogo ? (
                 <img
                   src={partnerLogo}
-                  alt={data.label}
+                  alt=""
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                    const fb = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                    if (fb) fb.style.display = 'flex';
+                  }}
                 />
-              ) : isTikTok ? (
-                <ThunderboltFilled style={{ color: '#ed1c24', fontSize: 12 }} />
-              ) : (
-                <ShoppingFilled style={{ color: '#EE4D2D', fontSize: 12 }} />
-              )}
+              ) : null}
+              <div
+                style={{
+                  display: partnerLogo ? 'none' : 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                {isTikTok ? (
+                  <ThunderboltFilled style={{ color: '#ed1c24', fontSize: 12 }} />
+                ) : (
+                  <ShoppingFilled style={{ color: '#EE4D2D', fontSize: 12 }} />
+                )}
+              </div>
             </div>
             <span
               style={{
@@ -181,14 +197,30 @@ export const TriggerNode: React.FC<any> = ({ id, data, selected }) => {
                 {partnerLogo ? (
                   <img
                     src={partnerLogo}
-                    alt={data.label}
+                    alt=""
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                      const fb = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                      if (fb) fb.style.display = 'flex';
+                    }}
                   />
-                ) : isTikTok ? (
-                  <ThunderboltFilled style={{ color: '#ed1c24', fontSize: 16 }} />
-                ) : (
-                  <ShoppingFilled style={{ color: '#EE4D2D', fontSize: 16 }} />
-                )}
+                ) : null}
+                <div
+                  style={{
+                    display: partnerLogo ? 'none' : 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                >
+                  {isTikTok ? (
+                    <ThunderboltFilled style={{ color: '#ed1c24', fontSize: 16 }} />
+                  ) : (
+                    <ShoppingFilled style={{ color: '#EE4D2D', fontSize: 16 }} />
+                  )}
+                </div>
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>

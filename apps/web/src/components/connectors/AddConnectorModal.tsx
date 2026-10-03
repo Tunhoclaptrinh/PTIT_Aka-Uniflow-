@@ -18,12 +18,31 @@ export interface AddConnectorModalProps {
 }
 
 const PRESET_PLATFORMS = [
-  { label: 'Tiki Open Platform (Sàn TMĐT)', value: 'tiki', category: 'MARKETPLACE', brandColor: '#1A94FF', desc: 'Đồng bộ đơn hàng sàn Tiki qua OpenAPI v2' },
-  { label: 'WooCommerce Store (E-Commerce Web)', value: 'woocommerce', category: 'MARKETPLACE', brandColor: '#96588A', desc: 'Nhận REST Webhook đơn hàng WooCommerce WordPress' },
-  { label: 'Shopify Store (Global E-Commerce)', value: 'shopify', category: 'MARKETPLACE', brandColor: '#96BF48', desc: 'Đồng bộ đơn hàng quốc tế và quản lý kho Shopify' },
-  { label: 'MISA eShop (Quản lý bán lẻ)', value: 'misa', category: 'POS_ERP', brandColor: '#0070BA', desc: 'Tự động trừ tồn kho và đồng bộ hóa đơn điện tử MISA' },
-  { label: 'J&T Express API (Đơn vị vận chuyển)', value: 'jtexpress', category: 'LOGISTICS', brandColor: '#EE1D23', desc: 'Tạo vận đơn và tra cứu hành trình J&T Express toàn quốc' },
-  { label: 'Custom Webhook Inbound (Tự cấu hình)', value: 'custom_webhook', category: 'MARKETPLACE', brandColor: '#6366F1', desc: 'Tự cấu hình điểm nhận Webhook JSON thô chuẩn UDM' },
+  // ── SẴN SÀNG PRODUCTION (ĐÃ KẾT NỐI API THỰC TẾ & CHẠY NGAY) ───────────────
+  { label: 'Sapo OmniChannel / Web POS', value: 'sapo', category: 'POS_ERP', brandColor: '#0088FF', readiness: 'PRODUCTION_READY', desc: 'Đồng bộ đơn hàng, tồn kho và sản phẩm qua Sapo REST API', endpoint: 'https://core.sapo.vn' },
+  { label: 'Nhanh.vn Cloud POS (API v2.0)', value: 'nhanh', category: 'POS_ERP', brandColor: '#FF6600', readiness: 'PRODUCTION_READY', desc: 'Đồng bộ đa kênh với Nhanh.vn qua Open API v2.0', endpoint: 'https://open.nhanh.vn/api' },
+  { label: 'Pancake POS & Social Chat', value: 'pancake', category: 'CHAT_SOCIAL', brandColor: '#2563EB', readiness: 'PRODUCTION_READY', desc: 'Đồng bộ tin nhắn Fanpage Facebook, Zalo OA và chốt đơn Pancake', endpoint: 'https://pages.fm/api/v1' },
+  { label: 'Shopee Open Platform (API v2)', value: 'shopee', category: 'MARKETPLACE', brandColor: '#EE4D2D', readiness: 'PRODUCTION_READY', desc: 'Đồng bộ đơn hàng, kho và trạng thái giao hàng Shopee v2', endpoint: 'https://partner.shopeemobile.com' },
+  { label: 'TikTok Shop Partner API', value: 'tiktok', category: 'MARKETPLACE', brandColor: '#000000', readiness: 'PRODUCTION_READY', desc: 'Inbound Webhook tức thì và đồng bộ đơn TikTok Shop', endpoint: 'https://auth.tiktok-shops.com' },
+  { label: 'MISA meInvoice & AMIS CRM', value: 'misa', category: 'ACCOUNTING', brandColor: '#0070BA', readiness: 'PRODUCTION_READY', desc: 'Tự động phát hành hóa đơn điện tử hợp lệ và đồng bộ chứng từ thuế', endpoint: 'https://www.misa.vn' },
+  { label: 'Telegram Alert Bot', value: 'telegram', category: 'CHAT_SOCIAL', brandColor: '#24A1DE', readiness: 'PRODUCTION_READY', desc: 'Nhận báo cáo đơn hàng, cảnh báo lỗi và phê duyệt 1-click', endpoint: 'https://api.telegram.org' },
+  { label: 'Custom Webhook Inbound (Tự cấu hình)', value: 'custom_webhook', category: 'MARKETPLACE', brandColor: '#6366F1', readiness: 'PRODUCTION_READY', desc: 'Tự cấu hình điểm nhận Webhook JSON thô chuẩn UDM', endpoint: 'https://api.uniflow.vn' },
+
+  // ── ĐƠN VỊ VẬN CHUYỂN (CẦN TOKEN ĐỐI TÁC DOANH NGHIỆP) ──────────────────────
+  { label: 'Giao Hàng Tiết Kiệm (GHTK)', value: 'ghtk', category: 'LOGISTICS', brandColor: '#006837', readiness: 'BETA', desc: 'Tạo vận đơn và tra cứu hành trình GHTK (cần Carrier Token)', endpoint: 'https://services.giaohangtietkiem.vn' },
+  { label: 'Giao Hàng Nhanh (GHN Express)', value: 'ghn', category: 'LOGISTICS', brandColor: '#F26522', readiness: 'BETA', desc: 'Đẩy đơn vận chuyển GHN Express (cần ShopID & Token)', endpoint: 'https://online-gateway.ghn.vn/shiip/public-api' },
+  { label: 'Viettel Post Logistics', value: 'viettelpost', category: 'LOGISTICS', brandColor: '#EE0033', readiness: 'BETA', desc: 'Tích hợp dịch vụ chuyển phát Viettel Post (cần Access Token)', endpoint: 'https://partner.viettelpost.vn/v2' },
+  { label: 'J&T Express API', value: 'jtexpress', category: 'LOGISTICS', brandColor: '#EE1D23', readiness: 'BETA', desc: 'Tạo vận đơn và tra cứu hành trình J&T Express toàn quốc', endpoint: 'https://api.jtexpress.vn' },
+
+  // ── ĐANG PHÁT TRIỂN / SẮP RA MẮT (CHỜ DUYỆT OAUTH2 & APP PARTNER) ───────────
+  { label: 'KiotViet Cloud Retail', value: 'kiotviet', category: 'POS_ERP', brandColor: '#0070BA', readiness: 'IN_DEVELOPMENT', desc: 'Đang phát triển adapter OAuth2 B2B token refresh', endpoint: 'https://public.kiotapi.com' },
+  { label: 'Haravan Omnichannel', value: 'haravan', category: 'POS_ERP', brandColor: '#FF5722', readiness: 'IN_DEVELOPMENT', desc: 'Đang phát triển quy trình OAuth2 handshake với Haravan App', endpoint: 'https://api.haravan.com/com' },
+  { label: 'Lazada Open API', value: 'lazada', category: 'MARKETPLACE', brandColor: '#0F146D', readiness: 'IN_DEVELOPMENT', desc: 'Đang phát triển xác thực gian hàng Lazada Mall Seller', endpoint: 'https://api.lazada.vn/rest' },
+  { label: 'Tiki Open Platform', value: 'tiki', category: 'MARKETPLACE', brandColor: '#1A94FF', readiness: 'IN_DEVELOPMENT', desc: 'Đang phát triển tích hợp Tiki Seller OpenAPI v2', endpoint: 'https://api.tiki.vn' },
+  { label: 'Zalo OA & ZNS Notification', value: 'zalo', category: 'CHAT_SOCIAL', brandColor: '#0068FF', readiness: 'IN_DEVELOPMENT', desc: 'Đang chờ cấp phép Zalo App ID và duyệt mẫu ZNS', endpoint: 'https://openapi.zalo.me/v2.0' },
+  { label: 'Fast Accounting Online', value: 'fast_acc', category: 'ACCOUNTING', brandColor: '#E65100', readiness: 'IN_DEVELOPMENT', desc: 'Đang phát triển kết nối hạch toán chứng từ kế toán', endpoint: 'https://fast.com.vn' },
+  { label: 'WooCommerce Store (WordPress)', value: 'woocommerce', category: 'MARKETPLACE', brandColor: '#96588A', readiness: 'IN_DEVELOPMENT', desc: 'Đang hoàn thiện REST API 2 chiều cho WordPress', endpoint: 'https://woocommerce.com' },
+  { label: 'Shopify Store (Global E-Commerce)', value: 'shopify', category: 'MARKETPLACE', brandColor: '#96BF48', readiness: 'IN_DEVELOPMENT', desc: 'Đang hoàn thiện ứng dụng Private App Shopify', endpoint: 'https://shopify.dev' },
 ];
 
 export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
@@ -44,6 +63,7 @@ export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
         category: selected.category,
         brandColor: selected.brandColor,
         description: selected.desc,
+        endpoint: selected.endpoint || '',
       });
     }
   };
@@ -70,8 +90,12 @@ export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
   const handleFinish = (values: any) => {
     const categoryLabels: Record<string, string> = {
       MARKETPLACE: 'Sàn TMĐT',
-      POS_ERP: 'Quản lý kho POS',
+      POS_ERP: 'Quản lý kho POS & ERP',
       LOGISTICS: 'Đơn vị vận chuyển',
+      ACCOUNTING: 'Kế toán & Thuế',
+      CHAT_SOCIAL: 'CSKH & Hội thoại',
+      SPREADSHEET: 'Bảng tính & Excel',
+      LANDING_PAGE: 'Landing Page & Form',
     };
 
     const newConnector = {
@@ -81,7 +105,7 @@ export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
       categoryLabel: categoryLabels[values.category] || 'Kênh kết nối',
       status: 'CONNECTED',
       ordersSynced: 0,
-      latency: testResult ? `${testResult.latencyMs}ms` : '160ms',
+      latency: testResult ? `${testResult.latencyMs}ms` : '--',
       brandColor: values.brandColor || '#6366F1',
       description: values.description || 'Kênh tích hợp tự động qua UDM Pipeline',
       appKey: values.appKey,
@@ -106,15 +130,14 @@ export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
       }}
       onSubmit={handleFinish}
       initialValues={{
-        id: 'tiki',
-        name: 'Tiki Open Platform',
-        category: 'MARKETPLACE',
-        brandColor: '#1A94FF',
-        description: 'Đồng bộ đơn hàng sàn Tiki qua OpenAPI v2',
-        appKey: 'tiki_app_live_9942',
-        appSecret: 'sec_tiki_89a0b1c2d3e4',
+        id: 'sapo',
+        name: 'Sapo OmniChannel / Web POS',
+        category: 'POS_ERP',
+        brandColor: '#0088FF',
+        description: 'Đồng bộ đơn hàng, tồn kho và sản phẩm qua Sapo REST API',
+        endpoint: 'https://core.sapo.vn',
       }}
-      width={640}
+      width={680}
       title={
         <Space size={8}>
           <PlusCircleFilled style={{ color: '#ed1c24' }} />
@@ -130,21 +153,63 @@ export const AddConnectorModal: React.FC<AddConnectorModalProps> = ({
           <Select
             placeholder="Chọn nền tảng để tự động điền cấu hình..."
             onChange={handleSelectPreset}
-            defaultValue="tiki"
+            defaultValue="sapo"
             options={PRESET_PLATFORMS.map((p) => {
               const logo = getPartnerLogo(p.value);
+              const tagColor =
+                p.readiness === 'PRODUCTION_READY'
+                  ? 'success'
+                  : p.readiness === 'BETA'
+                  ? 'processing'
+                  : 'warning';
+              const tagText =
+                p.readiness === 'PRODUCTION_READY'
+                  ? '✓ Hoạt động'
+                  : p.readiness === 'BETA'
+                  ? 'Cần Token'
+                  : 'Đang phát triển';
+
               return {
                 label: (
-                  <Space size={6}>
-                    {logo && (
-                      <img
-                        src={logo}
-                        alt={p.value}
-                        style={{ width: 16, height: 16, objectFit: 'contain' }}
-                      />
-                    )}
-                    <span>{p.label}</span>
-                  </Space>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                      {logo ? (
+                        <img
+                          src={logo}
+                          alt=""
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                            const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                          style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }}
+                        />
+                      ) : null}
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 3,
+                          background: p.brandColor || '#6366F1',
+                          color: '#FFFFFF',
+                          display: logo ? 'none' : 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 10,
+                          fontWeight: 800,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {p.label.charAt(0)}
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.label}
+                      </span>
+                    </div>
+                    <Tag color={tagColor} style={{ fontSize: 10, margin: 0, padding: '0 4px', borderRadius: 3, flexShrink: 0 }}>
+                      {tagText}
+                    </Tag>
+                  </div>
                 ),
                 value: p.value,
               };

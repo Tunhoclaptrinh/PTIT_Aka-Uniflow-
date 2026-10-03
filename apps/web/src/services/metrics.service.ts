@@ -37,9 +37,9 @@ export interface DashboardMetrics {
   totalLogsCount?: number;
   activeWorkflows?: number;
   channels?: {
-    tiktok: { orderCount: number; percentage: number; status: string };
-    shopee: { orderCount: number; percentage: number; status: string };
-    lazada: { orderCount: number; percentage: number; status: string };
+    tiktok: { orderCount: number; percentage: number; status: string; latency?: string };
+    shopee: { orderCount: number; percentage: number; status: string; latency?: string };
+    lazada: { orderCount: number; percentage: number; status: string; latency?: string };
   };
   channelBreakdown?: {
     tiktok: ChannelStats;
@@ -74,9 +74,14 @@ export interface SyncLogItem {
 class MetricsApiService extends BaseApiService<SyncLogItem> {
   protected endpoint = '/logs';
 
+  private getEffectiveTenantId(tenantId?: string): string {
+    return tenantId || localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
+  }
+
   async getMetrics(tenantId?: string): Promise<DashboardMetrics> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.get<DashboardMetrics>('/metrics', {
-      params: tenantId ? { tenantId } : undefined,
+      params: { tenantId: effTenantId },
     });
   }
 
@@ -85,8 +90,9 @@ class MetricsApiService extends BaseApiService<SyncLogItem> {
   }
 
   async getLogs(limit = 20, tenantId?: string): Promise<SyncLogItem[]> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
     return baseApi.get<SyncLogItem[]>(this.endpoint, {
-      params: { limit, tenantId },
+      params: { limit, tenantId: effTenantId },
     });
   }
 }

@@ -169,13 +169,14 @@ export const SkuMappingTable: React.FC = () => {
   const handleFormSubmit = async (values: any) => {
     setFormLoading(true);
     try {
+      const currentTenantId = localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
       if (editingItem?._id) {
         await update(editingItem._id, values);
         notify.success('Cập nhật cấu hình ánh xạ SKU thành công vào MongoDB!');
       } else {
         await create({
           ...values,
-          tenantId: '66c0e812a1b2c3d4e5f60001',
+          tenantId: currentTenantId,
         });
         notify.success('Thêm mới cấu hình ánh xạ SKU thành công vào MongoDB!');
       }
@@ -191,9 +192,10 @@ export const SkuMappingTable: React.FC = () => {
 
   const handleSavePlaygroundMapping = async (mappingData: any) => {
     try {
+      const currentTenantId = localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
       await create({
         ...mappingData,
-        tenantId: '66c0e812a1b2c3d4e5f60001',
+        tenantId: currentTenantId,
       });
       notify.success('Đã lưu cấu hình AI so khớp vào Database thành công!');
       refresh();

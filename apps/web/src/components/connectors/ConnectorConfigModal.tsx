@@ -96,22 +96,22 @@ export const ConnectorConfigModal: React.FC<ConnectorConfigModalProps> = ({
       }}
       onSubmit={handleFinish}
       initialValues={{
-        appKey: connector.appKey || 'uni_app_live_89a7f31c',
-        appSecret: connector.appSecret || 'sec_live_994821a0fbfd72',
-        endpoint: connector.endpoint || '',
-        taxCode: '0109887766',
-        invoiceSerial: '1C25TKK',
-        invoiceTemplate: '1/001',
-        vatRate: '1_PERCENT_ECOMMERCE',
-        autoIssueOn: 'DELIVERED',
-        signingType: 'CLOUD_HSM',
-        accountDebit: '1121',
-        accountCredit: '5111',
-        accountVat: '33311',
-        warehouseBranch: 'WH_MAIN_HN',
-        deductStrategy: 'INSTANT_AVAILABLE',
-        shippingPriority: 'CHEAPEST_AUTO',
-        autoPrintWaybill: true,
+        appKey: connector.appKey || connector.config?.appKey || '',
+        appSecret: connector.appSecret || connector.config?.appSecret || '',
+        endpoint: connector.endpoint || connector.config?.endpoint || '',
+        taxCode: connector.config?.taxCode || '',
+        invoiceSerial: connector.config?.invoiceSerial || '',
+        invoiceTemplate: connector.config?.invoiceTemplate || '',
+        vatRate: connector.config?.vatRate || '1_PERCENT_ECOMMERCE',
+        autoIssueOn: connector.config?.autoIssueOn || 'DELIVERED',
+        signingType: connector.config?.signingType || 'CLOUD_HSM',
+        accountDebit: connector.config?.accountDebit || '1121',
+        accountCredit: connector.config?.accountCredit || '5111',
+        accountVat: connector.config?.accountVat || '33311',
+        warehouseBranch: connector.config?.warehouseBranch || '',
+        deductStrategy: connector.config?.deductStrategy || 'INSTANT_AVAILABLE',
+        shippingPriority: connector.config?.shippingPriority || 'CHEAPEST_AUTO',
+        autoPrintWaybill: connector.config?.autoPrintWaybill ?? true,
       }}
       width={720}
       title={

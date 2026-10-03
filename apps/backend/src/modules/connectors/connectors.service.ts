@@ -63,6 +63,18 @@ export class ConnectorsService {
   }
 
   /**
+   * Xóa kênh kết nối khỏi Database
+   */
+  async deleteConnector(
+    connectorId: string,
+    tenantId: string = '66c0e812a1b2c3d4e5f60001',
+  ): Promise<ConnectorDocument | null> {
+    const deleted = await this.connectorModel.findOneAndDelete({ tenantId, connectorId }).exec();
+    this.logger.log(`Đã xóa kênh kết nối ${connectorId} khỏi Tenant ${tenantId}`);
+    return deleted;
+  }
+
+  /**
    * Chạy probe kiểm tra kết nối thực tế tới Endpoint và lưu độ trễ vào DB
    */
   async testConnectorConnection(
