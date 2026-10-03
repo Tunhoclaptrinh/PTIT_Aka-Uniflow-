@@ -205,6 +205,13 @@ export class KiotVietCreateCategoryDto {
   parentId?: number;
 }
 
+export class KiotVietUpdateCategoryDto {
+  @ApiProperty({ example: 'Phụ Kiện Điện Thoại & Âm Thanh Cao Cấp', description: 'Tên mới của nhóm hàng' })
+  categoryName: string;
+  @ApiProperty({ example: 101, description: 'ID nhóm cha (nếu có)', required: false })
+  parentId?: number;
+}
+
 export class KiotVietCreateSupplierDto {
   @ApiProperty({ example: 'Công ty Cổ phần Công Nghệ Tân Á', description: 'Tên nhà cung cấp' })
   name: string;
@@ -215,5 +222,105 @@ export class KiotVietCreateSupplierDto {
   @ApiProperty({ example: '0108899123', description: 'Mã số thuế', required: false })
   taxCode?: string;
 }
+
+export class KiotVietUpdateSupplierDto {
+  @ApiProperty({ example: 'Công ty Cổ phần Công Nghệ Tân Á (Update)', description: 'Tên mới' })
+  name: string;
+  @ApiProperty({ example: '02439998877', description: 'Số điện thoại' })
+  contactNumber: string;
+  @ApiProperty({ example: 'Hà Nội', description: 'Địa chỉ' })
+  address: string;
+}
+
+export class KiotVietSurchargeDto {
+  @ApiProperty({ example: 'Phí dịch vụ bọc quà & giao nhanh', description: 'Tên loại thu khác' })
+  name: string;
+  @ApiProperty({ example: 25000, description: 'Giá trị thu' })
+  surchargeVal: number;
+  @ApiProperty({ example: true, description: 'Tự động đưa vào hóa đơn bán lẻ', required: false })
+  isAuto?: boolean;
+}
+
+export class KiotVietVoucherCampaignDto {
+  @ApiProperty({ example: 'CHIẾN DỊCH VOUCHER TRI ÂN KHÁCH HÀNG', description: 'Tên đợt phát hành voucher' })
+  name: string;
+  @ApiProperty({ example: 50000, description: 'Mệnh giá voucher (VNĐ)' })
+  value: number;
+  @ApiProperty({ example: '2026-10-01T00:00:00Z', description: 'Ngày bắt đầu' })
+  startDate: string;
+  @ApiProperty({ example: '2026-12-31T23:59:59Z', description: 'Ngày hết hạn' })
+  endDate: string;
+}
+
+export class KiotVietCreateVoucherDto {
+  @ApiProperty({ example: 30087, description: 'ID đợt phát hành voucher' })
+  campaignId: number;
+  @ApiProperty({ example: 'VC50K-OCT-001', description: 'Mã code voucher' })
+  code: string;
+  @ApiProperty({ example: 50000, description: 'Giá trị voucher' })
+  amount: number;
+}
+
+export class KiotVietReleaseVoucherDto {
+  @ApiProperty({ example: 30087, description: 'ID đợt phát hành voucher đang kích hoạt' })
+  campaignId: number;
+  @ApiProperty({ example: [{ code: 'VC50K-OCT-001' }, { code: 'VC50K-OCT-002' }], description: 'Danh sách mã voucher phát hành' })
+  vouchers: Array<{ code: string }>;
+}
+
+export class KiotVietCancelVoucherDto {
+  @ApiProperty({ example: 30087, description: 'ID đợt phát hành voucher' })
+  campaignId: number;
+  @ApiProperty({ example: [{ code: 'VC50K-OCT-001' }], description: 'Danh sách mã voucher cần hủy' })
+  vouchers: Array<{ code: string }>;
+}
+
+export class KiotVietCouponStatusDto {
+  @ApiProperty({ example: 'COUPON10', description: 'Mã coupon giảm giá' })
+  couponCode: string;
+  @ApiProperty({ example: 1, enum: [0, 1], description: 'Trạng thái: 0: Chưa kích hoạt, 1: Đang kích hoạt' })
+  status: number;
+}
+
+export class KiotVietOrderProposalDto {
+  @ApiProperty({ example: 101, description: 'ID chi nhánh lập đề nghị đặt hàng nhập' })
+  branchId: number;
+  @ApiProperty({ example: 901, description: 'ID nhà cung cấp' })
+  supplierId: number;
+  @ApiProperty({ example: [{ productCode: 'KV-SP-01', quantity: 200, estimatedPrice: 90000 }], description: 'Danh mục hàng cần đặt nhập' })
+  details: any[];
+  @ApiProperty({ example: 'Đề xuất đặt hàng phục vụ đợt khuyến mãi Q4', description: 'Ghi chú' })
+  description: string;
+}
+
+export class KiotVietEInvoiceInfoDto {
+  @ApiProperty({
+    example: [
+      {
+        invoiceId: 182,
+        invoiceRefId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+        partnerTransactionCode: 'FPT-TXN-00123',
+        partner: 0,
+        status: 2,
+        invoiceNumber: '00000010',
+        serial: 'C24TAA',
+      },
+    ],
+    description: 'Danh sách hóa đơn cập nhật thông tin HĐĐT ngoài KiotViet',
+  })
+  data: any[];
+}
+
+export class KiotVietTokenRequestDto {
+  @ApiProperty({ example: 'client_credentials', description: 'Grant type xác thực KiotViet' })
+  grant_type: string;
+  @ApiProperty({ example: 'your_client_id', description: 'Client ID cấp từ KiotViet API setting' })
+  client_id: string;
+  @ApiProperty({ example: 'your_client_secret', description: 'Client Secret KiotViet' })
+  client_secret: string;
+  @ApiProperty({ example: 'PublicApi.Access', description: 'Phạm vi quyền truy cập', required: false })
+  scope?: string;
+}
+
 
 

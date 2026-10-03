@@ -8,17 +8,19 @@ import {
   HaravanCreateCollectionDto,
   HaravanSmartCollectionDto,
   HaravanCollectDto,
+  HaravanOrderTagsDto,
 } from '../../dto/pos-haravan.dto';
 
 // ═══════════════════════════════════════════════════════════════
-// 6. PRODUCT RESOURCE
+// 2. PRODUCTS CATEGORY (Product, Variant, Image, Collections, Collect)
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 06. Product')
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanProductsController {
   @ApiOperation({
-    summary: '[POST /com/products.json] Tạo sản phẩm & biến thể Haravan',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/products.json | Docs: https://docs.haravan.com/docs/omni-apis/products/ | Thêm mới sản phẩm, hình ảnh và danh sách biến thể SKU trên Haravan Omnichannel',
+    summary: '[Product - Sản phẩm] [POST /com/products.json] Tạo sản phẩm & biến thể Haravan',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: POST https://apis.haravan.com/com/products.json | Thêm mới sản phẩm, hình ảnh và danh sách biến thể SKU trên Haravan Omnichannel',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateProductDto })
@@ -38,8 +40,8 @@ export class HaravanProductsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/products.json] Danh mục sản phẩm Haravan',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/products.json | Truy vấn danh mục sản phẩm, biến thể và số lượng tồn',
+    summary: '[Product - Sản phẩm] [GET /com/products.json] Danh mục sản phẩm Haravan',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: GET https://apis.haravan.com/com/products.json | Truy vấn danh mục sản phẩm, biến thể và số lượng tồn',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiQuery({ name: 'limit', example: 20, required: false })
@@ -58,8 +60,8 @@ export class HaravanProductsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/products/count.json] Đếm số lượng sản phẩm',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/products/count.json | Tổng số sản phẩm trong kho cửa hàng',
+    summary: '[Product - Sản phẩm] [GET /com/products/count.json] Đếm số lượng sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: GET https://apis.haravan.com/com/products/count.json | Tổng số sản phẩm trong kho cửa hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @Get('com/products/count.json')
@@ -68,8 +70,8 @@ export class HaravanProductsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/products/:id.json] Chi tiết sản phẩm Haravan',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/products/{id}.json | Xem chi tiết sản phẩm và các biến thể',
+    summary: '[Product - Sản phẩm] [GET /com/products/:id.json] Chi tiết sản phẩm Haravan',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: GET https://apis.haravan.com/com/products/{id}.json | Xem chi tiết sản phẩm và các biến thể',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '881290' })
@@ -78,11 +80,11 @@ export class HaravanProductsController {
     return {
       product: {
         id: Number(id),
-        title: 'Áo Polo Thể Thao Nam Breathable Tech',
+        title: 'Áo Thun Cotton Compact',
         vendor: 'UniFlow Fashion',
         variants: [
-          { id: 881294, sku: 'POLO-BLK-M', price: 290000, inventory_quantity: 40 },
-          { id: 881295, sku: 'POLO-BLK-L', price: 290000, inventory_quantity: 60 },
+          { id: 881294, title: 'Trắng / M', price: 290000, sku: 'TSHIRT-WHT-M' },
+          { id: 881295, title: 'Đen / L', price: 290000, sku: 'TSHIRT-BLK-L' },
         ],
         mode: mode || 'SANDBOX',
       },
@@ -90,73 +92,110 @@ export class HaravanProductsController {
   }
 
   @ApiOperation({
-    summary: '[PUT /com/products/:id.json] Cập nhật thông tin sản phẩm',
-    description: 'Endpoint gốc: PUT https://apis.haravan.com/com/products/{id}.json | Sửa tiêu đề, giá bán, mô tả sản phẩm',
+    summary: '[Product - Sản phẩm] [PUT /com/products/:id.json] Cập nhật thông tin sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: PUT https://apis.haravan.com/com/products/{id}.json | Sửa tiêu đề, mô tả và giá',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '881290' })
   @ApiBody({ type: HaravanUpdateProductDto })
   @Put('com/products/:id.json')
   async updateProduct(@Param('id') id: string, @Body() dto: HaravanUpdateProductDto, @Headers('x-uniflow-mode') mode?: string) {
-    return { product: { id: Number(id), ...dto, updated_at: new Date().toISOString() }, mode: mode || 'SANDBOX' };
+    return {
+      product: { id: Number(id), title: dto.title, body_html: dto.body_html, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/products/:id.json] Xóa sản phẩm Haravan',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/products/{id}.json | Xóa sản phẩm khỏi hệ thống Haravan',
+    summary: '[Product - Sản phẩm] [DELETE /com/products/:id.json] Xóa sản phẩm khỏi Haravan',
+    description: '[Thuộc danh mục: 02. Products > Sản phẩm chính] Endpoint gốc: DELETE https://apis.haravan.com/com/products/{id}.json | Xóa sản phẩm',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '881290' })
   @Delete('com/products/:id.json')
   async deleteProduct(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
-    return { success: true, deleted_id: Number(id), message: `Đã xóa sản phẩm Haravan #${id}`, mode: mode || 'SANDBOX' };
+    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+  }
+
+  @ApiOperation({
+    summary: '[Product Tag - Gán Tag] [POST /com/products/:id/tags.json] Gắn thẻ Tag cho sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Thẻ Tag phân loại] Endpoint gốc: POST https://apis.haravan.com/com/products/{id}/tags.json | Thêm nhãn tag phân loại mặt hàng',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '881290' })
+  @ApiBody({ type: HaravanOrderTagsDto })
+  @Post('com/products/:id/tags.json')
+  async addProductTags(@Param('id') id: string, @Body() dto: HaravanOrderTagsDto, @Headers('x-uniflow-mode') mode?: string) {
+    return { product: { id: Number(id), tags: dto.tags, mode: mode || 'SANDBOX' } };
+  }
+
+  @ApiOperation({
+    summary: '[Product Tag - Gỡ Tag] [DELETE /com/products/:id/tags.json] Gỡ bỏ thẻ Tag khỏi sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Thẻ Tag phân loại] Endpoint gốc: DELETE https://apis.haravan.com/com/products/{id}/tags.json | Xóa nhãn tag khỏi sản phẩm',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '881290' })
+  @ApiBody({ type: HaravanOrderTagsDto })
+  @Delete('com/products/:id/tags.json')
+  async removeProductTags(@Param('id') id: string, @Body() dto: HaravanOrderTagsDto, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, product_id: Number(id), removed_tags: dto.tags, mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 7. PRODUCT VARIANT RESOURCE
+// PRODUCT VARIANTS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 07. Product Variant')
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
-export class HaravanVariantsController {
+export class HaravanProductVariantsController {
   @ApiOperation({
-    summary: '[GET /com/variants.json] Danh sách biến thể toàn cửa hàng',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/variants.json | Danh sách tất cả mã SKU/barcode biến thể',
+    summary: '[Variant - Biến thể SKU] [GET /com/variants.json] Danh sách toàn bộ biến thể SKU',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: GET https://apis.haravan.com/com/variants.json | Danh sách mã biến thể SKU toàn cửa hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiQuery({ name: 'limit', example: 20, required: false })
   @Get('com/variants.json')
-  async listVariants(@Query('limit') limit = 20, @Headers('x-uniflow-mode') mode?: string) {
+  async listAllVariants(@Headers('x-uniflow-mode') mode?: string) {
     return {
       variants: [
-        { id: 881294, product_id: 881290, title: 'Đen / M', price: 290000, sku: 'POLO-BLK-M', inventory_quantity: 40 },
-        { id: 881295, product_id: 881290, title: 'Đen / L', price: 290000, sku: 'POLO-BLK-L', inventory_quantity: 60 },
+        { id: 881294, product_id: 881290, title: 'Trắng / M', price: 290000, sku: 'TSHIRT-WHT-M', barcode: '893001122331' },
       ],
-      limit: Number(limit),
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/products/:product_id/variants.json] Biến thể theo sản phẩm',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/products/{product_id}/variants.json | Lấy danh sách mẫu mã phân loại của 1 sản phẩm',
+    summary: '[Variant - Biến thể SKU] [GET /com/products/:product_id/variants.json] Biến thể theo sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: GET https://apis.haravan.com/com/products/{product_id}/variants.json | Lấy danh sách biến thể SKU theo sản phẩm',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'product_id', example: '881290' })
   @Get('com/products/:product_id/variants.json')
-  async getVariantsByProduct(@Param('product_id') productId: string, @Headers('x-uniflow-mode') mode?: string) {
+  async listVariantsByProduct(@Param('product_id') productId: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
       variants: [
-        { id: 881294, product_id: Number(productId), title: 'Đen / M', price: 290000, sku: 'POLO-BLK-M' },
-        { id: 881295, product_id: Number(productId), title: 'Đen / L', price: 290000, sku: 'POLO-BLK-L' },
+        { id: 881294, product_id: Number(productId), title: 'Trắng / M', price: 290000 },
+        { id: 881295, product_id: Number(productId), title: 'Đen / L', price: 290000 },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[POST /com/products/:product_id/variants.json] Thêm biến thể cho sản phẩm',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/products/{product_id}/variants.json | Tạo biến thể size/màu mới',
+    summary: '[Variant - Biến thể SKU] [GET /com/variants/:id.json] Chi tiết biến thể SKU',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: GET https://apis.haravan.com/com/variants/{id}.json | Xem thông tin chi tiết một biến thể',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '881294' })
+  @Get('com/variants/:id.json')
+  async getVariantById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      variant: { id: Number(id), product_id: 881290, title: 'Trắng / M', price: 290000, sku: 'TSHIRT-WHT-M', mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Variant - Biến thể SKU] [POST /com/products/:product_id/variants.json] Thêm biến thể mới cho sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: POST https://apis.haravan.com/com/products/{product_id}/variants.json | Tạo biến thể size/màu mới',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'product_id', example: '881290' })
@@ -164,20 +203,55 @@ export class HaravanVariantsController {
   @Post('com/products/:product_id/variants.json')
   async createVariant(@Param('product_id') productId: string, @Body() dto: HaravanVariantDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      variant: { id: Date.now(), product_id: Number(productId), ...dto, mode: mode || 'SANDBOX' },
+      variant: {
+        id: Date.now(),
+        product_id: Number(productId),
+        title: dto.title,
+        price: dto.price,
+        sku: dto.sku,
+        barcode: dto.barcode,
+        mode: mode || 'SANDBOX',
+      },
     };
+  }
+
+  @ApiOperation({
+    summary: '[Variant - Biến thể SKU] [PUT /com/variants/:id.json] Cập nhật thông tin biến thể SKU',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: PUT https://apis.haravan.com/com/variants/{id}.json | Sửa giá bán, mã barcode biến thể',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '881294' })
+  @ApiBody({ type: HaravanVariantDto })
+  @Put('com/variants/:id.json')
+  async updateVariant(@Param('id') id: string, @Body() dto: HaravanVariantDto, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      variant: { id: Number(id), price: dto.price, sku: dto.sku, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Variant - Biến thể SKU] [DELETE /com/products/:product_id/variants/:id.json] Xóa biến thể khỏi sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Biến thể sản phẩm] Endpoint gốc: DELETE https://apis.haravan.com/com/products/{product_id}/variants/{id}.json | Xóa biến thể SKU',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'product_id', example: '881290' })
+  @ApiParam({ name: 'id', example: '881294' })
+  @Delete('com/products/:product_id/variants/:id.json')
+  async deleteVariant(@Param('product_id') productId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, deleted_variant_id: Number(id), product_id: Number(productId), mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 8. PRODUCT IMAGE RESOURCE
+// PRODUCT IMAGES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 08. Product Image')
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
-export class HaravanImagesController {
+export class HaravanProductImagesController {
   @ApiOperation({
-    summary: '[GET /com/products/:product_id/images.json] Danh sách ảnh của sản phẩm',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/products/{product_id}/images.json | Danh sách URL hình ảnh gallery',
+    summary: '[Product Image - Thư viện ảnh] [GET /com/products/:product_id/images.json] Danh sách hình ảnh của sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Hình ảnh sản phẩm] Endpoint gốc: GET https://apis.haravan.com/com/products/{product_id}/images.json | Danh sách URL ảnh sản phẩm',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'product_id', example: '881290' })
@@ -185,106 +259,123 @@ export class HaravanImagesController {
   async listImages(@Param('product_id') productId: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
       images: [
-        { id: 501, product_id: Number(productId), position: 1, src: 'https://file.hstatic.net/products/polo-black-front.jpg' },
-        { id: 502, product_id: Number(productId), position: 2, src: 'https://file.hstatic.net/products/polo-black-back.jpg' },
+        { id: 701, product_id: Number(productId), src: 'https://file.hstatic.net/881290_01.jpg', position: 1 },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[POST /com/products/:product_id/images.json] Tải lên ảnh sản phẩm',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/products/{product_id}/images.json | Thêm ảnh mới vào bộ sưu tập ảnh sản phẩm',
+    summary: '[Product Image - Thư viện ảnh] [POST /com/products/:product_id/images.json] Thêm hình ảnh mới cho sản phẩm',
+    description: '[Thuộc danh mục: 02. Products > Hình ảnh sản phẩm] Endpoint gốc: POST https://apis.haravan.com/com/products/{product_id}/images.json | Tải lên ảnh sản phẩm mới',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'product_id', example: '881290' })
   @ApiBody({ type: HaravanProductImageDto })
   @Post('com/products/:product_id/images.json')
-  async uploadImage(@Param('product_id') productId: string, @Body() dto: HaravanProductImageDto, @Headers('x-uniflow-mode') mode?: string) {
+  async addImage(@Param('product_id') productId: string, @Body() dto: HaravanProductImageDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
       image: { id: Date.now(), product_id: Number(productId), src: dto.src, position: dto.position || 1, mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/products/:product_id/images/:id.json] Xóa ảnh sản phẩm',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/products/{product_id}/images/{id}.json | Gỡ ảnh khỏi gallery',
+    summary: '[Product Image - Thư viện ảnh] [DELETE /com/products/:product_id/images/:id.json] Xóa hình ảnh',
+    description: '[Thuộc danh mục: 02. Products > Hình ảnh sản phẩm] Endpoint gốc: DELETE https://apis.haravan.com/com/products/{product_id}/images/{id}.json | Xóa ảnh khỏi sản phẩm',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'product_id', example: '881290' })
-  @ApiParam({ name: 'id', example: '501' })
+  @ApiParam({ name: 'id', example: '701' })
   @Delete('com/products/:product_id/images/:id.json')
   async deleteImage(@Param('product_id') productId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
-    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+    return { success: true, deleted_image_id: Number(id), product_id: Number(productId), mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 9. CUSTOM COLLECTION RESOURCE
+// CUSTOM COLLECTIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 09. CustomCollection')
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCustomCollectionsController {
   @ApiOperation({
-    summary: '[POST /com/custom_collections.json] Tạo nhóm sản phẩm thủ công',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/custom_collections.json | Tạo nhóm danh mục chọn sản phẩm bằng tay',
+    summary: '[Custom Collection - Bộ sưu tập thủ công] [POST /com/custom_collections.json] Tạo nhóm danh mục thủ công (Custom Collection)',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thủ công] Endpoint gốc: POST https://apis.haravan.com/com/custom_collections.json | Tạo nhóm danh mục để tự gán sản phẩm',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateCollectionDto })
   @Post('com/custom_collections.json')
-  async createCollection(@Body() dto: HaravanCreateCollectionDto, @Headers('x-uniflow-mode') mode?: string) {
+  async createCustomCollection(@Body() dto: HaravanCreateCollectionDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      custom_collection: {
-        id: Date.now(),
-        title: dto.title,
-        body_html: dto.body_html,
-        published_at: new Date().toISOString(),
-        mode: mode || 'SANDBOX',
-      },
+      custom_collection: { id: Date.now(), title: dto.title, body_html: dto.body_html, published: dto.published ?? true, mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/custom_collections.json] Danh sách nhóm sản phẩm thủ công',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/custom_collections.json | Danh sách nhóm bộ sưu tập tùy biến',
+    summary: '[Custom Collection - Bộ sưu tập thủ công] [GET /com/custom_collections.json] Danh sách nhóm danh mục thủ công',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thủ công] Endpoint gốc: GET https://apis.haravan.com/com/custom_collections.json | Tra cứu nhóm danh mục thủ công',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @Get('com/custom_collections.json')
   async listCustomCollections(@Headers('x-uniflow-mode') mode?: string) {
     return {
       custom_collections: [
-        { id: 100021, title: 'Bộ Sưu Tập Giày Sneaker Năng Động', products_count: 12 },
-        { id: 100022, title: 'Phụ Kiện Thắt Lưng & Ví Da', products_count: 8 },
+        { id: 301, title: 'Thời trang Thu Đông 2026', handle: 'thoi-trang-thu-dong-2026', products_count: 14 },
       ],
       mode: mode || 'SANDBOX',
     };
+  }
+
+  @ApiOperation({
+    summary: '[Custom Collection - Bộ sưu tập thủ công] [GET /com/custom_collections/:id.json] Chi tiết nhóm danh mục thủ công',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thủ công] Endpoint gốc: GET https://apis.haravan.com/com/custom_collections/{id}.json | Xem chi tiết nhóm danh mục',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '301' })
+  @Get('com/custom_collections/:id.json')
+  async getCustomCollectionById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      custom_collection: { id: Number(id), title: 'Thời trang Thu Đông 2026', handle: 'thoi-trang-thu-dong-2026', mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Custom Collection - Bộ sưu tập thủ công] [PUT /com/custom_collections/:id.json] Cập nhật nhóm danh mục thủ công',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thủ công] Endpoint gốc: PUT https://apis.haravan.com/com/custom_collections/{id}.json | Sửa tên hoặc mô tả nhóm danh mục',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '301' })
+  @ApiBody({ type: HaravanCreateCollectionDto })
+  @Put('com/custom_collections/:id.json')
+  async updateCustomCollection(@Param('id') id: string, @Body() dto: HaravanCreateCollectionDto, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      custom_collection: { id: Number(id), title: dto.title, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Custom Collection - Bộ sưu tập thủ công] [DELETE /com/custom_collections/:id.json] Xóa nhóm danh mục thủ công',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thủ công] Endpoint gốc: DELETE https://apis.haravan.com/com/custom_collections/{id}.json | Xóa nhóm danh mục',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '301' })
+  @Delete('com/custom_collections/:id.json')
+  async deleteCustomCollection(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 10. SMART COLLECTION RESOURCE
+// SMART COLLECTIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 10. SmartCollection')
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanSmartCollectionsController {
   @ApiOperation({
-    summary: '[GET /com/smart_collections.json] Danh sách nhóm sản phẩm thông minh',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/smart_collections.json | Danh sách nhóm tự động gom sản phẩm theo rule',
-  })
-  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @Get('com/smart_collections.json')
-  async listSmartCollections(@Headers('x-uniflow-mode') mode?: string) {
-    return {
-      smart_collections: [
-        { id: 200001, title: 'Sản Phẩm Khuyến Mãi Hot Nhất', rules: [{ column: 'tag', relation: 'equals', condition: 'SALE_OFF' }] },
-      ],
-      mode: mode || 'SANDBOX',
-    };
-  }
-
-  @ApiOperation({
-    summary: '[POST /com/smart_collections.json] Tạo nhóm sản phẩm thông minh mới',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/smart_collections.json | Định nghĩa bộ quy tắc tự động thêm sản phẩm',
+    summary: '[Smart Collection - Bộ sưu tập thông minh] [POST /com/smart_collections.json] Tạo nhóm danh mục thông minh (Smart Collection)',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thông minh] Endpoint gốc: POST https://apis.haravan.com/com/smart_collections.json | Tự động gom sản phẩm theo quy tắc giá hoặc thẻ tag',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanSmartCollectionDto })
@@ -294,50 +385,117 @@ export class HaravanSmartCollectionsController {
       smart_collection: { id: Date.now(), title: dto.title, rules: dto.rules, mode: mode || 'SANDBOX' },
     };
   }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 11. COLLECT RESOURCE
-// ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 11. Collect')
-@Controller('api/v1/infra/haravan')
-export class HaravanCollectsController {
-  @ApiOperation({
-    summary: '[POST /com/collects.json] Gán sản phẩm vào nhóm (Collect)',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/collects.json | Đưa sản phẩm vào bộ sưu tập',
-  })
-  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiBody({ type: HaravanCollectDto })
-  @Post('com/collects.json')
-  async addCollect(@Body() dto: HaravanCollectDto, @Headers('x-uniflow-mode') mode?: string) {
-    return {
-      collect: { id: Date.now(), collection_id: dto.collection_id, product_id: dto.product_id, created_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
-    };
-  }
 
   @ApiOperation({
-    summary: '[GET /com/collects.json] Danh sách liên kết sản phẩm - nhóm',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/collects.json | Tra cứu các liên kết phân loại nhóm',
+    summary: '[Smart Collection - Bộ sưu tập thông minh] [GET /com/smart_collections.json] Danh sách nhóm danh mục thông minh',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thông minh] Endpoint gốc: GET https://apis.haravan.com/com/smart_collections.json | Tra cứu nhóm danh mục thông minh',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @Get('com/collects.json')
-  async listCollects(@Headers('x-uniflow-mode') mode?: string) {
+  @Get('com/smart_collections.json')
+  async listSmartCollections(@Headers('x-uniflow-mode') mode?: string) {
     return {
-      collects: [
-        { id: 9101, collection_id: 100021, product_id: 881290 },
+      smart_collections: [
+        { id: 401, title: 'Sản phẩm Dưới 300K', disjunctive: false, rules: [{ column: 'variant_price', relation: 'less_than', condition: '300000' }] },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/collects/:id.json] Gỡ sản phẩm khỏi nhóm',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/collects/{id}.json | Xóa liên kết Collect',
+    summary: '[Smart Collection - Bộ sưu tập thông minh] [GET /com/smart_collections/:id.json] Chi tiết nhóm danh mục thông minh',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thông minh] Endpoint gốc: GET https://apis.haravan.com/com/smart_collections/{id}.json | Xem chi tiết quy tắc lọc tự động',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '9101' })
+  @ApiParam({ name: 'id', example: '401' })
+  @Get('com/smart_collections/:id.json')
+  async getSmartCollectionById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      smart_collection: { id: Number(id), title: 'Sản phẩm Dưới 300K', rules: [{ column: 'variant_price', relation: 'less_than', condition: '300000' }], mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Smart Collection - Bộ sưu tập thông minh] [PUT /com/smart_collections/:id.json] Cập nhật nhóm danh mục thông minh',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thông minh] Endpoint gốc: PUT https://apis.haravan.com/com/smart_collections/{id}.json | Sửa quy tắc nhóm thông minh',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '401' })
+  @ApiBody({ type: HaravanSmartCollectionDto })
+  @Put('com/smart_collections/:id.json')
+  async updateSmartCollection(@Param('id') id: string, @Body() dto: HaravanSmartCollectionDto, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      smart_collection: { id: Number(id), title: dto.title, rules: dto.rules, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Smart Collection - Bộ sưu tập thông minh] [DELETE /com/smart_collections/:id.json] Xóa nhóm danh mục thông minh',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập thông minh] Endpoint gốc: DELETE https://apis.haravan.com/com/smart_collections/{id}.json | Xóa nhóm thông minh',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '401' })
+  @Delete('com/smart_collections/:id.json')
+  async deleteSmartCollection(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COLLECTS SUB-RESOURCE
+// ═══════════════════════════════════════════════════════════════
+
+@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@Controller('api/v1/infra/haravan')
+export class HaravanCollectsController {
+  @ApiOperation({
+    summary: '[Collect - Liên kết Danh mục] [POST /com/collects.json] Gán sản phẩm vào nhóm bộ sưu tập (Collect)',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập / Collections] Endpoint gốc: POST https://apis.haravan.com/com/collects.json | Trong kiến trúc Haravan (tương tự Shopify & Sapo), "Collect" là đối tượng quan hệ trung gian (Join-table mapping) dùng để gán một Sản phẩm (Product) vào một Bộ sưu tập thủ công (Custom Collection).',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiBody({ type: HaravanCollectDto })
+  @Post('com/collects.json')
+  async createCollect(@Body() dto: HaravanCollectDto, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      collect: { id: Date.now(), collection_id: dto.collection_id, product_id: dto.product_id, position: dto.position || 1, mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Collect - Liên kết Danh mục] [GET /com/collects.json] Danh sách liên kết sản phẩm - bộ sưu tập',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập / Collections] Endpoint gốc: GET https://apis.haravan.com/com/collects.json | Tra cứu toàn bộ bảng quan hệ mapping giữa các Sản phẩm và các Bộ sưu tập thủ công.',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @Get('com/collects.json')
+  async listCollects(@Headers('x-uniflow-mode') mode?: string) {
+    return {
+      collects: [
+        { id: 901, collection_id: 301, product_id: 881290, position: 1 },
+      ],
+      mode: mode || 'SANDBOX',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Collect - Liên kết Danh mục] [GET /com/collects/:id.json] Chi tiết một liên kết sản phẩm - bộ sưu tập',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập / Collections] Endpoint gốc: GET https://apis.haravan.com/com/collects/{id}.json | Xem chi tiết thông tin một bản ghi liên kết giữa Product ID và Collection ID.',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '901' })
+  @Get('com/collects/:id.json')
+  async getCollectById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      collect: { id: Number(id), collection_id: 301, product_id: 881290, position: 1, mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Collect - Liên kết Danh mục] [DELETE /com/collects/:id.json] Gỡ sản phẩm khỏi bộ sưu tập (Xóa Collect)',
+    description: '[Thuộc danh mục: 02. Products > Bộ sưu tập / Collections] Endpoint gốc: DELETE https://apis.haravan.com/com/collects/{id}.json | Hủy bỏ mối quan hệ liên kết, đưa sản phẩm ra khỏi Bộ sưu tập thủ công.',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '901' })
   @Delete('com/collects/:id.json')
   async deleteCollect(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
-    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+    return { success: true, deleted_collect_id: Number(id), mode: mode || 'SANDBOX' };
   }
 }

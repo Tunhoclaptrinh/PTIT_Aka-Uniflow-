@@ -13,14 +13,15 @@ import {
 } from '../../dto/pos-haravan.dto';
 
 // ═══════════════════════════════════════════════════════════════
-// 1. ORDER RESOURCE
+// 1. ORDERS CATEGORY (Order, Draft Order, Fulfillment, Transaction, Refund)
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 01. Order')
+
+@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanOrdersController {
   @ApiOperation({
-    summary: '[POST /com/orders.json] Tạo đơn hàng Haravan',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Khởi tạo đơn hàng mới trên hệ thống Haravan Omnichannel',
+    summary: '[Order - Đơn hàng] [POST /com/orders.json] Tạo đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: POST https://apis.haravan.com/com/orders.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Khởi tạo đơn hàng mới trên hệ thống Haravan Omnichannel',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateOrderDto })
@@ -42,13 +43,15 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/orders.json] Danh sách đơn hàng Haravan',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/orders.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Truy vấn danh sách đơn hàng Haravan đa kênh',
+    summary: '[Order - Đơn hàng] [GET /com/orders.json] Danh sách đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: GET https://apis.haravan.com/com/orders.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Truy vấn danh sách đơn hàng Haravan đa kênh',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiQuery({ name: 'limit', example: 10, required: false })
   @ApiQuery({ name: 'page', example: 1, required: false })
   @ApiQuery({ name: 'status', example: 'open', required: false })
+  @ApiQuery({ name: 'financial_status', example: 'paid', required: false })
+  @ApiQuery({ name: 'fulfillment_status', example: 'unfulfilled', required: false })
   @Get('com/orders.json')
   async listOrders(@Query('limit') limit = 10, @Query('page') page = 1, @Headers('x-uniflow-mode') mode?: string) {
     return {
@@ -63,8 +66,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/orders/count.json] Đếm tổng số đơn hàng',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/orders/count.json | Lấy tổng số đơn theo bộ lọc trạng thái',
+    summary: '[Order - Đơn hàng] [GET /com/orders/count.json] Đếm tổng số đơn hàng',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: GET https://apis.haravan.com/com/orders/count.json | Lấy tổng số đơn theo bộ lọc trạng thái',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiQuery({ name: 'status', example: 'open', required: false })
@@ -74,8 +77,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/orders/:id.json] Chi tiết đơn hàng Haravan',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/orders/{id}.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Lấy thông tin chi tiết một đơn hàng',
+    summary: '[Order - Đơn hàng] [GET /com/orders/:id.json] Chi tiết đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: GET https://apis.haravan.com/com/orders/{id}.json | Docs: https://docs.haravan.com/docs/omni-apis/orders/ | Lấy thông tin chi tiết một đơn hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -97,8 +100,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[PUT /com/orders/:id.json] Cập nhật đơn hàng Haravan',
-    description: 'Endpoint gốc: PUT https://apis.haravan.com/com/orders/{id}.json | Cập nhật ghi chú và nhãn tags đơn hàng',
+    summary: '[Order - Đơn hàng] [PUT /com/orders/:id.json] Cập nhật đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: PUT https://apis.haravan.com/com/orders/{id}.json | Cập nhật địa chỉ nhận, ghi chú đơn hoặc tags',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -107,8 +110,8 @@ export class HaravanOrdersController {
   async updateOrder(@Param('id') id: string, @Body() dto: HaravanUpdateOrderDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
       order: {
-        id: Number(id) || dto.orderId,
-        note: dto.note,
+        id: Number(id),
+        note: dto.note || 'Cập nhật giao sau giờ hành chính',
         tags: dto.tags?.join(','),
         shipping_address: dto.shipping_address,
         updated_at: new Date().toISOString(),
@@ -118,8 +121,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/confirm.json] Xác nhận đơn hàng',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/confirm.json | Chuyển trạng thái đơn sang Đã xác nhận chuẩn bị hàng',
+    summary: '[Order - Trạng thái] [POST /com/orders/:id/confirm.json] Xác nhận đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/confirm.json | Đổi trạng thái đơn sang Đã xác nhận chuẩn bị hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -131,8 +134,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/close.json] Đóng đơn hàng',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/close.json | Đóng đơn hàng khi đã hoàn tất toàn bộ chu trình giao nhận',
+    summary: '[Order - Trạng thái] [POST /com/orders/:id/close.json] Đóng đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/close.json | Đóng đơn hàng khi hoàn tất toàn bộ chu trình xử lý',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -144,8 +147,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/open.json] Mở lại đơn hàng',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/open.json | Mở lại đơn đã bị đóng hoặc hủy',
+    summary: '[Order - Trạng thái] [POST /com/orders/:id/open.json] Mở lại đơn hàng đã đóng',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/open.json | Mở lại đơn hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -157,8 +160,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/cancel.json] Hủy đơn hàng và hoàn tồn',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/cancel.json | Hủy đơn hàng trên Haravan và hoàn trả tồn kho tự động',
+    summary: '[Order - Trạng thái] [POST /com/orders/:id/cancel.json] Hủy đơn hàng và hoàn tồn',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/cancel.json | Hủy đơn hàng trên Haravan và hoàn trả tồn kho tự động',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -178,8 +181,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/tags.json] Gán thẻ Tag cho đơn hàng',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/tags.json | Cập nhật nhãn phân loại đơn hàng',
+    summary: '[Order - Gán Tag] [POST /com/orders/:id/tags.json] Gán thẻ Tag cho đơn hàng',
+    description: '[Thuộc danh mục: 01. Orders > Thẻ Tag phân loại] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/tags.json | Cập nhật nhãn phân loại đơn hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -190,8 +193,20 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/orders/:id/assign.json] Phân công nhân viên xử lý đơn',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/assign.json | Gán đơn hàng cho chuyên viên phụ trách chốt đơn',
+    summary: '[Order - Gỡ Tag] [DELETE /com/orders/:id/tags.json] Gỡ bỏ thẻ Tag khỏi đơn hàng',
+    description: '[Thuộc danh mục: 01. Orders > Thẻ Tag phân loại] Endpoint gốc: DELETE https://apis.haravan.com/com/orders/{id}/tags.json | Xóa nhãn tag khỏi đơn hàng',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '1001' })
+  @ApiBody({ type: HaravanOrderTagsDto })
+  @Delete('com/orders/:id/tags.json')
+  async removeTags(@Param('id') id: string, @Body() dto: HaravanOrderTagsDto, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, order_id: Number(id), removed_tags: dto.tags, mode: mode || 'SANDBOX' };
+  }
+
+  @ApiOperation({
+    summary: '[Order - Phân công] [POST /com/orders/:id/assign.json] Phân công nhân viên xử lý đơn',
+    description: '[Thuộc danh mục: 01. Orders > Phân công nhiệm vụ] Endpoint gốc: POST https://apis.haravan.com/com/orders/{id}/assign.json | Gán đơn hàng cho chuyên viên phụ trách chốt đơn',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -202,8 +217,8 @@ export class HaravanOrdersController {
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/orders/:id.json] Xóa đơn hàng Haravan',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/orders/{id}.json | Xóa đơn hàng nháp khỏi hệ thống Haravan',
+    summary: '[Order - Đơn hàng] [DELETE /com/orders/:id.json] Xóa đơn hàng Haravan',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng chính thức] Endpoint gốc: DELETE https://apis.haravan.com/com/orders/{id}.json | Xóa đơn hàng nháp khỏi hệ thống Haravan',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '1001' })
@@ -214,14 +229,15 @@ export class HaravanOrdersController {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 2. DRAFT ORDER RESOURCE
+// DRAFT ORDERS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 02. Draft Order')
+
+@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanDraftOrdersController {
   @ApiOperation({
-    summary: '[POST /com/draft_orders.json] Tạo đơn hàng đặt trước (Draft Order)',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/draft_orders.json | Lập đơn đặt hàng bán sỉ hoặc báo giá đặt may',
+    summary: '[Draft Order - Đơn đặt trước] [POST /com/draft_orders.json] Tạo đơn hàng đặt trước (Draft Order)',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: POST https://apis.haravan.com/com/draft_orders.json | Lập đơn đặt hàng bán sỉ hoặc báo giá đặt may',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateDraftOrderDto })
@@ -241,8 +257,8 @@ export class HaravanDraftOrdersController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/draft_orders.json] Danh sách đơn đặt trước',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/draft_orders.json | Danh sách đơn hàng nháp đang chờ khách chốt',
+    summary: '[Draft Order - Đơn đặt trước] [GET /com/draft_orders.json] Danh sách đơn đặt trước',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: GET https://apis.haravan.com/com/draft_orders.json | Danh sách đơn hàng nháp đang chờ khách chốt',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @Get('com/draft_orders.json')
@@ -256,8 +272,52 @@ export class HaravanDraftOrdersController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/draft_orders/:id/complete.json] Chuyển đổi Draft Order thành Đơn chính thức',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/draft_orders/{id}/complete.json | Xác nhận hoàn tất đơn nháp và tạo đơn hàng chính thức',
+    summary: '[Draft Order - Đơn đặt trước] [GET /com/draft_orders/:id.json] Chi tiết đơn đặt trước',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: GET https://apis.haravan.com/com/draft_orders/{id}.json | Xem chi tiết đơn draft order',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '2001' })
+  @Get('com/draft_orders/:id.json')
+  async getDraftOrderById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      draft_order: {
+        id: Number(id),
+        name: `#D${id}`,
+        status: 'open',
+        total_price: 11250000,
+        line_items: [{ variant_id: 881294, quantity: 50, price: 225000, title: 'Áo Thun Polo Doanh Nghiệp' }],
+        mode: mode || 'SANDBOX',
+      },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Draft Order - Đơn đặt trước] [PUT /com/draft_orders/:id.json] Cập nhật đơn đặt trước',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: PUT https://apis.haravan.com/com/draft_orders/{id}.json | Cập nhật số lượng, chiết khấu đơn draft',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '2001' })
+  @Put('com/draft_orders/:id.json')
+  async updateDraftOrder(@Param('id') id: string, @Body() body: any, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      draft_order: { id: Number(id), status: 'open', updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Draft Order - Đơn đặt trước] [DELETE /com/draft_orders/:id.json] Xóa đơn đặt trước',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: DELETE https://apis.haravan.com/com/draft_orders/{id}.json | Xóa đơn draft order',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '2001' })
+  @Delete('com/draft_orders/:id.json')
+  async deleteDraftOrder(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+  }
+
+  @ApiOperation({
+    summary: '[Draft Order - Đơn đặt trước] [POST /com/draft_orders/:id/complete.json] Chuyển đổi Draft Order thành Đơn chính thức',
+    description: '[Thuộc danh mục: 01. Orders > Đơn hàng đặt trước / Báo giá] Endpoint gốc: POST https://apis.haravan.com/com/draft_orders/{id}/complete.json | Xác nhận hoàn tất đơn nháp và tạo đơn hàng chính thức',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '2001' })
@@ -272,14 +332,15 @@ export class HaravanDraftOrdersController {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 3. FULFILLMENT RESOURCE
+// FULFILLMENT SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 03. Fulfillment')
+
+@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanFulfillmentsController {
   @ApiOperation({
-    summary: '[POST /com/orders/:order_id/fulfillments.json] Xuất kho giao vận fulfillment',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/fulfillments.json | Tạo vận đơn và xuất kho đóng gói',
+    summary: '[Fulfillment - Xuất kho] [POST /com/orders/:order_id/fulfillments.json] Xuất kho giao vận fulfillment',
+    description: '[Thuộc danh mục: 01. Orders > Giao vận fulfillment] Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/fulfillments.json | Tạo vận đơn và xuất kho đóng gói',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'order_id', example: '1001' })
@@ -300,8 +361,8 @@ export class HaravanFulfillmentsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/orders/:order_id/fulfillments.json] Danh sách đợt giao hàng của đơn',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/fulfillments.json | Lịch sử các kiện hàng đã xuất đi',
+    summary: '[Fulfillment - Xuất kho] [GET /com/orders/:order_id/fulfillments.json] Danh sách đợt giao hàng của đơn',
+    description: '[Thuộc danh mục: 01. Orders > Giao vận fulfillment] Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/fulfillments.json | Lịch sử các kiện hàng đã xuất đi',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'order_id', example: '1001' })
@@ -314,17 +375,44 @@ export class HaravanFulfillmentsController {
       mode: mode || 'SANDBOX',
     };
   }
+
+  @ApiOperation({
+    summary: '[Fulfillment - Xuất kho] [GET /com/orders/:order_id/fulfillments/:id.json] Chi tiết đợt giao hàng fulfillment',
+    description: '[Thuộc danh mục: 01. Orders > Giao vận fulfillment] Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/fulfillments/{id}.json | Tra cứu chi tiết một đợt phát hàng',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'order_id', example: '1001' })
+  @ApiParam({ name: 'id', example: '9001' })
+  @Get('com/orders/:order_id/fulfillments/:id.json')
+  async getFulfillmentDetail(@Param('order_id') orderId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      fulfillment: { id: Number(id), order_id: Number(orderId), tracking_number: 'GHN_HRV_99812', status: 'success', mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Fulfillment - Xuất kho] [POST /com/orders/:order_id/fulfillments/:id/cancel.json] Hủy đợt giao hàng fulfillment',
+    description: '[Thuộc danh mục: 01. Orders > Giao vận fulfillment] Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/fulfillments/{id}/cancel.json | Hủy xuất kho giao hàng',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'order_id', example: '1001' })
+  @ApiParam({ name: 'id', example: '9001' })
+  @Post('com/orders/:order_id/fulfillments/:id/cancel.json')
+  async cancelFulfillment(@Param('order_id') orderId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, fulfillment_id: Number(id), status: 'cancelled', mode: mode || 'SANDBOX' };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 4. TRANSACTION RESOURCE
+// TRANSACTION SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 04. Transaction')
+
+@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanTransactionsController {
   @ApiOperation({
-    summary: '[POST /com/orders/:order_id/transactions.json] Ghi nhận giao dịch thanh toán',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/transactions.json | Ghi nhận thanh toán tiền mặt/chuyển khoản/cổng online',
+    summary: '[Transaction - Thanh toán] [POST /com/orders/:order_id/transactions.json] Ghi nhận giao dịch thanh toán',
+    description: '[Thuộc danh mục: 01. Orders > Giao dịch thanh toán] Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/transactions.json | Ghi nhận thanh toán tiền mặt/chuyển khoản/cổng online',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'order_id', example: '1001' })
@@ -346,8 +434,8 @@ export class HaravanTransactionsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/orders/:order_id/transactions.json] Lịch sử giao dịch thanh toán của đơn',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/transactions.json | Danh sách các lần quẹt thẻ, thanh toán hoặc hoàn tiền',
+    summary: '[Transaction - Thanh toán] [GET /com/orders/:order_id/transactions.json] Lịch sử giao dịch thanh toán của đơn',
+    description: '[Thuộc danh mục: 01. Orders > Giao dịch thanh toán] Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/transactions.json | Danh sách các lần quẹt thẻ, thanh toán hoặc hoàn tiền',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'order_id', example: '1001' })
@@ -360,17 +448,32 @@ export class HaravanTransactionsController {
       mode: mode || 'SANDBOX',
     };
   }
+
+  @ApiOperation({
+    summary: '[Transaction - Thanh toán] [GET /com/orders/:order_id/transactions/:id.json] Chi tiết giao dịch thanh toán',
+    description: '[Thuộc danh mục: 01. Orders > Giao dịch thanh toán] Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/transactions/{id}.json | Xem thông tin chi tiết một giao dịch',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'order_id', example: '1001' })
+  @ApiParam({ name: 'id', example: '4001' })
+  @Get('com/orders/:order_id/transactions/:id.json')
+  async getTransactionDetail(@Param('order_id') orderId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      transaction: { id: Number(id), order_id: Number(orderId), kind: 'sale', amount: 580000, status: 'success', mode: mode || 'SANDBOX' },
+    };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 5. REFUND RESOURCE
+// REFUND SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 05. Refund')
+
+@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanRefundsController {
   @ApiOperation({
-    summary: '[POST /com/orders/:order_id/refunds.json] Tạo phiếu hoàn tiền và đổi trả hàng',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/refunds.json | Hoàn trả tiền và nhập lại hàng vào kho',
+    summary: '[Refund - Đổi trả hoàn tiền] [POST /com/orders/:order_id/refunds.json] Tạo phiếu hoàn tiền và đổi trả hàng',
+    description: '[Thuộc danh mục: 01. Orders > Đổi trả & Hoàn tiền] Endpoint gốc: POST https://apis.haravan.com/com/orders/{order_id}/refunds.json | Hoàn trả tiền và nhập lại hàng vào kho',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'order_id', example: '1001' })
@@ -390,8 +493,8 @@ export class HaravanRefundsController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/refunds.json] Danh sách phiếu đổi trả hàng toàn hệ thống',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/refunds.json | Tra cứu lịch sử đổi trả của cửa hàng',
+    summary: '[Refund - Đổi trả hoàn tiền] [GET /com/refunds.json] Danh sách phiếu đổi trả hàng toàn hệ thống',
+    description: '[Thuộc danh mục: 01. Orders > Đổi trả & Hoàn tiền] Endpoint gốc: GET https://apis.haravan.com/com/refunds.json | Tra cứu lịch sử đổi trả của cửa hàng',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @Get('com/refunds.json')
@@ -401,6 +504,20 @@ export class HaravanRefundsController {
         { id: 5001, order_id: 1001, note: 'Khách đổi size', created_at: new Date().toISOString() },
       ],
       mode: mode || 'SANDBOX',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Refund - Đổi trả hoàn tiền] [GET /com/orders/:order_id/refunds/:id.json] Chi tiết phiếu đổi trả hàng',
+    description: '[Thuộc danh mục: 01. Orders > Đổi trả & Hoàn tiền] Endpoint gốc: GET https://apis.haravan.com/com/orders/{order_id}/refunds/{id}.json | Chi tiết line items đổi trả',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'order_id', example: '1001' })
+  @ApiParam({ name: 'id', example: '5001' })
+  @Get('com/orders/:order_id/refunds/:id.json')
+  async getRefundDetail(@Param('order_id') orderId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      refund: { id: Number(id), order_id: Number(orderId), note: 'Khách đổi size', mode: mode || 'SANDBOX' },
     };
   }
 }

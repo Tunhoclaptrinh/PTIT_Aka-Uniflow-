@@ -8,19 +8,21 @@ import {
 } from '../../dto/pos-haravan.dto';
 
 // ═══════════════════════════════════════════════════════════════
-// 21. ARTICLE RESOURCE
+// 7. ONLINE STORE — HARAWEB CATEGORY (Articles, Blogs, Comments, Pages)
+// Hỗ trợ cả 2 tiền tố /com/ (Commerce) và /web/ (Haraweb) theo AccessScopes
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 21. Article')
+
+@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanArticlesController {
   @ApiOperation({
-    summary: '[POST /com/blogs/:blog_id/articles.json] Tạo bài viết trong Blog',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/blogs/{blog_id}/articles.json | Docs: https://docs.haravan.com/docs/omni-apis/articles/ | Đăng bài viết mới vào chuyên mục Blog chuẩn SEO',
+    summary: '[Article - Bài viết SEO] [POST /com & /web/blogs/:blog_id/articles.json] Tạo bài viết trong Blog',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: POST https://apis.haravan.com/web/blogs/{blog_id}/articles.json (hoặc /com/) | Đăng bài viết mới vào chuyên mục Blog chuẩn SEO',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'blog_id', example: '202' })
   @ApiBody({ type: HaravanCreateArticleDto })
-  @Post('com/blogs/:blog_id/articles.json')
+  @Post(['com/blogs/:blog_id/articles.json', 'web/blogs/:blog_id/articles.json'])
   async createArticleInBlog(@Param('blog_id') blogId: string, @Body() dto: HaravanCreateArticleDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
       article: {
@@ -38,12 +40,12 @@ export class HaravanArticlesController {
   }
 
   @ApiOperation({
-    summary: '[POST /com/articles.json] Tạo bài viết mới trực tiếp',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/articles.json | Đăng bài viết mới trực tiếp kèm blog_id',
+    summary: '[Article - Bài viết SEO] [POST /com & /web/articles.json] Tạo bài viết mới trực tiếp',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: POST https://apis.haravan.com/com/articles.json | Đăng bài viết mới trực tiếp kèm blog_id',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateArticleDto })
-  @Post('com/articles.json')
+  @Post(['com/articles.json', 'web/articles.json'])
   async createArticleDirect(@Body() dto: HaravanCreateArticleDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
       article: {
@@ -61,267 +63,263 @@ export class HaravanArticlesController {
   }
 
   @ApiOperation({
-    summary: '[GET /com/blogs/:blog_id/articles.json] Danh sách bài viết trong Blog',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/blogs/{blog_id}/articles.json | Truy vấn các bài viết thuộc chuyên mục Blog',
+    summary: '[Article - Bài viết SEO] [GET /com & /web/blogs/:blog_id/articles.json] Danh sách bài viết theo Blog',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: GET https://apis.haravan.com/web/blogs/{blog_id}/articles.json | Danh sách bài viết trong một chuyên mục',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'blog_id', example: '202' })
-  @ApiQuery({ name: 'limit', example: 20, required: false })
-  @Get('com/blogs/:blog_id/articles.json')
-  async listArticlesInBlog(@Param('blog_id') blogId: string, @Query('limit') limit = 20, @Headers('x-uniflow-mode') mode?: string) {
+  @Get(['com/blogs/:blog_id/articles.json', 'web/blogs/:blog_id/articles.json'])
+  async listArticlesInBlog(@Param('blog_id') blogId: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
       articles: [
-        { id: 88101, blog_id: Number(blogId), title: 'Xu Hướng Thời Trang Streetwear 2026 Chuẩn Phong Cách', author: 'Stylist UniFlow', published_at: new Date().toISOString() },
+        { id: 7001, blog_id: Number(blogId), title: 'Xu Hướng Thời Trang Công Sở 2026', author: 'UniFlow Editorial', published_at: new Date().toISOString() },
       ],
-      limit: Number(limit),
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/articles.json] Toàn bộ danh sách bài viết Haravan',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/articles.json | Danh sách tất cả bài viết trên website',
+    summary: '[Article - Bài viết SEO] [GET /com & /web/articles.json] Danh sách tất cả bài viết trên Website',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: GET https://apis.haravan.com/web/articles.json | Lấy toàn bộ bài viết trên website',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiQuery({ name: 'limit', example: 20, required: false })
-  @Get('com/articles.json')
-  async listAllArticles(@Query('limit') limit = 20, @Headers('x-uniflow-mode') mode?: string) {
+  @Get(['com/articles.json', 'web/articles.json'])
+  async listAllArticles(@Headers('x-uniflow-mode') mode?: string) {
     return {
       articles: [
-        { id: 88101, blog_id: 202, title: 'Xu Hướng Thời Trang Streetwear 2026 Chuẩn Phong Cách', author: 'Stylist UniFlow', published_at: new Date().toISOString() },
+        { id: 7001, blog_id: 202, title: 'Xu Hướng Thời Trang Công Sở 2026', author: 'UniFlow Editorial' },
+        { id: 7002, blog_id: 201, title: 'Bí Quyết Phối Đồ Nam Tối Giản', author: 'UniFlow Editorial' },
       ],
-      limit: Number(limit),
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/articles/:id.json] Chi tiết bài viết',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/articles/{id}.json | Lấy nội dung chi tiết bài viết HTML và ảnh banner',
+    summary: '[Article - Bài viết SEO] [GET /com & /web/articles/:id.json] Chi tiết bài viết CMS',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: GET https://apis.haravan.com/web/articles/{id}.json | Xem nội dung HTML và cấu trúc SEO của bài viết',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '88101' })
-  @Get('com/articles/:id.json')
+  @ApiParam({ name: 'id', example: '7001' })
+  @Get(['com/articles/:id.json', 'web/articles/:id.json'])
   async getArticleById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
       article: {
         id: Number(id),
         blog_id: 202,
-        title: 'Xu Hướng Thời Trang Streetwear 2026 Chuẩn Phong Cách',
-        body_html: '<p>Phong cách Streetwear ngày càng khẳng định vị thế với các bạn trẻ...</p>',
-        author: 'Stylist UniFlow',
-        published_at: new Date().toISOString(),
+        title: 'Xu Hướng Thời Trang Công Sở 2026',
+        body_html: '<p>Năm 2026 chứng kiến sự lên ngôi của phong cách Quiet Luxury...</p>',
+        author: 'UniFlow Editorial',
         mode: mode || 'SANDBOX',
       },
     };
   }
 
   @ApiOperation({
-    summary: '[PUT /com/blogs/:blog_id/articles/:id.json] Cập nhật bài viết',
-    description: 'Endpoint gốc: PUT https://apis.haravan.com/com/blogs/{blog_id}/articles/{id}.json | Sửa nội dung bài viết',
+    summary: '[Article - Bài viết SEO] [PUT /com & /web/blogs/:blog_id/articles/:id.json] Cập nhật bài viết',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: PUT https://apis.haravan.com/web/blogs/{blog_id}/articles/{id}.json | Sửa nội dung hoặc hình ảnh bài viết',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'blog_id', example: '202' })
-  @ApiParam({ name: 'id', example: '88101' })
+  @ApiParam({ name: 'id', example: '7001' })
   @ApiBody({ type: HaravanCreateArticleDto })
-  @Put('com/blogs/:blog_id/articles/:id.json')
+  @Put(['com/blogs/:blog_id/articles/:id.json', 'web/blogs/:blog_id/articles/:id.json'])
   async updateArticle(@Param('blog_id') blogId: string, @Param('id') id: string, @Body() dto: HaravanCreateArticleDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      article: { id: Number(id), blog_id: Number(blogId), ...dto, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+      article: { id: Number(id), blog_id: Number(blogId), title: dto.title, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/blogs/:blog_id/articles/:id.json] Xóa bài viết',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/blogs/{blog_id}/articles/{id}.json | Gỡ bài viết khỏi blog',
+    summary: '[Article - Bài viết SEO] [DELETE /com & /web/blogs/:blog_id/articles/:id.json] Xóa bài viết',
+    description: '[Thuộc danh mục: 07. Online store > Bài viết Blog SEO] Endpoint gốc: DELETE https://apis.haravan.com/web/blogs/{blog_id}/articles/{id}.json | Xóa bài viết khỏi blog',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'blog_id', example: '202' })
-  @ApiParam({ name: 'id', example: '88101' })
-  @Delete('com/blogs/:blog_id/articles/:id.json')
+  @ApiParam({ name: 'id', example: '7001' })
+  @Delete(['com/blogs/:blog_id/articles/:id.json', 'web/blogs/:blog_id/articles/:id.json'])
   async deleteArticle(@Param('blog_id') blogId: string, @Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
-    return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
+    return { success: true, deleted_id: Number(id), blog_id: Number(blogId), mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 22. BLOG RESOURCE
+// BLOGS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 22. Blog')
+
+@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanBlogsController {
   @ApiOperation({
-    summary: '[POST /com/blogs.json] Tạo chuyên mục Blog mới',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/blogs.json | Docs: https://docs.haravan.com/docs/omni-apis/blogs/ | Tạo chuyên mục tin tức/bài viết',
+    summary: '[Blog - Chuyên mục tin tức] [POST /com & /web/blogs.json] Tạo chuyên mục Blog mới',
+    description: '[Thuộc danh mục: 07. Online store > Chuyên mục Blog tin tức] Endpoint gốc: POST https://apis.haravan.com/web/blogs.json | Docs: https://docs.haravan.com/docs/omni-apis/blogs/ | Tạo chuyên mục tin tức / blog',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreateBlogDto })
-  @Post('com/blogs.json')
+  @Post(['com/blogs.json', 'web/blogs.json'])
   async createBlog(@Body() dto: HaravanCreateBlogDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      blog: {
-        id: Date.now(),
-        title: dto.title,
-        handle: dto.handle || 'chuyen-muc-moi',
-        created_at: new Date().toISOString(),
-        mode: mode || 'SANDBOX',
-      },
+      blog: { id: Date.now(), title: dto.title, handle: dto.handle || 'tin-tuc', created_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/blogs.json] Danh sách các chuyên mục Blog',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/blogs.json | Tra cứu tất cả danh mục Blog',
+    summary: '[Blog - Chuyên mục tin tức] [GET /com & /web/blogs.json] Danh sách các chuyên mục Blog',
+    description: '[Thuộc danh mục: 07. Online store > Chuyên mục Blog tin tức] Endpoint gốc: GET https://apis.haravan.com/web/blogs.json | Tra cứu tất cả chuyên mục blog trên website',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @Get('com/blogs.json')
+  @Get(['com/blogs.json', 'web/blogs.json'])
   async listBlogs(@Headers('x-uniflow-mode') mode?: string) {
     return {
       blogs: [
-        { id: 201, title: 'Tin Tức Hoạt Động & Sự Kiện', handle: 'tin-tuc-su-kien' },
-        { id: 202, title: 'Kinh Nghiệm Phối Đồ & Thời Trang', handle: 'kinh-nghiem-phoi-do' },
+        { id: 201, title: 'Tin Tức Thời Trang', handle: 'tin-tuc-thoi-trang', articles_count: 12 },
+        { id: 202, title: 'Cẩm Nang Phối Đồ', handle: 'cam-nang-phoi-do', articles_count: 24 },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/blogs/:id.json] Chi tiết chuyên mục Blog',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/blogs/{id}.json | Xem chi tiết chuyên mục',
+    summary: '[Blog - Chuyên mục tin tức] [GET /com & /web/blogs/:id.json] Chi tiết chuyên mục Blog',
+    description: '[Thuộc danh mục: 07. Online store > Chuyên mục Blog tin tức] Endpoint gốc: GET https://apis.haravan.com/web/blogs/{id}.json | Xem chi tiết chuyên mục',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '202' })
-  @Get('com/blogs/:id.json')
+  @ApiParam({ name: 'id', example: '201' })
+  @Get(['com/blogs/:id.json', 'web/blogs/:id.json'])
   async getBlogById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      blog: { id: Number(id), title: 'Kinh Nghiệm Phối Đồ & Thời Trang', handle: 'kinh-nghiem-phoi-do', mode: mode || 'SANDBOX' },
+      blog: { id: Number(id), title: 'Tin Tức Thời Trang', handle: 'tin-tuc-thoi-trang', mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/blogs/:id.json] Xóa chuyên mục Blog',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/blogs/{id}.json | Hủy chuyên mục Blog',
+    summary: '[Blog - Chuyên mục tin tức] [DELETE /com & /web/blogs/:id.json] Xóa chuyên mục Blog',
+    description: '[Thuộc danh mục: 07. Online store > Chuyên mục Blog tin tức] Endpoint gốc: DELETE https://apis.haravan.com/web/blogs/{id}.json | Xóa chuyên mục blog',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '202' })
-  @Delete('com/blogs/:id.json')
+  @ApiParam({ name: 'id', example: '201' })
+  @Delete(['com/blogs/:id.json', 'web/blogs/:id.json'])
   async deleteBlog(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
     return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 23. COMMENT RESOURCE
+// COMMENTS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 23. Comment')
+
+@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCommentsController {
   @ApiOperation({
-    summary: '[GET /com/comments.json] Danh sách bình luận bài viết của độc giả',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/comments.json | Docs: https://docs.haravan.com/docs/omni-apis/comments/ | Quản lý kiểm duyệt bình luận',
+    summary: '[Comment - Bình luận] [GET /com & /web/comments.json] Danh sách bình luận bài viết',
+    description: '[Thuộc danh mục: 07. Online store > Bình luận độc giả] Endpoint gốc: GET https://apis.haravan.com/web/comments.json | Docs: https://docs.haravan.com/docs/omni-apis/comments/ | Danh sách phản hồi của độc giả',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @Get('com/comments.json')
+  @Get(['com/comments.json', 'web/comments.json'])
   async listComments(@Headers('x-uniflow-mode') mode?: string) {
     return {
       comments: [
-        { id: 901, article_id: 88101, author: 'Nguyễn Văn Quân', body: 'Bài viết rất hay!', status: 'published' },
+        { id: 801, article_id: 7001, author: 'Nguyễn Văn Quân', body: 'Bài viết rất hữu ích, cảm ơn shop!', status: 'published' },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[POST /com/comments.json] Đăng bình luận mới',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/comments.json | Đăng phản hồi dưới bài viết',
+    summary: '[Comment - Bình luận] [POST /com & /web/comments.json] Đăng bình luận mới',
+    description: '[Thuộc danh mục: 07. Online store > Bình luận độc giả] Endpoint gốc: POST https://apis.haravan.com/web/comments.json | Gửi bình luận đánh giá bài viết',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCommentDto })
-  @Post('com/comments.json')
+  @Post(['com/comments.json', 'web/comments.json'])
   async createComment(@Body() dto: HaravanCommentDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      comment: { id: Date.now(), ...dto, status: 'published', created_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+      comment: { id: Date.now(), author: dto.author, body: dto.body, email: dto.email, status: 'published', created_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[POST /com/comments/:id/spam.json] Đánh dấu bình luận là Spam',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/comments/{id}/spam.json | Chặn và ẩn bình luận spam',
+    summary: '[Comment - Bình luận] [POST /com & /web/comments/:id/spam.json] Đánh dấu bình luận là Spam',
+    description: '[Thuộc danh mục: 07. Online store > Bình luận độc giả] Endpoint gốc: POST https://apis.haravan.com/web/comments/{id}/spam.json | Đánh dấu và ẩn bình luận rác',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '901' })
-  @Post('com/comments/:id/spam.json')
+  @ApiParam({ name: 'id', example: '801' })
+  @Post(['com/comments/:id/spam.json', 'web/comments/:id/spam.json'])
   async markSpam(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
-    return { comment: { id: Number(id), status: 'spam', mode: mode || 'SANDBOX' } };
+    return { success: true, comment_id: Number(id), status: 'spam', mode: mode || 'SANDBOX' };
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 24. PAGE RESOURCE
+// PAGES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
-@ApiTags('[POS-Haravan] 24. Page')
+
+@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanPagesController {
   @ApiOperation({
-    summary: '[POST /com/pages.json] Tạo trang tĩnh website Haravan Web',
-    description: 'Endpoint gốc: POST https://apis.haravan.com/com/pages.json | Docs: https://docs.haravan.com/docs/omni-apis/pages/ | Tạo trang nội dung tĩnh (Giới thiệu, Chính sách, Điều khoản)',
+    summary: '[Page - Trang tĩnh] [POST /com & /web/pages.json] Tạo trang tĩnh website Haravan Web',
+    description: '[Thuộc danh mục: 07. Online store > Trang nội dung tĩnh] Endpoint gốc: POST https://apis.haravan.com/web/pages.json | Docs: https://docs.haravan.com/docs/omni-apis/pages/ | Tạo trang giới thiệu, chính sách bảo hành, hướng dẫn',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiBody({ type: HaravanCreatePageDto })
-  @Post('com/pages.json')
+  @Post(['com/pages.json', 'web/pages.json'])
   async createPage(@Body() dto: HaravanCreatePageDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      page: {
-        id: Date.now(),
-        title: dto.title,
-        body_html: dto.body_html,
-        created_at: new Date().toISOString(),
-        mode: mode || 'SANDBOX',
-      },
+      page: { id: Date.now(), title: dto.title, body_html: dto.body_html, handle: dto.handle || 'chinh-sach', created_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/pages.json] Danh sách các trang nội dung tĩnh',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/pages.json | Xem danh mục các trang tĩnh',
+    summary: '[Page - Trang tĩnh] [GET /com & /web/pages.json] Danh sách các trang nội dung tĩnh',
+    description: '[Thuộc danh mục: 07. Online store > Trang nội dung tĩnh] Endpoint gốc: GET https://apis.haravan.com/web/pages.json | Tra cứu tất cả các trang nội dung tĩnh',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @Get('com/pages.json')
+  @Get(['com/pages.json', 'web/pages.json'])
   async listPages(@Headers('x-uniflow-mode') mode?: string) {
     return {
       pages: [
-        { id: 301, title: 'Về Chúng Tôi - UniFlow Brand Story', handle: 've-chung-toi' },
-        { id: 302, title: 'Chính Sách Đổi Trả & Bảo Hành', handle: 'chinh-sach-doi-tra' },
+        { id: 101, title: 'Về Chúng Tôi', handle: 've-chung-toi' },
+        { id: 102, title: 'Chính Sách Đổi Trả', handle: 'chinh-sach-doi-tra' },
       ],
       mode: mode || 'SANDBOX',
     };
   }
 
   @ApiOperation({
-    summary: '[GET /com/pages/:id.json] Xem chi tiết trang tĩnh',
-    description: 'Endpoint gốc: GET https://apis.haravan.com/com/pages/{id}.json | Xem nội dung mã HTML trang',
+    summary: '[Page - Trang tĩnh] [GET /com & /web/pages/:id.json] Xem chi tiết nội dung mã HTML trang',
+    description: '[Thuộc danh mục: 07. Online store > Trang nội dung tĩnh] Endpoint gốc: GET https://apis.haravan.com/web/pages/{id}.json | Lấy mã HTML của trang',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '301' })
-  @Get('com/pages/:id.json')
+  @ApiParam({ name: 'id', example: '101' })
+  @Get(['com/pages/:id.json', 'web/pages/:id.json'])
   async getPageById(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      page: {
-        id: Number(id),
-        title: 'Về Chúng Tôi - UniFlow Brand Story',
-        body_html: '<p>UniFlow là hệ sinh thái tự động hóa doanh nghiệp bán lẻ...</p>',
-        mode: mode || 'SANDBOX',
-      },
+      page: { id: Number(id), title: 'Về Chúng Tôi', body_html: '<h2>UniFlow Enterprise</h2><p>Hệ thống tự động hóa...</p>', mode: mode || 'SANDBOX' },
     };
   }
 
   @ApiOperation({
-    summary: '[DELETE /com/pages/:id.json] Xóa trang tĩnh',
-    description: 'Endpoint gốc: DELETE https://apis.haravan.com/com/pages/{id}.json | Gỡ trang tĩnh khỏi website',
+    summary: '[Page - Trang tĩnh] [PUT /com & /web/pages/:id.json] Cập nhật trang tĩnh',
+    description: '[Thuộc danh mục: 07. Online store > Trang nội dung tĩnh] Endpoint gốc: PUT https://apis.haravan.com/web/pages/{id}.json | Sửa nội dung trang tĩnh',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
-  @ApiParam({ name: 'id', example: '301' })
-  @Delete('com/pages/:id.json')
+  @ApiParam({ name: 'id', example: '101' })
+  @ApiBody({ type: HaravanCreatePageDto })
+  @Put(['com/pages/:id.json', 'web/pages/:id.json'])
+  async updatePage(@Param('id') id: string, @Body() dto: HaravanCreatePageDto, @Headers('x-uniflow-mode') mode?: string) {
+    return {
+      page: { id: Number(id), title: dto.title, body_html: dto.body_html, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Page - Trang tĩnh] [DELETE /com & /web/pages/:id.json] Xóa trang tĩnh',
+    description: '[Thuộc danh mục: 07. Online store > Trang nội dung tĩnh] Endpoint gốc: DELETE https://apis.haravan.com/web/pages/{id}.json | Xóa trang khỏi website',
+  })
+  @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiParam({ name: 'id', example: '101' })
+  @Delete(['com/pages/:id.json', 'web/pages/:id.json'])
   async deletePage(@Param('id') id: string, @Headers('x-uniflow-mode') mode?: string) {
     return { success: true, deleted_id: Number(id), mode: mode || 'SANDBOX' };
   }

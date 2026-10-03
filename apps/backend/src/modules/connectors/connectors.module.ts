@@ -16,10 +16,17 @@ import { InfraGatewayController, SandboxSimulatorController } from './infra-gate
 import { MarketplacesController } from './controllers/marketplaces.controller';
 import {
   PancakeOrdersController,
-  PancakeConversationsController,
+  PancakeOrderTagsController,
+  PancakeCustomersController,
+  PancakeProductsController,
   PancakeInventoryController,
-  PancakeWebhooksController,
-} from './controllers/pos-pancake.controller';
+  PancakePurchasesController,
+  PancakePromotionsController,
+  PancakeFinanceController,
+  PancakeAnalyticsController,
+  PancakeChannelsController,
+  PancakeSystemController,
+} from './controllers/pancake';
 import {
   LogisticsGhtkController,
   LogisticsGhnController,
@@ -79,17 +86,18 @@ import {
   SapoShipmentsController,
 } from './controllers/sapo';
 
-// 3. KIOTVIET MODULAR CONTROLLERS (6 Modules)
+// 3. KIOTVIET MODULAR CONTROLLERS (7 Modules)
 import {
   KiotVietInvoicesController,
   KiotVietProductsController,
   KiotVietInventoryController,
   KiotVietCustomersController,
   KiotVietBranchesController,
+  KiotVietPromotionsController,
   KiotVietWebhooksController,
 } from './controllers/kiotviet';
 
-// 4. HARAVAN OMNICHANNEL MODULAR CONTROLLERS (30 Dedicated Resources)
+// 4. HARAVAN OMNICHANNEL MODULAR CONTROLLERS (12 Official Categories)
 import {
   HaravanOrdersController,
   HaravanDraftOrdersController,
@@ -97,8 +105,8 @@ import {
   HaravanTransactionsController,
   HaravanRefundsController,
   HaravanProductsController,
-  HaravanVariantsController,
-  HaravanImagesController,
+  HaravanProductVariantsController,
+  HaravanProductImagesController,
   HaravanCustomCollectionsController,
   HaravanSmartCollectionsController,
   HaravanCollectsController,
@@ -117,10 +125,11 @@ import {
   HaravanPagesController,
   HaravanThemeAssetsController,
   HaravanMetafieldsController,
-  HaravanRedirectsScriptTagsController,
-  HaravanWebhooksController,
+  HaravanRedirectScriptTagsController,
   HaravanEventsController,
-  HaravanShopPropertiesController,
+  HaravanStorePropertiesController,
+  HaravanWebhooksController,
+  HaravanAccessScopesController,
 } from './controllers/haravan';
 
 // 5. MISA ECOSYSTEM RESOURCE CONTROLLERS (18 Dedicated Resources)
@@ -137,15 +146,20 @@ import {
   MisaMeinvoiceHsmController,
   MisaMeinvoiceLifecycleController,
   MisaMeinvoiceTaxPreviewController,
-  // MISA AMIS CRM (5)
+  // MISA AMIS CRM (9)
+  MisaAmisCrmAccountController,
   MisaAmisCrmCustomersController,
   MisaAmisCrmContactsController,
+  MisaAmisCrmProductsController,
+  MisaAmisCrmSaleOrdersController,
+  MisaAmisCrmStocksController,
   MisaAmisCrmLeadsController,
   MisaAmisCrmOpportunitiesController,
   MisaAmisCrmQuotationsController,
-  // MISA AMIS Accounting (3)
+  // MISA AMIS Accounting (4)
   MisaAmisAccountingVouchersController,
   MisaAmisAccountingProductsController,
+  MisaAmisAccountingCallbackController,
   MisaAmisAccountingReportsController,
 } from './controllers/misa';
 
@@ -166,11 +180,18 @@ import {
     InfraGatewayController,
     SandboxSimulatorController,
     MarketplacesController,
-    // Pancake (4)
+    // Pancake POS Modular Controllers (11 Modules, 103+ Endpoints)
     PancakeOrdersController,
-    PancakeConversationsController,
+    PancakeOrderTagsController,
+    PancakeCustomersController,
+    PancakeProductsController,
     PancakeInventoryController,
-    PancakeWebhooksController,
+    PancakePurchasesController,
+    PancakePromotionsController,
+    PancakeFinanceController,
+    PancakeAnalyticsController,
+    PancakeChannelsController,
+    PancakeSystemController,
 
     // Logistics VN (3)
     LogisticsGhtkController,
@@ -226,23 +247,24 @@ import {
     SapoReportsController,
     SapoShipmentsController,
 
-    // KiotViet (6)
+    // KiotViet (7)
     KiotVietInvoicesController,
     KiotVietProductsController,
     KiotVietInventoryController,
     KiotVietCustomersController,
     KiotVietBranchesController,
+    KiotVietPromotionsController,
     KiotVietWebhooksController,
 
-    // Haravan Omnichannel (30 Dedicated Resources)
+    // Haravan Omnichannel (12 Official Categories)
     HaravanOrdersController,
     HaravanDraftOrdersController,
     HaravanFulfillmentsController,
     HaravanTransactionsController,
     HaravanRefundsController,
     HaravanProductsController,
-    HaravanVariantsController,
-    HaravanImagesController,
+    HaravanProductVariantsController,
+    HaravanProductImagesController,
     HaravanCustomCollectionsController,
     HaravanSmartCollectionsController,
     HaravanCollectsController,
@@ -261,10 +283,11 @@ import {
     HaravanPagesController,
     HaravanThemeAssetsController,
     HaravanMetafieldsController,
-    HaravanRedirectsScriptTagsController,
-    HaravanWebhooksController,
+    HaravanRedirectScriptTagsController,
     HaravanEventsController,
-    HaravanShopPropertiesController,
+    HaravanStorePropertiesController,
+    HaravanWebhooksController,
+    HaravanAccessScopesController,
 
     // MISA Ecosystem (18 Resources)
     MisaEshopOrdersController,
@@ -277,13 +300,19 @@ import {
     MisaMeinvoiceHsmController,
     MisaMeinvoiceLifecycleController,
     MisaMeinvoiceTaxPreviewController,
+    // MISA AMIS CRM (9)
+    MisaAmisCrmAccountController,
     MisaAmisCrmCustomersController,
     MisaAmisCrmContactsController,
+    MisaAmisCrmProductsController,
+    MisaAmisCrmSaleOrdersController,
+    MisaAmisCrmStocksController,
     MisaAmisCrmLeadsController,
     MisaAmisCrmOpportunitiesController,
     MisaAmisCrmQuotationsController,
     MisaAmisAccountingVouchersController,
     MisaAmisAccountingProductsController,
+    MisaAmisAccountingCallbackController,
     MisaAmisAccountingReportsController,
   ],
   providers: [ConnectorsService, ActionsService, SyncPollerService, SecurityService],

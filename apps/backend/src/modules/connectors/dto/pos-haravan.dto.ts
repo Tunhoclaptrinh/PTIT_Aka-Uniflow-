@@ -179,13 +179,17 @@ export class HaravanUpdateProductDto {
   id?: number;
   @ApiProperty({ example: 'Áo Polo Thể Thao Nam Breathable Tech (Bản Nâng Cấp 2026)', description: 'Tên sản phẩm mới', required: false })
   title?: string;
+  @ApiProperty({ example: '<p>Mô tả mới</p>', required: false })
+  body_html?: string;
   @ApiProperty({ example: 310000, description: 'Giá bán mới', required: false })
   price?: number;
 }
 
 export class HaravanVariantDto {
   @ApiProperty({ example: 'Trắng / XL', description: 'Tên thuộc tính biến thể' })
-  option1: string;
+  option1?: string;
+  @ApiProperty({ example: 'Trắng / XL', description: 'Tiêu đề biến thể', required: false })
+  title?: string;
   @ApiProperty({ example: 290000, description: 'Giá bán' })
   price: number;
   @ApiProperty({ example: 350000, description: 'Giá so sánh / Giá gốc gạch đi', required: false })
@@ -214,6 +218,8 @@ export class HaravanCreateCollectionDto {
   body_html?: string;
   @ApiProperty({ example: 'https://file.hstatic.net/collections/sneaker-banner.jpg', description: 'Ảnh đại diện nhóm', required: false })
   image?: string;
+  @ApiProperty({ example: true, required: false })
+  published?: boolean;
 }
 
 export class HaravanSmartCollectionDto {
@@ -233,6 +239,8 @@ export class HaravanCollectDto {
   collection_id: number;
   @ApiProperty({ example: 881290, description: 'ID sản phẩm cần đưa vào nhóm' })
   product_id: number;
+  @ApiProperty({ example: 1, required: false })
+  position?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -290,6 +298,10 @@ export class HaravanUpdateCustomerDto {
   id?: number;
   @ApiProperty({ example: '0918889998', description: 'Số điện thoại mới', required: false })
   phone?: string;
+  @ApiProperty({ example: 'thinh.le@example.com', required: false })
+  email?: string;
+  @ApiProperty({ example: 'Khách hàng thân thiết', required: false })
+  note?: string;
   @ApiProperty({ example: ['VIP_DIAMOND'], description: 'Tags mới', required: false })
   tags?: string[];
 }
@@ -297,15 +309,17 @@ export class HaravanUpdateCustomerDto {
 export class HaravanCustomerAddressDto {
   @ApiProperty({ example: 'Tòa nhà Landmark 81, Phường 22', description: 'Địa chỉ chi tiết' })
   address1: string;
-  @ApiProperty({ example: 'Quận Bình Thạnh', description: 'Quận/huyện' })
-  district: string;
-  @ApiProperty({ example: 'Hồ Chí Minh', description: 'Tỉnh/thành' })
-  province: string;
-  @ApiProperty({ example: 'Vietnam', description: 'Quốc gia' })
-  country: string;
-  @ApiProperty({ example: '0918889999', description: 'SĐT người nhận tại địa chỉ' })
-  phone: string;
-  @ApiProperty({ example: true, description: 'Đặt làm địa chỉ mặc định' })
+  @ApiProperty({ example: 'Quận Bình Thạnh', description: 'Quận/huyện', required: false })
+  district?: string;
+  @ApiProperty({ example: 'Hồ Chí Minh', description: 'Tỉnh/thành', required: false })
+  province?: string;
+  @ApiProperty({ example: 'Hồ Chí Minh', description: 'Thành phố', required: false })
+  city?: string;
+  @ApiProperty({ example: 'Vietnam', description: 'Quốc gia', required: false })
+  country?: string;
+  @ApiProperty({ example: '0918889999', description: 'SĐT người nhận tại địa chỉ', required: false })
+  phone?: string;
+  @ApiProperty({ example: true, description: 'Đặt làm địa chỉ mặc định', required: false })
   default?: boolean;
 }
 
@@ -316,6 +330,8 @@ export class HaravanCustomerAddressDto {
 export class HaravanCreateDiscountDto {
   @ApiProperty({ example: 'HARAVAN_TET2026', description: 'Mã coupon giảm giá' })
   code: string;
+  @ApiProperty({ example: 'Khuyến mãi Tết 2026', required: false })
+  name?: string;
   @ApiProperty({ example: 'percentage', enum: ['percentage', 'fixed_amount'], description: 'Kiểu giảm giá' })
   discount_type: string;
   @ApiProperty({ example: 20, description: 'Giá trị giảm' })
@@ -396,6 +412,8 @@ export class HaravanCreatePageDto {
   title: string;
   @ApiProperty({ example: '<p>UniFlow là nền tảng quản trị chuỗi bán lẻ đa kênh hàng đầu...</p>', description: 'Nội dung trang tĩnh HTML' })
   body_html: string;
+  @ApiProperty({ example: 'chinh-sach', required: false })
+  handle?: string;
 }
 
 export class HaravanCommentDto {
@@ -466,3 +484,59 @@ export class HaravanWebhookSubscribeDto {
   @ApiProperty({ example: 'json', description: 'Định dạng dữ liệu trả về', default: 'json', required: false })
   format?: string;
 }
+
+export class HaravanInventoryTransferDto {
+  @ApiProperty({ example: 1024, description: 'ID kho xuất' })
+  origin_location_id: number;
+  @ApiProperty({ example: 1025, description: 'ID kho đích nhận hàng' })
+  destination_location_id: number;
+  @ApiProperty({ example: [{ variant_id: 881294, quantity: 20 }], description: 'Danh sách sản phẩm điều chuyển' })
+  line_items: Array<{ variant_id: number; quantity: number }>;
+  @ApiProperty({ example: 'Điều chuyển hàng cho chi nhánh miền Trung', required: false })
+  note?: string;
+}
+
+export class HaravanPurchaseOrderDto {
+  @ApiProperty({ example: 'PO-2026-001', description: 'Mã đơn đặt hàng mua' })
+  po_number?: string;
+  @ApiProperty({ example: 501, description: 'ID nhà cung cấp' })
+  supplier_id: number;
+  @ApiProperty({ example: 1024, description: 'Kho nhận hàng dự kiến' })
+  location_id: number;
+  @ApiProperty({ example: [{ variant_id: 881294, quantity: 100, cost: 150000 }], description: 'Chi tiết hàng đặt' })
+  line_items: Array<{ variant_id: number; quantity: number; cost?: number }>;
+  @ApiProperty({ example: 'Nhập hàng lô mùa hè 2026', required: false })
+  note?: string;
+}
+
+export class HaravanPurchaseReceiveDto {
+  @ApiProperty({ example: 1209, description: 'ID đơn đặt hàng mua liên kết (nếu có)', required: false })
+  ref_purchase_order_id?: number;
+  @ApiProperty({ example: 1024, description: 'Kho nhập hàng' })
+  location_id: number;
+  @ApiProperty({ example: [{ variant_id: 881294, received_quantity: 100, rejected_quantity: 0 }], description: 'Số lượng thực tế nhận vào kho' })
+  items: Array<{ variant_id: number; received_quantity: number; rejected_quantity?: number }>;
+}
+
+export class HaravanConnectInventoryDto {
+  @ApiProperty({ example: 1024, description: 'ID kho hàng' })
+  location_id: number;
+  @ApiProperty({ example: 881294, description: 'ID biến thể SKU' })
+  variant_id: number;
+}
+
+export class HaravanOAuthTokenDto {
+  @ApiProperty({ example: 'authorization_code', enum: ['authorization_code', 'refresh_token'], description: 'Loại cấp quyền OAuth' })
+  grant_type: string;
+  @ApiProperty({ example: 'YOUR_HARAVAN_APP_CLIENT_ID', description: 'Client ID của ứng dụng Haravan App' })
+  client_id: string;
+  @ApiProperty({ example: 'YOUR_HARAVAN_APP_CLIENT_SECRET', description: 'Client Secret của ứng dụng Haravan App' })
+  client_secret: string;
+  @ApiProperty({ example: 'AUTH_CODE_FROM_CALLBACK', required: false, description: 'Mã code trả về sau khi shop owner cấp quyền' })
+  code?: string;
+  @ApiProperty({ example: 'REFRESH_TOKEN_SAVED', required: false, description: 'Refresh token để cấp mới access token' })
+  refresh_token?: string;
+  @ApiProperty({ example: 'https://api.uniflow.vn/auth/callback', required: false, description: 'Redirect URI đăng ký' })
+  redirect_uri?: string;
+}
+

@@ -6,15 +6,17 @@ import {
   KiotVietCreateBookingDto,
   KiotVietReturnInvoiceDto,
   KiotVietPaymentDto,
+  KiotVietOrderProposalDto,
+  KiotVietEInvoiceInfoDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 01. Hóa đơn & Đặt hàng (Invoices & Orders)')
+@ApiTags('[POS-KiotViet] 01. Invoices & Orders (Hóa đơn, Đặt hàng & Đổi trả)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietInvoicesController {
 
   @ApiOperation({
-    summary: '[POST /invoices] Tạo hóa đơn bán lẻ KiotViet',
-    description: 'Endpoint gốc: POST https://public.kiotapi.com/invoices | Docs: https://developer.kiotviet.vn/#/invoices/create | Khởi tạo hóa đơn bán lẻ trực tiếp từ cửa hàng lên KiotViet Open API',
+    summary: '[Invoice - Hóa đơn bán lẻ] [POST /invoices] Tạo hóa đơn bán lẻ trực tiếp KiotViet',
+    description: '[Thuộc danh mục: 2.12. Hóa đơn > Invoice] Endpoint gốc: POST https://public.kiotapi.com/invoices | Khởi tạo hóa đơn bán lẻ trực tiếp từ quầy POS lên KiotViet Open API',
   })
   @ApiBody({ type: KiotVietCreateOrderDto })
   @Post('invoices')
@@ -35,8 +37,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[GET /invoices] Danh sách hóa đơn KiotViet',
-    description: 'Endpoint gốc: GET https://public.kiotapi.com/invoices | Docs: https://developer.kiotviet.vn/#/invoices/list | Truy vấn danh sách hóa đơn bán hàng KiotViet',
+    summary: '[Invoice - Hóa đơn bán lẻ] [GET /invoices] Danh sách hóa đơn bán hàng KiotViet',
+    description: '[Thuộc danh mục: 2.12. Hóa đơn > Invoice] Endpoint gốc: GET https://public.kiotapi.com/invoices | Truy vấn danh sách hóa đơn bán hàng KiotViet theo chi nhánh và khoảng thời gian',
   })
   @ApiQuery({ name: 'branchId', example: 101, required: false })
   @ApiQuery({ name: 'pageSize', example: 20, required: false })
@@ -53,8 +55,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[GET /invoices/:id] Chi tiết hóa đơn KiotViet',
-    description: 'Endpoint gốc: GET https://public.kiotapi.com/invoices/{id} | Docs: https://developer.kiotviet.vn/#/invoices/detail | Lấy thông tin chi tiết một hóa đơn theo ID',
+    summary: '[Invoice - Hóa đơn bán lẻ] [GET /invoices/:id] Chi tiết hóa đơn bán lẻ theo ID',
+    description: '[Thuộc danh mục: 2.12. Hóa đơn > Invoice] Endpoint gốc: GET https://public.kiotapi.com/invoices/{id} | Lấy thông tin chi tiết một hóa đơn, danh sách mặt hàng và tiền thuế',
   })
   @ApiParam({ name: 'id', example: '182' })
   @Get('invoices/:id')
@@ -77,8 +79,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[PUT /invoices/:id] Cập nhật hóa đơn KiotViet',
-    description: 'Endpoint gốc: PUT https://public.kiotapi.com/invoices/{id} | Docs: https://developer.kiotviet.vn/#/invoices/update | Cập nhật ghi chú hóa đơn bán hàng',
+    summary: '[Invoice - Hóa đơn bán lẻ] [PUT /invoices/:id] Cập nhật thông tin hóa đơn KiotViet',
+    description: '[Thuộc danh mục: 2.12. Hóa đơn > Invoice] Endpoint gốc: PUT https://public.kiotapi.com/invoices/{id} | Cập nhật ghi chú hóa đơn bán hàng hoặc thông tin giao nhận',
   })
   @ApiParam({ name: 'id', example: '182' })
   @ApiBody({ type: KiotVietUpdateOrderDto })
@@ -88,8 +90,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[DELETE /invoices/:id] Hủy hóa đơn KiotViet',
-    description: 'Endpoint gốc: DELETE https://public.kiotapi.com/invoices/{id} | Docs: https://developer.kiotviet.vn/#/invoices/delete | Hủy bỏ hóa đơn bán hàng trên hệ thống KiotViet',
+    summary: '[Invoice - Hóa đơn bán lẻ] [DELETE /invoices/:id] Hủy bỏ hóa đơn bán hàng KiotViet',
+    description: '[Thuộc danh mục: 2.12. Hóa đơn > Invoice] Endpoint gốc: DELETE https://public.kiotapi.com/invoices/{id} | Hủy bỏ hóa đơn bán hàng và hoàn trả tồn kho trên hệ thống KiotViet',
   })
   @ApiParam({ name: 'id', example: '182' })
   @Delete('invoices/:id')
@@ -98,8 +100,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[POST /orders] Tạo đơn đặt hàng trước KiotViet (Booking)',
-    description: 'Endpoint gốc: POST https://public.kiotapi.com/orders | Docs: https://developer.kiotviet.vn/#/orders/create | Tạo đơn đặt hàng trước và thu tiền cọc',
+    summary: '[Order - Đơn đặt hàng] [POST /orders] Tạo đơn đặt hàng trước KiotViet (Booking)',
+    description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: POST https://public.kiotapi.com/orders | Tạo đơn đặt hàng trước, thu tiền cọc và gắn thông tin khách hàng',
   })
   @ApiBody({ type: KiotVietCreateBookingDto })
   @Post('orders')
@@ -117,8 +119,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[GET /orders] Danh sách đơn đặt hàng KiotViet',
-    description: 'Endpoint gốc: GET https://public.kiotapi.com/orders | Docs: https://developer.kiotviet.vn/#/orders/list | Tra cứu danh mục đơn đặt hàng trước',
+    summary: '[Order - Đơn đặt hàng] [GET /orders] Danh sách đơn đặt hàng trước KiotViet',
+    description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: GET https://public.kiotapi.com/orders | Tra cứu danh mục đơn đặt hàng trước theo chi nhánh',
   })
   @ApiQuery({ name: 'branchId', example: 101, required: false })
   @Get('orders')
@@ -130,11 +132,51 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[POST /returns] Lập phiếu trả hàng KiotViet',
-    description: 'Endpoint gốc: POST https://public.kiotapi.com/returns | Docs: https://developer.kiotviet.vn/#/returns/create | Tạo phiếu nhận lại hàng trả từ khách và hoàn tiền KiotViet',
+    summary: '[Order - Đơn đặt hàng] [GET /orders/:id] Chi tiết đơn đặt hàng theo ID',
+    description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: GET https://public.kiotapi.com/orders/{id} | Xem thông tin chi tiết đơn đặt hàng và tiền cọc',
+  })
+  @ApiParam({ name: 'id', example: '91' })
+  @Get('orders/:id')
+  async getOrderBookingById(@Param('id') id: string) {
+    return {
+      responseStatus: 'success',
+      data: {
+        id: Number(id),
+        code: `DH000${id}`,
+        customerName: 'Phạm Thu Hằng',
+        deposit: 200000,
+        status: 'Chờ giao hàng',
+      },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Order - Đơn đặt hàng] [PUT /orders/:id] Cập nhật đơn đặt hàng KiotViet',
+    description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: PUT https://public.kiotapi.com/orders/{id} | Cập nhật thông tin chi tiết đơn đặt hàng',
+  })
+  @ApiParam({ name: 'id', example: '91' })
+  @Put('orders/:id')
+  async updateBooking(@Param('id') id: string, @Body() body: any) {
+    return { responseStatus: 'success', data: { id: Number(id), updated: true } };
+  }
+
+  @ApiOperation({
+    summary: '[Order - Đơn đặt hàng] [DELETE /orders/:id] Xóa đơn đặt hàng KiotViet',
+    description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: DELETE https://public.kiotapi.com/orders/{id}?IsVoidPayment=true | Xóa đơn đặt hàng và tùy chọn hủy phiếu cọc',
+  })
+  @ApiParam({ name: 'id', example: '91' })
+  @ApiQuery({ name: 'IsVoidPayment', required: false, example: true })
+  @Delete('orders/:id')
+  async deleteBooking(@Param('id') id: string, @Query('IsVoidPayment') isVoid: boolean = true) {
+    return { responseStatus: 'success', message: `Xóa đơn đặt hàng #${id} thành công` };
+  }
+
+  @ApiOperation({
+    summary: '[Return - Phiếu trả hàng] [POST /returns] Lập phiếu nhận hàng trả lại & hoàn tiền',
+    description: '[Thuộc danh mục: 2.19. Trả hàng > Return] Endpoint gốc: POST https://public.kiotapi.com/returns | Tạo phiếu nhận lại hàng trả từ khách và hoàn tiền KiotViet',
   })
   @ApiBody({ type: KiotVietReturnInvoiceDto })
-  @Post('returns')
+  @Post(['returns', 'returns/create'])
   async createReturn(@Body() dto: KiotVietReturnInvoiceDto) {
     return {
       responseStatus: 'success',
@@ -150,8 +192,8 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[GET /returns] Danh sách phiếu trả hàng KiotViet',
-    description: 'Endpoint gốc: GET https://public.kiotapi.com/returns | Docs: https://developer.kiotviet.vn/#/returns/list | Tra cứu danh sách phiếu trả hàng của khách',
+    summary: '[Return - Phiếu trả hàng] [GET /returns] Danh sách phiếu trả hàng KiotViet',
+    description: '[Thuộc danh mục: 2.19. Trả hàng > Return] Endpoint gốc: GET https://public.kiotapi.com/returns | Tra cứu danh sách phiếu trả hàng của khách theo chi nhánh',
   })
   @ApiQuery({ name: 'branchId', example: 101, required: false })
   @Get('returns')
@@ -163,11 +205,29 @@ export class KiotVietInvoicesController {
   }
 
   @ApiOperation({
-    summary: '[POST /payments] Ghi nhận thanh toán hóa đơn KiotViet',
-    description: 'Endpoint gốc: POST https://public.kiotapi.com/payments | Docs: https://developer.kiotviet.vn/#/payments | Ghi nhận thanh toán hóa đơn tiền mặt, chuyển khoản VietQR, quẹt thẻ POS',
+    summary: '[Return - Phiếu trả hàng] [GET /returns/:id] Chi tiết phiếu trả hàng theo ID',
+    description: '[Thuộc danh mục: 2.19. Trả hàng > Return] Endpoint gốc: GET https://public.kiotapi.com/returns/{id} | Xem chi tiết phiếu trả hàng và mặt hàng nhập lại kho',
+  })
+  @ApiParam({ name: 'id', example: '12' })
+  @Get('returns/:id')
+  async getReturnById(@Param('id') id: string) {
+    return {
+      responseStatus: 'success',
+      data: {
+        id: Number(id),
+        code: `TH000${id}`,
+        returnTotal: 150000,
+        status: 'Đã hoàn tất',
+      },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Payment - Thanh toán hóa đơn] [POST /payments] Ghi nhận thanh toán hóa đơn nợ KiotViet',
+    description: '[Thuộc danh mục: 2.14. Sổ quỹ > Payment] Endpoint gốc: POST https://public.kiotapi.com/payments | Ghi nhận thanh toán hóa đơn nợ qua Tiền mặt, Chuyển khoản VietQR, Thẻ POS',
   })
   @ApiBody({ type: KiotVietPaymentDto })
-  @Post('payments')
+  @Post(['payments', 'invoices/payment'])
   async recordPayment(@Body() dto: KiotVietPaymentDto) {
     return {
       responseStatus: 'success',
@@ -178,6 +238,58 @@ export class KiotVietInvoicesController {
         paymentMethod: dto.paymentMethod,
         createdDate: new Date().toISOString(),
       },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Order Proposal - Đặt hàng nhập] [GET /orderproposals] Danh sách phiếu đặt hàng nhập từ NCC',
+    description: '[Thuộc danh mục: 2.20. Đặt hàng nhập > Order Proposal] Endpoint gốc: GET https://public.kiotapi.com/orderproposals | Danh sách phiếu đề xuất đặt hàng nhập mua từ nhà cung cấp',
+  })
+  @Get('orderproposals')
+  async listOrderProposals() {
+    return {
+      total: 1,
+      data: [{ id: 101, code: 'DHN000101', supplierName: 'Công ty Tân Á', status: 'Chờ duyệt' }],
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Order Proposal - Đặt hàng nhập] [GET /orderproposals/:id] Chi tiết phiếu đặt hàng nhập NCC',
+    description: '[Thuộc danh mục: 2.20. Đặt hàng nhập > Order Proposal] Endpoint gốc: GET https://public.kiotapi.com/orderproposals/{id} | Chi tiết phiếu đặt hàng nhập theo ID',
+  })
+  @ApiParam({ name: 'id', example: '101' })
+  @Get('orderproposals/:id')
+  async getOrderProposalById(@Param('id') id: string) {
+    return {
+      responseStatus: 'success',
+      data: { id: Number(id), code: `DHN000${id}`, supplierName: 'Công ty Tân Á', items: [{ productCode: 'KV-SP-01', quantity: 200 }] },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Order Proposal - Đặt hàng nhập] [POST /orderproposals] Tạo đề xuất đặt hàng nhập mua',
+    description: '[Thuộc danh mục: 2.20. Đặt hàng nhập > Order Proposal] Endpoint gốc: POST https://public.kiotapi.com/orderproposals | Lập phiếu đề xuất đặt hàng nhập mua mới',
+  })
+  @ApiBody({ type: KiotVietOrderProposalDto })
+  @Post('orderproposals')
+  async createOrderProposal(@Body() dto: KiotVietOrderProposalDto) {
+    return {
+      responseStatus: 'success',
+      data: { id: Date.now(), code: `DHN${Date.now().toString().slice(-8)}`, branchId: dto.branchId, supplierId: dto.supplierId },
+    };
+  }
+
+  @ApiOperation({
+    summary: '[E-Invoice - Hóa đơn điện tử] [PUT /einvoices/info] Cập nhật thông tin phát hành HĐĐT ngoài KiotViet',
+    description: '[Thuộc danh mục: 2.28. Hóa đơn điện tử > E-Invoice] Endpoint gốc: PUT https://public.kiotapi.com/einvoices/info | Cập nhật thông tin HĐĐT (RefID, Số HĐ, Ký hiệu) phát hành từ hệ thống bên ngoài',
+  })
+  @ApiBody({ type: KiotVietEInvoiceInfoDto })
+  @Put('einvoices/info')
+  async updateEInvoiceInfo(@Body() dto: KiotVietEInvoiceInfoDto) {
+    return {
+      responseStatus: 'success',
+      message: 'Cập nhật thông tin HĐĐT thành công',
+      updatedCount: dto.data?.length || 0,
     };
   }
 }

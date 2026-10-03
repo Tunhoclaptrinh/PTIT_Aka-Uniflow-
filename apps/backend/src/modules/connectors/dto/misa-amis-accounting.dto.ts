@@ -148,3 +148,173 @@ export class MisaAmisAccountingProductDto {
   @IsNumber()
   sale_price: number;
 }
+
+// ── 5. MISA ACT OPEN API (CHÍNH THỨC TỪ ACTDOCS.MISA.VN) ──
+export class MisaActOpenConnectDto {
+  @ApiProperty({ example: '0e0a14cf-9e4b-4af9-875b-c490f34a581b', description: 'Mã ứng dụng (app_id) được cấp bởi MISA' })
+  @IsString()
+  app_id: string;
+
+  @ApiProperty({ example: 'CON_ACT_202610_KEY99', description: 'Mã kết nối do đơn vị sử dụng AMIS Kế toán thiết lập' })
+  @IsString()
+  access_code: string;
+
+  @ApiProperty({ example: 'https://gateway.uniflow.vn/api/v1/infra/misa-amis-accounting/api/oauth/actopensupport/call_back_data', description: 'URL callback nhận kết quả bất đồng bộ', required: false })
+  @IsOptional()
+  @IsString()
+  callback_url?: string;
+}
+
+export class MisaActOpenSaveVoucherDto {
+  @ApiProperty({
+    example: 'sa_invoice',
+    enum: [
+      'sa_invoice', 'sa_voucher', 'sa_order', 'sa_return', 'sa_discount',
+      'pu_voucher', 'pu_invoice', 'pu_order', 'pu_return', 'pu_service', 'pu_discount',
+      'ca_receipt', 'ca_payment', 'ba_deposit', 'ba_withdraw', 'ba_internal_transfer',
+      'gl_voucher', 'in_inward', 'in_outward', 'in_transfer', 'in_audit', 'in_production_order',
+    ],
+    description: 'Loại chứng từ kế toán trong 46 loại hỗ trợ của AMIS Kế toán',
+  })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_INV_001', description: 'Mã tham chiếu duy nhất của chứng từ từ phần mềm ngoài' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({
+    example: {
+      refdate: '2026-10-03',
+      posted_date: '2026-10-03',
+      refno: 'HDBL-001',
+      account_object_code: 'KH001',
+      total_amount: 5400000,
+      journal_memo: 'Bán hàng thu tiền ngay cho khách VIP',
+    },
+    description: 'Thông tin chung (Master data) của chứng từ kế toán',
+  })
+  master_data: any;
+
+  @ApiProperty({
+    example: [
+      {
+        inventory_item_code: 'SP01',
+        description: 'Tai nghe Bluetooth Mini',
+        debit_account: '1111',
+        credit_account: '5111',
+        quantity: 2,
+        unit_price: 150000,
+        amount: 300000,
+      },
+    ],
+    description: 'Chi tiết các dòng nghiệp vụ, định khoản Nợ/Có (Detail data)',
+  })
+  detail_data: any[];
+}
+
+export class MisaActOpenDeleteVoucherDto {
+  @ApiProperty({ example: 'sa_invoice', description: 'Loại chứng từ cần xóa' })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_INV_001', description: 'Mã tham chiếu của chứng từ đã cất' })
+  @IsString()
+  ref_id: string;
+}
+
+export class MisaActOpenGetDictionaryDto {
+  @ApiProperty({
+    example: 'account_object',
+    enum: [
+      'account_object', 'account_object_group', 'bank', 'bank_account',
+      'budget_item', 'expense_item', 'inventory_item', 'inventory_item_category',
+      'stock', 'unit', 'payment_term', 'job',
+    ],
+    description: 'Tên danh mục cần lấy từ AMIS Kế toán',
+  })
+  @IsString()
+  dictionary_type: string;
+
+  @ApiProperty({ example: 20, required: false, description: 'Số lượng bản ghi lấy về' })
+  @IsOptional()
+  @IsNumber()
+  page_size?: number;
+
+  @ApiProperty({ example: 1, required: false, description: 'Trang cần lấy' })
+  @IsOptional()
+  @IsNumber()
+  page_index?: number;
+}
+
+export class MisaActOpenSaveDictionaryDto {
+  @ApiProperty({ example: 'inventory_item', description: 'Loại danh mục cần sinh mới' })
+  @IsString()
+  dictionary_type: string;
+
+  @ApiProperty({
+    example: [
+      {
+        inventory_item_code: 'SP_NEW_01',
+        inventory_item_name: 'Chuột không dây Silent',
+        inventory_item_type: 0,
+        unit_code: 'CHIEC',
+      },
+    ],
+    description: 'Dữ liệu các bản ghi danh mục',
+  })
+  data: any[];
+}
+
+export class MisaActOpenGetDebtDto {
+  @ApiProperty({ example: 'KH001', description: 'Mã đối tượng công nợ (Khách hàng hoặc Nhà cung cấp)' })
+  @IsString()
+  account_object_code: string;
+
+  @ApiProperty({ example: 0, enum: [0, 1], description: '0: Công nợ phải thu (131), 1: Công nợ phải trả (331)' })
+  @IsNumber()
+  debt_type: number;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Tính công nợ đến ngày (YYYY-MM-DD)' })
+  @IsString()
+  to_date: string;
+}
+
+export class MisaActOpenGetInventoryBalanceDto {
+  @ApiProperty({ example: 'KHO_TONG', description: 'Mã kho kiểm tra tồn' })
+  @IsString()
+  stock_code: string;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Tính tồn kho đến ngày (YYYY-MM-DD)' })
+  @IsString()
+  to_date: string;
+
+  @ApiProperty({ example: ['SP01', 'SP02'], description: 'Danh sách mã vật tư hàng hóa (để trống nếu lấy tất cả)', required: false })
+  @IsOptional()
+  inventory_item_codes?: string[];
+}
+
+export class MisaActOpenSetOptionDto {
+  @ApiProperty({ example: 'CONNECT_OPTION_AUTO_POST', description: 'Mã tùy chọn kết nối dữ liệu' })
+  @IsString()
+  option_id: string;
+
+  @ApiProperty({ example: '1', description: 'Giá trị thiết lập (1: Bật, 0: Tắt)' })
+  @IsString()
+  option_value: string;
+}
+
+export class MisaActOpenCallbackDemoDto {
+  @ApiProperty({ example: 'TRANSACTION_SUCCESS', description: 'Trạng thái xử lý bất đồng bộ từ AMIS Kế toán' })
+  @IsString()
+  status: string;
+
+  @ApiProperty({ example: 'REF_202610_INV_001', description: 'Mã tham chiếu chứng từ' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({ example: 'Đã sinh chứng từ kế toán số HDBL001 thành công', description: 'Thông điệp xử lý' })
+  @IsString()
+  message: string;
+}
+
