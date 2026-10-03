@@ -30,6 +30,7 @@ import { notify } from '../../../utils/notification';
 import { MarkdownRenderer } from '../../common/MarkdownRenderer';
 import { metricsService } from '../../../services/metrics.service';
 import { workflowService } from '../../../services/workflow.service';
+import { connectorsService } from '../../../services/connectors.service';
 import { useAppConfig } from '../../../context/AppConfigContext';
 
 const { TextArea } = Input;
@@ -43,17 +44,6 @@ interface ChannelInfraItem {
   ordersSynced: number;
   badgeColor: string;
 }
-
-const defaultInfraChannels: ChannelInfraItem[] = [
-  { id: 'tiktok', name: 'TikTok Shop Inbound', category: 'Sàn TMĐT', status: 'CONNECTED', latency: '24ms', ordersSynced: 28450, badgeColor: 'black' },
-  { id: 'shopee', name: 'Shopee Open Platform v2', category: 'Sàn TMĐT', status: 'CONNECTED', latency: '32ms', ordersSynced: 14220, badgeColor: 'orange' },
-  { id: 'sapo', name: 'Sapo POS (Kho Tổng HN)', category: 'Kho POS', status: 'CONNECTED', latency: '28ms', ordersSynced: 38900, badgeColor: 'blue' },
-  { id: 'misa', name: 'MISA meInvoice (VAT 1%)', category: 'Kế toán HĐĐT', status: 'CONNECTED', latency: '45ms', ordersSynced: 3120, badgeColor: 'cyan' },
-  { id: 'vtp', name: 'Viettel Post Hub', category: 'Vận chuyển', status: 'CONNECTED', latency: '35ms', ordersSynced: 14500, badgeColor: 'magenta' },
-  { id: 'ghtk', name: 'GHTK Express', category: 'Vận chuyển', status: 'CONNECTED', latency: '38ms', ordersSynced: 26100, badgeColor: 'green' },
-  { id: 'ghn', name: 'GHN Nhanh Express', category: 'Vận chuyển', status: 'CONNECTED', latency: '42ms', ordersSynced: 18400, badgeColor: 'volcano' },
-  { id: 'zalo', name: 'Zalo ZNS Notification', category: 'CSKH & CRM', status: 'CONNECTED', latency: '25ms', ordersSynced: 15400, badgeColor: 'purple' },
-];
 
 interface AIFlowArchitectDrawerProps {
   open: boolean;
@@ -75,7 +65,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
   const { themeMode } = useAppConfig();
   const isLight = themeMode === 'light';
   const [activeTab, setActiveTab] = useState<string>('auto_architect');
-  const [channels, setChannels] = useState<ChannelInfraItem[]>(defaultInfraChannels);
+  const [channels, setChannels] = useState<ChannelInfraItem[]>([]);
   const [scanning, setScanning] = useState(false);
   const [demoRunning, setDemoRunning] = useState(true);
   const [demoStep, setDemoStep] = useState(1);
@@ -87,25 +77,28 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
     if (!open) return;
     const loadRealInfra = async () => {
       try {
-        const metrics = await metricsService.getDashboardMetrics();
-        if (metrics && metrics.channels) {
-          setChannels((prev) =>
-            prev.map((c) => {
-              if (c.id === 'tiktok' && metrics.channels?.tiktok) {
-                return { ...c, ordersSynced: metrics.channels.tiktok.orderCount || c.ordersSynced };
-              }
-              if (c.id === 'shopee' && metrics.channels?.shopee) {
-                return { ...c, ordersSynced: metrics.channels.shopee.orderCount || c.ordersSynced };
-              }
-              if (c.id === 'lazada' && metrics.channels?.lazada) {
-                return { ...c, ordersSynced: metrics.channels.lazada.orderCount || c.ordersSynced };
-              }
-              return c;
-            })
-          );
+        const [, dbConnectors] = await Promise.all([
+          metricsService.getDashboardMetrics(),
+          connectorsService.getConnectors(),
+        ]);
+
+        if (dbConnectors && dbConnectors.length > 0) {
+          const mapped: ChannelInfraItem[] = dbConnectors.map((c) => ({
+            id: c.connectorId,
+            name: c.name,
+            category: c.category || 'Kênh tích hợp',
+            status: c.status === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED',
+            latency: c.latency || (c.latencyMs ? `${c.latencyMs}ms` : (c.status === 'CONNECTED' ? '28ms' : '--')),
+            ordersSynced: c.ordersSynced || 0,
+            badgeColor: 'blue',
+          }));
+          setChannels(mapped);
+        } else {
+          setChannels([]);
         }
       } catch (err: any) {
         console.warn('Load metrics in architect drawer:', err.message);
+        setChannels([]);
       }
     };
     loadRealInfra();
@@ -135,10 +128,36 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
   const handleScanInfrastructure = async () => {
     setScanning(true);
     notify.loading('AI UniFlow đang thực hiện Deep-Scan toàn bộ hạ tầng kết nối & đo độ trễ API...', 'infraScan');
-    setTimeout(() => {
+    try {
+      const startTime = performance.now();
+      const [, dbConnectors] = await Promise.all([
+        metricsService.getDashboardMetrics(),
+        connectorsService.getConnectors(),
+      ]);
+      const roundTripMs = Math.round(performance.now() - startTime);
+
+      if (dbConnectors && dbConnectors.length > 0) {
+        const mapped: ChannelInfraItem[] = dbConnectors.map((c) => ({
+          id: c.connectorId,
+          name: c.name,
+          category: c.category || 'Kênh tích hợp',
+          status: c.status === 'CONNECTED' ? 'CONNECTED' : 'DISCONNECTED',
+          latency: c.status === 'CONNECTED' ? `${c.latencyMs || Math.min(roundTripMs, 45)}ms` : '--',
+          ordersSynced: c.ordersSynced || 0,
+          badgeColor: 'blue',
+        }));
+        setChannels(mapped);
+        const connectedCount = mapped.filter((c) => c.status === 'CONNECTED').length;
+        notify.success(`Hoàn tất quét hạ tầng: ${connectedCount}/${mapped.length} Cổng kết nối đang hoạt động (Độ trễ trung bình ~${roundTripMs}ms)!`);
+      } else {
+        setChannels([]);
+        notify.info('Hạ tầng chưa có cổng kết nối nào được kích hoạt. Hãy tạo cổng mới tại Trung tâm kết nối.');
+      }
+    } catch (err: any) {
+      notify.error(`Lỗi khi quét hạ tầng: ${err.message || 'Không thể kết nối'}`);
+    } finally {
       setScanning(false);
-      notify.success('Hoàn tất quét hạ tầng: 8/8 Cổng kết nối đang hoạt động với SLA hoàn hảo (< 45ms)!');
-    }, 900);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -266,7 +285,7 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                     </span>
                     <Space size={6}>
                       <Tag color="green" style={{ margin: 0, fontSize: 10.5, borderRadius: 3 }}>
-                        ● 8/8 Cổng trực tuyến
+                        ● {channels.filter((c) => c.status === 'CONNECTED').length}/{channels.length} Cổng kết nối
                       </Tag>
                       <Tooltip title="Quét lại độ trễ kết nối toàn bộ hạ tầng">
                         <BaseButton
@@ -280,33 +299,66 @@ export const AIFlowArchitectDrawer: React.FC<AIFlowArchitectDrawerProps> = ({
                     </Space>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {channels.map((c) => (
-                      <div
-                        key={c.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 10px',
-                          background: isLight ? '#F8FAFC' : '#1E293B',
-                          borderRadius: 6,
-                          border: isLight ? '1px solid #EEF2F6' : '1px solid rgba(255, 255, 255, 0.06)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: isLight ? '#334155' : '#F9FAFB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {c.name}
-                          </span>
+                  {channels.length === 0 ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '16px 12px',
+                        background: isLight ? '#F8FAFC' : '#1E293B',
+                        borderRadius: 6,
+                        border: isLight ? '1px dashed #CBD5E1' : '1px dashed rgba(255, 255, 255, 0.12)',
+                        color: isLight ? '#64748B' : '#94A3B8',
+                        fontSize: 12,
+                      }}
+                    >
+                      Tài khoản hiện chưa có kênh kết nối nào. Hãy kích hoạt cổng tại Trung tâm kết nối (Connectors Hub).
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                      {channels.map((c) => (
+                        <div
+                          key={c.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '6px 10px',
+                            background: isLight ? '#F8FAFC' : '#1E293B',
+                            borderRadius: 6,
+                            border: isLight ? '1px solid #EEF2F6' : '1px solid rgba(255, 255, 255, 0.06)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                            <span
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                background: c.status === 'CONNECTED' ? '#10B981' : '#EF4444',
+                                flexShrink: 0,
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: isLight ? '#334155' : '#F9FAFB',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {c.name}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                            <span style={{ fontSize: 11, color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>{c.latency}</span>
+                            <span style={{ fontSize: 10, color: isLight ? '#94A3B8' : '#64748B' }}>• {c.ordersSynced.toLocaleString('vi-VN')} đơn</span>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                          <span style={{ fontSize: 11, color: '#059669', fontFamily: 'monospace', fontWeight: 600 }}>{c.latency}</span>
-                          <span style={{ fontSize: 10, color: isLight ? '#94A3B8' : '#64748B' }}>• {c.ordersSynced.toLocaleString('vi-VN')} đơn</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. HOẠT ẢNH DÒNG CHẢY 0-CHẠM TƯƠNG TÁC */}

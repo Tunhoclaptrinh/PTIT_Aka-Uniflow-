@@ -80,3 +80,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Web Scrapes & Scratch Dumps
+*.html
+tools/crawler/scratch/

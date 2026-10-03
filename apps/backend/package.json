@@ -20,9 +20,11 @@
     "@nestjs/mongoose": "^10.0.6",
     "@nestjs/platform-express": "^10.3.8",
     "@nestjs/platform-socket.io": "^10.3.8",
+    "@nestjs/swagger": "^7.4.2",
     "@nestjs/websockets": "^10.3.8",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/swagger-ui-express": "^4.1.8",
     "@uniflow/shared-types": "*",
     "@uniflow/udm-schema": "*",
     "axios": "^1.6.8",
@@ -34,7 +36,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.3.4",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",

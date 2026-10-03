@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <rect width="120" height="120" rx="24" fill="#FF6600"/>
+  <!-- Fast Lightning / Arrow symbol -->
+  <polygon points="62,18 36,62 58,62 50,102 84,54 62,54" fill="#FFFFFF"/>
+</svg>

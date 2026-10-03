@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <rect width="120" height="120" rx="24" fill="#96588A"/>
+  <!-- WooCommerce Chat bubble with WOO -->
+  <path d="M22 36 C22 28 28 22 36 22 L84 22 C92 22 98 28 98 36 L98 70 C98 78 92 84 84 84 L46 84 L30 96 L32 84 L36 84 C28 84 22 78 22 70 Z" fill="#FFFFFF"/>
+  <text x="60" y="66" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#96588A" text-anchor="middle" letter-spacing="-1">woo</text>
+  <text x="60" y="108" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="10" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">COMMERCE</text>
+</svg>

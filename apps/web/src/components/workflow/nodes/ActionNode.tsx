@@ -207,18 +207,26 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
               {partnerLogo ? (
                 <img
                   src={partnerLogo}
-                  alt={data.label}
+                  alt=""
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                    const fb = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                    if (fb) fb.style.display = 'flex';
+                  }}
                 />
-              ) : isNotify && label.includes('telegram') ? (
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
-                  alt="Telegram"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-              ) : (
-                FallbackIcon
-              )}
+              ) : null}
+              <div
+                style={{
+                  display: partnerLogo ? 'none' : 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                {FallbackIcon}
+              </div>
             </div>
             <span
               style={{
@@ -278,18 +286,26 @@ export const ActionNode: React.FC<any> = ({ id, data, selected }) => {
                 {partnerLogo ? (
                   <img
                     src={partnerLogo}
-                    alt={data.label}
+                    alt=""
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                      const fb = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                      if (fb) fb.style.display = 'flex';
+                    }}
                   />
-                ) : isNotify && label.includes('telegram') ? (
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
-                    alt="Telegram"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                ) : (
-                  FallbackIcon
-                )}
+                ) : null}
+                <div
+                  style={{
+                    display: partnerLogo ? 'none' : 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                >
+                  {FallbackIcon}
+                </div>
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>

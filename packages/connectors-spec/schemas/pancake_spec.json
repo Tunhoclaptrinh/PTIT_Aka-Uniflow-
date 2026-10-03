@@ -1,0 +1,320 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — Pancake POS & Social Deep Multi-Level Specification",
+    "version": "1.0.0",
+    "description": "Đặc tả OpenAPI 3.1 cấu trúc lồng nhau đa tầng cho Pancake POS (pos.pages.fm) và Pancake Social Chat (pages.fm), kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/pancake",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://pos.pages.fm/api/v1",
+      "description": "Pancake POS Production API Gateway"
+    },
+    {
+      "url": "https://pages.fm/api/v1",
+      "description": "Pancake Social Chat API Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "PANCAKE",
+    "category": "POS_CRM",
+    "authType": "QUERY_ACCESS_TOKEN",
+    "baseUrls": {
+      "accountApis": "https://pages.fm/api/v1",
+      "publicApisV1": "https://pages.fm/api/public_api/v1",
+      "publicApisV2": "https://pages.fm/api/public_api/v2",
+      "posApi": "https://pos.pages.fm/api/v1"
+    }
+  },
+  "paths": {
+    "/shops/{shop_id}/orders": {
+      "post": {
+        "summary": "Tạo đơn hàng mới sang Pancake POS (Outbound Push)",
+        "operationId": "pancake_create_order",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "parameters": [
+          { "name": "shop_id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "shop_vn_1028" },
+          { "name": "api_key", "in": "query", "required": true, "schema": { "type": "string" }, "example": "pancake_api_key_sec_102" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PancakeOrderRoot"
+              },
+              "example": {
+                "order": {
+                  "partner_id": "ORD-SHOPEE-889921",
+                  "bill_full_name": "Tuấn Nguyễn",
+                  "bill_phone_number": "0987654321",
+                  "shipping_address": {
+                    "full_address": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội"
+                  },
+                  "items": [
+                    {
+                      "variation_id": "VAR-POLO-DEN-L",
+                      "quantity": 2,
+                      "price": 250000,
+                      "discount_each_product": 0
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tạo đơn thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PancakeOrderRoot"
+                },
+                "example": {
+                  "order": {
+                    "id": "PAN-ORD-889922",
+                    "partner_id": "ORD-SHOPEE-889921",
+                    "bill_full_name": "Tuấn Nguyễn",
+                    "bill_phone_number": "0987654321",
+                    "status": "1",
+                    "total_price": 500000,
+                    "total_discount": 0,
+                    "shipping_fee": 30000,
+                    "partner": {
+                      "partner_id": "GHN",
+                      "partner_name": "Giao Hàng Nhanh",
+                      "tracking_number": "GHN88220011",
+                      "fee": 30000,
+                      "cod": 530000,
+                      "status": "waiting_pickup"
+                    },
+                    "items": [
+                      {
+                        "variation_id": "VAR-POLO-DEN-L",
+                        "quantity": 2,
+                        "price": 250000,
+                        "variation_info": {
+                          "name": "Áo Polo Nam Classic - Đen / L",
+                          "barcode": "893500112233",
+                          "sku": "AO-POLO-NAM-DEN-L"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Quét danh sách đơn hàng Pancake POS (Pull Polling)",
+        "operationId": "pancake_list_orders",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "parameters": [
+          { "name": "shop_id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "shop_vn_1028" },
+          { "name": "api_key", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "page_number", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "page_size", "in": "query", "schema": { "type": "integer", "default": 30 } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "page_number": 1,
+                  "page_size": 30,
+                  "total_orders": 1,
+                  "orders": [
+                    {
+                      "id": "PAN-ORD-889922",
+                      "partner_id": "ORD-SHOPEE-889921",
+                      "bill_full_name": "Tuấn Nguyễn",
+                      "bill_phone_number": "0987654321",
+                      "status": "1",
+                      "total_price": 500000
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/{shop_id}/products": {
+      "get": {
+        "summary": "Quét danh sách sản phẩm & biến thể tồn kho (Inventory Pull)",
+        "operationId": "pancake_list_products",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "parameters": [
+          { "name": "shop_id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "shop_vn_1028" },
+          { "name": "api_key", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "products": [
+                    {
+                      "id": "PRD-POLO-01",
+                      "name": "Áo Polo Nam Classic",
+                      "variations": [
+                        {
+                          "id": "VAR-POLO-DEN-L",
+                          "sku": "AO-POLO-NAM-DEN-L",
+                          "price": 250000,
+                          "remain_quantity": 42
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pages": {
+      "get": {
+        "summary": "Lấy danh sách các trang Facebook/Instagram/TikTok do tài khoản quản lý",
+        "operationId": "pancake_list_pages",
+        "parameters": [
+          { "name": "access_token", "in": "query", "required": true, "schema": { "type": "string" }, "example": "pancake_usr_token_9988" }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "pages": [
+                    {
+                      "id": "PAGE-102938",
+                      "name": "UniFlow Official Fashion Store",
+                      "platform": "facebook",
+                      "page_access_token": "page_tok_live_8822"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "pancake_order_update": {
+      "post": {
+        "summary": "Nhận thông báo khi đơn hàng Pancake POS thay đổi trạng thái (Inbound Push)",
+        "x-uniflow-flow-type": "PUSH_WEBHOOK",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PancakeOrderRoot"
+              },
+              "example": {
+                "order": {
+                  "id": "PAN-ORD-889922",
+                  "partner_id": "ORD-SHOPEE-889921",
+                  "status": "2",
+                  "bill_full_name": "Tuấn Nguyễn",
+                  "bill_phone_number": "0987654321"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PancakeOrderRoot": {
+        "type": "object",
+        "required": ["order"],
+        "properties": {
+          "order": { "$ref": "#/components/schemas/PancakeOrder" }
+        }
+      },
+      "PancakeOrder": {
+        "type": "object",
+        "description": "Cấp độ 1: Đối tượng đơn hàng Pancake POS",
+        "required": ["items", "bill_phone_number", "bill_full_name"],
+        "properties": {
+          "id": { "type": "string" },
+          "partner_id": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "bill_full_name": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedName" },
+          "bill_phone_number": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedPhone" },
+          "status": { "type": "string", "x-uniflow-udm-target": "order.status" },
+          "total_price": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "total_discount": { "type": "number", "x-uniflow-udm-target": "order.totals.discountPlatform" },
+          "shipping_fee": { "type": "number", "x-uniflow-udm-target": "order.totals.shippingFeePaid" },
+          "note": { "type": "string" },
+          "customer": { "$ref": "#/components/schemas/PancakeCustomer" },
+          "shipping_address": { "$ref": "#/components/schemas/PancakeAddress" },
+          "partner": { "$ref": "#/components/schemas/PancakePartner" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PancakeOrderItem" }
+          }
+        }
+      },
+      "PancakeCustomer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "phone": { "type": "string" }
+        }
+      },
+      "PancakeAddress": {
+        "type": "object",
+        "properties": {
+          "full_address": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.fullAddress" }
+        }
+      },
+      "PancakePartner": {
+        "type": "object",
+        "properties": {
+          "partner_id": { "type": "string" },
+          "partner_name": { "type": "string" },
+          "tracking_number": { "type": "string" },
+          "fee": { "type": "number" },
+          "cod": { "type": "number" },
+          "status": { "type": "string" }
+        }
+      },
+      "PancakeOrderItem": {
+        "type": "object",
+        "required": ["variation_id", "quantity", "price"],
+        "properties": {
+          "variation_id": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceSkuCode" },
+          "quantity": { "type": "integer", "x-uniflow-udm-target": "order.items[].quantity" },
+          "price": { "type": "number", "x-uniflow-udm-target": "order.items[].unitPrice" },
+          "variation_info": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceItemName" },
+              "barcode": { "type": "string" },
+              "sku": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

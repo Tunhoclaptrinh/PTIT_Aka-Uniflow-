@@ -1,0 +1,82 @@
+[
+  {
+    "name": "NhanhVn",
+    "category": "POS_ERP",
+    "submittedUrl": "https://apidocs.nhanh.vn/v3",
+    "status": "VALID",
+    "correctedUrl": "https://apidocs.nhanh.vn/v3",
+    "docType": "GitBook",
+    "authType": "API_KEY_SECRET",
+    "apiBaseUrl": "https://open.nhanh.vn/api",
+    "notes": "GitBook platform, có markdown endpoint: https://apidocs.nhanh.vn/v3/readme.md"
+  },
+  {
+    "name": "Sapo",
+    "category": "POS_ERP",
+    "submittedUrl": "https://support.sapo.vn/gioi-thieu-api",
+    "status": "NEED_ADJUSTMENT",
+    "correctedUrl": "https://support.sapo.vn/article",
+    "docType": "HTML_PORTAL",
+    "authType": "OAUTH2_HEADER_TOKEN",
+    "apiBaseUrl": "https://core.sapo.vn",
+    "webhookUrl": "https://support.sapo.vn/sapo-webhook",
+    "notes": "URL ban đầu là bài giới thiệu tổng quan. Cổng API kỹ thuật đầy đủ là /article và /sapo-webhook."
+  },
+  {
+    "name": "Misa CRM",
+    "category": "CRM",
+    "submittedUrl": "https://www.misa.vn/155017/tai-lieu-open-api-tich-hop-misa-crm/#i-gioi-thieu",
+    "status": "VALID",
+    "correctedUrl": "https://www.misa.vn/155017/tai-lieu-open-api-tich-hop-misa-crm/",
+    "docType": "BLOG_TECHNICAL_DOC",
+    "authType": "APP_ID_SECRET_BEARER",
+    "apiBaseUrl": "https://actopen.misa.vn",
+    "notes": "Tài liệu hướng dẫn kỹ thuật Open API của AMIS CRM."
+  },
+  {
+    "name": "Misa Amis",
+    "category": "ERP_PROCESS",
+    "submittedUrl": "https://helpamis.misa.vn/amis-quy-trinh/kb/open-api/#2-3-tai-xuong-tai-lieu-mo-ta-ket-noi-api",
+    "status": "VALID",
+    "correctedUrl": "https://helpamis.misa.vn/amis-quy-trinh/kb/open-api/",
+    "docType": "KNOWLEDGE_BASE",
+    "authType": "BEARER_TOKEN",
+    "apiBaseUrl": "https://amisapp.misa.vn/openapi",
+    "notes": "AMIS Quy trình Open API, có link tải file Postman/Excel đặc tả API."
+  },
+  {
+    "name": "Pancake POS & Social Chat",
+    "category": "POS_CRM",
+    "submittedUrl": "https://trtc.io/document/45912?platform=web&product=chat&menulabel=uikit",
+    "status": "CRITICAL_ERROR_IN_SUBMITTED_LINK",
+    "correctedUrl": "https://docs.pancake.biz/pos/api/",
+    "openApiYamlUrl": "https://developer.pancake.biz/openapi/openapi.yaml",
+    "alternateUrl": "https://api-docs.pancake.vn/",
+    "docType": "OPENAPI_YAML_PORTAL",
+    "authType": "API_KEY_QUERY_OR_HEADER",
+    "apiBaseUrl": "https://pos.pages.fm/api/v1",
+    "notes": "CẢNH BÁO: URL trtc.io là Tencent Real-Time Communication (Chat SDK), SAI HOÀN TOÀN! Pancake POS thực tế dùng pos.pages.fm với OpenAPI YAML chính thức tại developer.pancake.biz."
+  },
+  {
+    "name": "MISA meInvoice",
+    "category": "EINVOICE",
+    "submittedUrl": "https://doc.meinvoice.vn/",
+    "status": "VALID",
+    "correctedUrl": "https://doc.meinvoice.vn/toc.html",
+    "docType": "DOCFX",
+    "authType": "BEARER_TOKEN_LOGIN",
+    "apiBaseUrl": "https://api.meinvoice.vn",
+    "notes": "Cổng DocFX tài liệu hóa đơn điện tử meInvoice (API-CLOUD, API-WEBAPP)."
+  },
+  {
+    "name": "Telegram Bot Webhook",
+    "category": "NOTIFICATION_BOT",
+    "submittedUrl": "https://core.telegram.org/bots/api",
+    "status": "VALID",
+    "correctedUrl": "https://core.telegram.org/bots/api",
+    "docType": "SINGLE_PAGE_HTML",
+    "authType": "BOT_TOKEN_URL",
+    "apiBaseUrl": "https://api.telegram.org/bot<token>",
+    "notes": "Tài liệu Telegram Bot API chính thức, webhook cấu hình qua endpoint setWebhook."
+  }
+]

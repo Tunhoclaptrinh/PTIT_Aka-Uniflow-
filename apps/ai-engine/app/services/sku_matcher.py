@@ -34,6 +34,84 @@ class HybridSKUMatcher:
                 cls._qdrant_client = None
         return cls._qdrant_client
 
+    @classmethod
+    def init_collection(cls, collection_name: Optional[str] = None, dim: int = 1024) -> Dict[str, Any]:
+        """Tự động kiểm tra và khởi tạo collection trong Qdrant Vector DB nếu chưa có"""
+        client = cls.get_qdrant_client()
+        col_name = collection_name or settings.QDRANT_COLLECTION
+        if not client:
+            return {"status": "OFFLINE", "message": "Qdrant Vector DB chưa sẵn sàng, đang chạy chế độ Local Fallback"}
+        
+        try:
+            collections = [c.name for c in client.get_collections().collections]
+            if col_name not in collections:
+                client.create_collection(
+                    collection_name=col_name,
+                    vectors_config=qmodels.VectorParams(size=dim, distance=qmodels.Distance.COSINE)
+                )
+                return {"status": "CREATED", "collection": col_name, "dimension": dim, "distance": "COSINE"}
+            return {"status": "EXISTS", "collection": col_name, "dimension": dim}
+        except Exception as e:
+            return {"status": "ERROR", "error": str(e)}
+
+    @classmethod
+    def upsert_product(cls, product_id: str, sku: str, name: str, attributes: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Tạo vector embedding và lưu trữ sản phẩm vào Qdrant Vector DB"""
+        client = cls.get_qdrant_client()
+        col_name = settings.QDRANT_COLLECTION
+        vec = cls.generate_text_embedding(name)
+        
+        if not client:
+            return {"status": "SAVED_LOCAL", "sku": sku, "note": "Qdrant offline, vector cached locally"}
+
+        try:
+            cls.init_collection(col_name, dim=len(vec))
+            point_id = int(hashlib.md5(sku.encode()).hexdigest()[:8], 16)
+            client.upsert(
+                collection_name=col_name,
+                points=[
+                    qmodels.PointStruct(
+                        id=point_id,
+                        vector=vec,
+                        payload={
+                            "product_id": product_id,
+                            "sku": sku,
+                            "name": name,
+                            "attributes": attributes or cls.extract_attributes(name),
+                        }
+                    )
+                ]
+            )
+            return {"status": "SUCCESS", "sku": sku, "point_id": point_id, "dim": len(vec)}
+        except Exception as e:
+            return {"status": "ERROR", "error": str(e)}
+
+    @classmethod
+    def search_similar_products(cls, query_name: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Tìm kiếm Top-K sản phẩm tương đồng cao nhất trong Vector DB"""
+        client = cls.get_qdrant_client()
+        if not client:
+            return []
+        
+        try:
+            query_vec = cls.generate_text_embedding(query_name)
+            hits = client.search(
+                collection_name=settings.QDRANT_COLLECTION,
+                query_vector=query_vec,
+                limit=limit
+            )
+            return [
+                {
+                    "score": round(hit.score, 4),
+                    "sku": hit.payload.get("sku"),
+                    "name": hit.payload.get("name"),
+                    "attributes": hit.payload.get("attributes"),
+                }
+                for hit in hits
+            ]
+        except Exception:
+            return []
+
     @staticmethod
     def generate_text_embedding(text: str, dim: int = 1024) -> List[float]:
         # """Tạo vector embedding 128 chiều từ nội dung văn bản tiếng Việt/Anh"""

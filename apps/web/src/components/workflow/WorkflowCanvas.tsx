@@ -28,13 +28,16 @@ import {
   EyeOutlined,
   CompressOutlined,
   ExpandOutlined,
+  CloseCircleFilled,
+  ExclamationCircleFilled,
+  MinusCircleFilled,
 } from '@ant-design/icons';
 import { TriggerNode } from './nodes/TriggerNode';
 import { AINode } from './nodes/AINode';
 import { ActionNode } from './nodes/ActionNode';
 import { GroupNode } from './nodes/GroupNode';
 import { DirectiveEdge } from './edges/DirectiveEdge';
-import { workflowService, WorkflowData, DryRunResult } from '../../services/workflow.service';
+import { workflowService, WorkflowData, DryRunResult, WorkflowExecutionResult } from '../../services/workflow.service';
 import { PromptBar } from './panels/PromptBar';
 import { NodeLibraryDrawer } from './panels/NodeLibraryDrawer';
 import { NodeSettingsDrawer } from './panels/NodeSettingsDrawer';
@@ -97,6 +100,7 @@ const FlowContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [executing, setExecuting] = useState(false);
 
   // Snipping Tool / Box Selection Mode State
   const [isSnipMode, setIsSnipMode] = useState(false);
@@ -118,6 +122,8 @@ const FlowContent: React.FC = () => {
   const [debugDrawerOpen, setDebugDrawerOpen] = useState(false);
   const [architectOpen, setArchitectOpen] = useState(false);
   const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null);
+  const [executeResult, setExecuteResult] = useState<WorkflowExecutionResult | null>(null);
+  const [activeDebugTab, setActiveDebugTab] = useState<'dryrun' | 'execute'>('execute');
 
   const [createForm] = Form.useForm();
   const { getViewport, setViewport, fitView, screenToFlowPosition } = useReactFlow();
@@ -788,6 +794,19 @@ const FlowContent: React.FC = () => {
           setWorkflowsList((prev) =>
             prev.map((w) => (w._id === currentWorkflow._id ? updatedWf : w))
           );
+        } else {
+          // Chưa có quy trình nào: tự động tạo mới vào MongoDB Atlas
+          const newWf = await workflowService.createWorkflow({
+            name: generated.name || 'Quy trình xử lý đơn hàng tự động',
+            description: promptText,
+            isActive: true,
+            nodes: generated.nodes,
+            edges: generated.edges,
+            viewport: { x: 0, y: 0, zoom: 1 },
+          });
+          setCurrentWorkflow(newWf);
+          setWorkflowsList([newWf]);
+          notify.success(`Đã khởi tạo quy trình mới "${newWf.name}" thành công!`);
         }
         setTimeout(() => fitView({ duration: 400 }), 100);
       }
@@ -798,7 +817,13 @@ const FlowContent: React.FC = () => {
 
   const handleSave = async () => {
     if (!currentWorkflow?._id) {
-      notify.warning('Vui lòng chọn hoặc tạo quy trình trước khi lưu!');
+      createForm.resetFields();
+      createForm.setFieldsValue({
+        name: 'Quy trình xử lý đơn hàng mới',
+        creationMode: 'blank',
+      });
+      setCreateModalOpen(true);
+      notify.info('Vui lòng đặt tên quy trình để lưu vào MongoDB Atlas.');
       return;
     }
 
@@ -824,8 +849,8 @@ const FlowContent: React.FC = () => {
   const handleCreateWorkflow = async () => {
     try {
       const values = await createForm.validateFields();
-      let initNodes: any[] = [];
-      let initEdges: any[] = [];
+      let initNodes: any[] = values.creationMode === 'blank' && nodes.length > 0 ? nodes : [];
+      let initEdges: any[] = values.creationMode === 'blank' && edges.length > 0 ? edges : [];
       let finalName = values.name;
 
       if (values.creationMode === 'ai' && values.aiPrompt?.trim()) {
@@ -1128,6 +1153,7 @@ const FlowContent: React.FC = () => {
     try {
       const result = await workflowService.dryRun(currentWorkflow._id);
       setDryRunResult(result);
+      setActiveDebugTab('dryrun');
 
       // Hiệu ứng dòng điện & sợi dây phát sáng tuần tự theo đúng các Node thực thi
       const steps = result.steps || [];
@@ -1186,6 +1212,84 @@ const FlowContent: React.FC = () => {
       notify.error('Lỗi khi chạy mô phỏng: ' + err.message);
     } finally {
       setTesting(false);
+    }
+  };
+
+  /**
+   * Thực thi THẬT workflow — gọi API adapter thật.
+   * Node nào có connector key → gọi API ngoài thật.
+   * Node chưa cấu hình → trả SIMULATED thay vì crash.
+   */
+  const handleExecuteReal = async () => {
+    if (!currentWorkflow?._id) {
+      notify.warning('Vui lòng chọn hoặc lưu một quy trình trước khi thực thi!');
+      return;
+    }
+    if (nodes.length === 0) {
+      notify.warning('Quy trình đang trống! Hãy thêm khối xử lý trước.');
+      return;
+    }
+
+    setExecuting(true);
+    notify.loading('Đang thực thi quy trình — gọi API adapter cho từng khối...', 'execReal');
+    try {
+      // Lưu workflow mới nhất trước khi thực thi
+      await workflowService.updateWorkflow(currentWorkflow._id, { nodes, edges });
+
+      const samplePayload = {
+        orderId: `MANUAL_${Date.now()}`,
+        platform: 'MANUAL',
+        trigger: 'MANUAL_EXECUTE',
+        orderTotal: 850000,
+        paymentMethod: 'COD',
+        customerName: 'Khách hàng mẫu',
+        weightGrams: 500,
+        items: [{ sku: 'SAMPLE-SKU-01', productName: 'Sản phẩm mẫu', quantity: 1, price: 850000, weightGrams: 500 }],
+        shippingAddress: {
+          receiverName: 'Nguyễn Văn A',
+          phone: '0987654321',
+          city: 'Hà Nội',
+          district: 'Cầu Giấy',
+          fullAddress: '12 Dịch Vọng Hậu, Cầu Giấy, Hà Nội',
+        },
+      };
+
+      const result = await workflowService.executeWorkflow(currentWorkflow._id, samplePayload);
+      setExecuteResult(result);
+      setActiveDebugTab('execute');
+      setDebugDrawerOpen(true);
+
+      // Hiệu ứng dòng điện theo kết quả thực thi
+      const successIds = (result.steps || []).filter(s => s.status === 'SUCCESS' || s.status === 'SIMULATED').map(s => s.nodeId).filter(Boolean);
+      for (let i = 0; i < successIds.length; i++) {
+        const cur = successIds[i];
+        const next = successIds[i + 1];
+        setEdges(eds => eds.map(e => {
+          if ((e.source === cur && (!next || e.target === next)) || e.target === cur) {
+            return { ...e, animated: true, style: { stroke: '#10B981', strokeWidth: 3.5, filter: 'drop-shadow(0 0 10px rgba(16, 185, 129, 0.95))' }, zIndex: 50 };
+          }
+          return e;
+        }));
+        await new Promise(r => setTimeout(r, 160));
+      }
+
+      const simCount = result.simulatedCount || 0;
+      const msg = result.success
+        ? `✅ Thực thi thành công ${result.successCount}/${result.totalNodes} bước (${result.durationMs}ms)${simCount > 0 ? ` — ${simCount} bước SIMULATED (chưa cấu hình API key)` : ''}`
+        : `⚠️ Hoàn thành có ${result.failedCount} lỗi — ${result.successCount} thành công, ${simCount} mô phỏng`;
+      result.success ? notify.success(msg) : notify.warning(msg);
+
+      setTimeout(() => {
+        setEdges(eds => eds.map(e => ({
+          ...e,
+          style: e.data?.isInternal ? { stroke: '#10B981', strokeWidth: 2 } : { stroke: '#2563EB', strokeWidth: 2 },
+          zIndex: e.data?.isInternal ? 20 : 1,
+        })));
+      }, 5000);
+    } catch (err: any) {
+      notify.error('Lỗi khi thực thi quy trình: ' + err.message);
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -1313,13 +1417,26 @@ const FlowContent: React.FC = () => {
           />
 
           <BaseButton
-            tooltip="Chạy thử nghiệm mô phỏng 0-chạm qua Backend API"
+            tooltip="Mô phỏng quy trình (DryRun — dùng dữ liệu mẫu từ DB)"
             variant="ghost"
             size="small"
             icon={<PlayCircleOutlined style={{ color: '#ed1c24' }} />}
             loading={testing}
             onClick={handleTestRun}
             style={{ width: 32, height: 32, padding: 0 }}
+          />
+
+          <BaseButton
+            tooltip="Thực thi THẬT — gọi API adapter cho từng khối. Node chưa có API key sẽ trả SIMULATED thay vì crash."
+            variant="ghost"
+            size="small"
+            icon={<ThunderboltFilled style={{ color: executing ? '#FFFFFF' : '#F59E0B' }} />}
+            loading={executing}
+            onClick={handleExecuteReal}
+            style={{
+              width: 32, height: 32, padding: 0,
+              ...(executing ? { background: '#F59E0B', borderColor: '#F59E0B' } : { borderColor: '#F59E0B' }),
+            }}
           />
 
           <BaseButton
@@ -1708,7 +1825,7 @@ const FlowContent: React.FC = () => {
               <div style={{ fontSize: 13, color: 'var(--text-secondary, #6B7280)', marginBottom: 16, lineHeight: 1.5 }}>
                 Sử dụng thanh lời nhắc AI bên dưới để sinh toàn bộ luồng tự động, hoặc bấm nút dưới đây để chọn từng khối chức năng.
               </div>
-              <Space>
+              <Space wrap size="middle" style={{ justifyContent: 'center' }}>
                 <BaseButton
                   variant="primary"
                   size="small"
@@ -1716,6 +1833,26 @@ const FlowContent: React.FC = () => {
                   onClick={() => setLibraryOpen(true)}
                 >
                   Mở thư viện thêm khối
+                </BaseButton>
+                <BaseButton
+                  variant="secondary"
+                  size="small"
+                  icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+                  onClick={() =>
+                    handleGeneratePrompt(
+                      'Bắt đơn hàng TikTok Shop thanh toán thành công, đối sánh SKU bằng AI, trừ tồn kho Sapo POS, so sánh cước rẻ nhất chọn Viettel Post và phát hành HĐĐT MISA meInvoice'
+                    )
+                  }
+                >
+                  Sinh luồng mẫu TMĐT chuẩn (AI)
+                </BaseButton>
+                <BaseButton
+                  variant="ghost"
+                  size="small"
+                  icon={<ApartmentOutlined style={{ color: '#0284C7' }} />}
+                  onClick={() => setArchitectOpen(true)}
+                >
+                  Tư vấn kiến trúc
                 </BaseButton>
               </Space>
             </div>
@@ -1842,13 +1979,43 @@ const FlowContent: React.FC = () => {
         {/* 5. Step-by-Step Test Run Debugger Drawer */}
         <Drawer
           title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <CheckCircleFilled style={{ color: '#10B981' }} />
-              <span style={{ fontWeight: 600, color: isLight ? '#0F172A' : '#F9FAFB' }}>Kết quả chạy thử nghiệm quy trình</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {activeDebugTab === 'execute' ? (
+                  <ThunderboltFilled style={{ color: '#F59E0B', fontSize: 16 }} />
+                ) : (
+                  <CheckCircleFilled style={{ color: '#10B981', fontSize: 16 }} />
+                )}
+                <span style={{ fontWeight: 700, color: isLight ? '#0F172A' : '#F9FAFB', fontSize: 15 }}>
+                  {activeDebugTab === 'execute' ? 'Kết quả thực thi thật (Live Execution)' : 'Kết quả chạy mô phỏng (DryRun)'}
+                </span>
+              </div>
+              {(dryRunResult || executeResult) && (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {executeResult && (
+                    <Tag
+                      color={activeDebugTab === 'execute' ? 'gold' : 'default'}
+                      style={{ cursor: 'pointer', borderRadius: 4, fontWeight: 600 }}
+                      onClick={() => setActiveDebugTab('execute')}
+                    >
+                      ⚡ Thực thi ({executeResult.durationMs}ms)
+                    </Tag>
+                  )}
+                  {dryRunResult && (
+                    <Tag
+                      color={activeDebugTab === 'dryrun' ? 'green' : 'default'}
+                      style={{ cursor: 'pointer', borderRadius: 4, fontWeight: 600 }}
+                      onClick={() => setActiveDebugTab('dryrun')}
+                    >
+                      ▶ Mô phỏng ({dryRunResult.durationMs}ms)
+                    </Tag>
+                  )}
+                </div>
+              )}
             </div>
           }
           placement="right"
-          width={600}
+          width={640}
           open={debugDrawerOpen}
           onClose={() => setDebugDrawerOpen(false)}
           styles={{
@@ -1863,7 +2030,141 @@ const FlowContent: React.FC = () => {
             },
           }}
         >
-          {dryRunResult && (
+          {activeDebugTab === 'execute' && executeResult && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Summary Card for Live Execution */}
+              <div
+                style={{
+                  background: isLight ? '#FFFFFF' : '#111827',
+                  border: isLight ? '1px solid #E5E7EB' : '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.03)' : '0 2px 6px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8', fontSize: 12 }}>Trạng thái toàn trình:</span>
+                  <Tag
+                    color={executeResult.success ? '#10B981' : executeResult.failedCount > 0 ? '#EF4444' : '#F59E0B'}
+                    style={{ fontWeight: 700, borderRadius: 4, padding: '2px 8px', fontSize: 12 }}
+                  >
+                    {executeResult.success
+                      ? (executeResult.simulatedCount > 0 ? 'HOÀN TẤT (CÓ MÔ PHỎNG)' : 'THÀNH CÔNG 100%')
+                      : 'HOÀN TẤT CÓ LỖI'}
+                  </Tag>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '10px 0', borderTop: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255, 255, 255, 0.05)', borderBottom: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255, 255, 255, 0.05)', marginBottom: 10 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, color: isLight ? '#64748B' : '#94A3B8' }}>Tổng bước</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: isLight ? '#0F172A' : '#F8FAFC' }}>{executeResult.totalNodes}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#10B981' }}>Thành công</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#10B981' }}>{executeResult.successCount}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#F59E0B' }}>Mô phỏng</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F59E0B' }}>{executeResult.simulatedCount || 0}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 11, color: '#EF4444' }}>Thất bại</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#EF4444' }}>{executeResult.failedCount || 0}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: isLight ? '#6B7280' : '#94A3B8' }}>Thời gian thực thi:</span>
+                  <span style={{ fontWeight: 600, color: isLight ? '#0F172A' : '#F9FAFB' }}>
+                    <ClockCircleOutlined style={{ marginRight: 4, color: '#10B981' }} />
+                    {executeResult.durationMs}ms
+                  </span>
+                </div>
+              </div>
+
+              {/* Execution Steps Telemetry Timeline */}
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 12, color: isLight ? '#111827' : '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Chi tiết thực thi từng khối (Telemetry):</span>
+                  <span style={{ fontSize: 11, color: isLight ? '#64748B' : '#94A3B8', fontWeight: 400 }}>{executeResult.steps?.length || 0} bước xử lý</span>
+                </div>
+
+                <Timeline
+                  items={executeResult.steps?.map((st, idx) => {
+                    let dotColor = '#10B981';
+                    let dotIcon = <CheckCircleFilled style={{ fontSize: 14 }} />;
+                    let tagColor = 'success';
+                    let statusText = 'Thành công';
+
+                    if (st.status === 'SIMULATED') {
+                      dotColor = '#F59E0B';
+                      dotIcon = <ExclamationCircleFilled style={{ fontSize: 14 }} />;
+                      tagColor = 'warning';
+                      statusText = 'Mô phỏng (Chưa gắn API key)';
+                    } else if (st.status === 'SKIPPED') {
+                      dotColor = '#94A3B8';
+                      dotIcon = <MinusCircleFilled style={{ fontSize: 14 }} />;
+                      tagColor = 'default';
+                      statusText = 'Bỏ qua (Nhánh rẽ)';
+                    } else if (st.status === 'FAILED') {
+                      dotColor = '#EF4444';
+                      dotIcon = <CloseCircleFilled style={{ fontSize: 14 }} />;
+                      tagColor = 'error';
+                      statusText = 'Lỗi';
+                    }
+
+                    return {
+                      color: dotColor,
+                      dot: dotIcon,
+                      children: (
+                        <div style={{ paddingBottom: 10 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: isLight ? '#111827' : '#F9FAFB' }}>
+                              {idx + 1}. {st.label || st.nodeId}
+                            </span>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              <Tag color={tagColor} style={{ fontSize: 10, borderRadius: 4, margin: 0 }}>
+                                {statusText}
+                              </Tag>
+                              <Tag style={{ fontSize: 10, borderRadius: 4, margin: 0 }}>{st.latencyMs}ms</Tag>
+                            </div>
+                          </div>
+                          <div style={{ color: isLight ? '#4B5563' : '#CBD5E1', fontSize: 12, marginTop: 4, lineHeight: 1.4 }}>
+                            {st.detail}
+                          </div>
+                          {st.error && (
+                            <div style={{ color: '#EF4444', fontSize: 11, marginTop: 4, background: 'rgba(239, 68, 68, 0.08)', padding: '4px 8px', borderRadius: 4 }}>
+                              Chi tiết lỗi: {st.error}
+                            </div>
+                          )}
+                          {st.outputPayload && (
+                            <details style={{ marginTop: 6, fontSize: 11, cursor: 'pointer' }}>
+                              <summary style={{ color: isLight ? '#2563EB' : '#60A5FA', userSelect: 'none' }}>
+                                Xem dữ liệu đầu ra (Payload snapshot)
+                              </summary>
+                              <pre style={{
+                                background: isLight ? '#F1F5F9' : '#020617',
+                                padding: 8,
+                                borderRadius: 6,
+                                overflowX: 'auto',
+                                marginTop: 4,
+                                maxHeight: 150,
+                                fontSize: 11,
+                                color: isLight ? '#0F172A' : '#E2E8F0',
+                                border: isLight ? '1px solid #E2E8F0' : '1px solid #1E293B',
+                              }}>
+                                {JSON.stringify(st.outputPayload, null, 2)}
+                              </pre>
+                            </details>
+                          )}
+                        </div>
+                      ),
+                    };
+                  })}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeDebugTab === 'dryrun' && dryRunResult && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Summary Card */}
               <div

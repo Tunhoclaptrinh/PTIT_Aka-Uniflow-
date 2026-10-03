@@ -1,0 +1,101 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow Connector Specification — TikTok Shop Open API",
+    "version": "2024-09",
+    "description": "Chuẩn hóa API TikTok Shop phục vụ AI Code Generation, Mock Server và Test thủ công trên Swagger UI của UniFlow AI"
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/tiktok",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://open-api.tiktokglobalshop.com",
+      "description": "TikTok Shop Production API"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "TIKTOK_SHOP",
+    "category": "MARKETPLACE",
+    "authType": "OAUTH2_HMAC"
+  },
+  "paths": {
+    "/order/202309/orders/{order_id}": {
+      "get": {
+        "summary": "Lấy chi tiết 1 đơn hàng",
+        "operationId": "tiktok_get_order_detail",
+        "parameters": [
+          { "name": "order_id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "5769210293847561" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết đơn hàng",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TikTokOrderDetailPayload" },
+                "example": {
+                  "order_id": "5769210293847561",
+                  "order_status": "AWAITING_SHIPMENT",
+                  "payment_method": "CASH_ON_DELIVERY",
+                  "total_amount": 500000,
+                  "currency": "VND",
+                  "recipient_address": {
+                    "name": "Tuấn Nguyễn",
+                    "phone": "0987654321",
+                    "full_address": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                    "city": "Hà Nội",
+                    "district": "Quận Cầu Giấy",
+                    "ward": "Phường Dịch Vọng"
+                  },
+                  "item_list": [
+                    {
+                      "item_id": "172938475610",
+                      "sku_id": "AO-POLO-NAM-DEN-L",
+                      "product_name": "Áo Polo Nam Classic",
+                      "quantity": 2,
+                      "sku_sale_price": 250000
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TikTokOrderDetailPayload": {
+        "type": "object",
+        "properties": {
+          "order_id": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "order_status": { "type": "string", "x-uniflow-udm-target": "order.status" },
+          "total_amount": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "recipient_address": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "phone": { "type": "string" },
+              "full_address": { "type": "string" }
+            }
+          },
+          "item_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sku_id": { "type": "string" },
+                "product_name": { "type": "string" },
+                "quantity": { "type": "integer" },
+                "sku_sale_price": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

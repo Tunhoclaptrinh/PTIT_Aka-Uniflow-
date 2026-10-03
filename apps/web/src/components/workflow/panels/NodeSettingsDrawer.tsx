@@ -32,6 +32,7 @@ import { BaseButton } from '../../base/BaseButton';
 import { notify } from '../../../utils/notification';
 import { getPartnerLogo } from '../../../utils/partnerLogos';
 import { useAppConfig } from '../../../context/AppConfigContext';
+import { workflowService } from '../../../services/workflow.service';
 
 interface NodeSettingsDrawerProps {
   open: boolean;
@@ -128,49 +129,33 @@ export const NodeSettingsDrawer: React.FC<NodeSettingsDrawerProps> = ({
 
   const handleTestStep = async () => {
     setTesting(true);
-    notify.loading(`Đang chạy thử nghiệm khối ${selectedNode.data?.label || selectedNode.id}...`);
-    setTimeout(() => {
-      setTesting(false);
-      const isRateCompare =
-        selectedNode.data?.model === 'RATE_OPTIMIZER_AI' ||
-        selectedNode.data?.label?.toLowerCase().includes('so sánh') ||
-        selectedNode.data?.label?.toLowerCase().includes('cước') ||
-        selectedNode.data?.label?.toLowerCase().includes('rẻ nhất');
-
-      const outputPayload = isRateCompare
-        ? {
-          success: true,
-          action: 'AI_DYNAMIC_RATE_OPTIMIZATION',
-          sku: 'POLO-SLIM-BLACK-L',
-          parcelWeightGrams: 350,
-          quotes: [
-            { carrier: 'Viettel Post (VTP)', fee: 19500, etaHours: 24, badge: '🏆 RẺ NHẤT (-20.4%)' },
-            { carrier: 'GHTK Express', fee: 22000, etaHours: 18 },
-            { carrier: 'GHN Nhanh', fee: 24500, etaHours: 20 },
-          ],
-          chosenCarrier: 'VIETTEL_POST',
-          appliedFee: 19500,
-          estimatedSavingsVND: 5000,
-          executionTimeMs: 38,
-          timestamp: new Date().toISOString(),
-        }
-        : {
-          success: true,
-          nodeId: selectedNode.id,
+    notify.loading(`Đang gửi kiểm thử khối "${selectedNode.data?.label || selectedNode.id}" lên server...`);
+    try {
+      // Gọi backend THẬT — /api/v1/workflows/test-node
+      const result = await workflowService.testNode(selectedNode);
+      setTestOutput(result);
+      const statusIcon = result.status === 'SUCCESS' ? '✅' : result.status === 'SIMULATED' ? '🔵' : result.status === 'FAILED' ? '❌' : '⏭';
+      notify.success(`${statusIcon} [${result.status}] ${selectedNode.data?.label} — ${result.latencyMs}ms`);
+    } catch (err: any) {
+      // Fallback: vẫn hiển thị thông tin node nếu backend lỗi
+      const fallback = {
+        nodeId: selectedNode.id,
+        nodeType: selectedNode.type,
+        label: selectedNode.data?.label || 'Node',
+        status: 'SIMULATED' as const,
+        latencyMs: Math.floor(15 + Math.random() * 30),
+        detail: `[Fallback] Không kết nối được backend. Kiểm tra server đang chạy. Lỗi: ${err.message}`,
+        outputPayload: {
+          note: 'Cần backend /api/v1/workflows/test-node để kiểm thử thực sự',
+          nodeLabel: selectedNode.data?.label,
           nodeType: selectedNode.type,
-          outputData: {
-            sku: 'POLO-SLIM-BLACK-L',
-            matchedMasterSku: 'POLO-NAM-SLIM-DEN-L',
-            confidenceScore: 0.96,
-            status: 'READY_FOR_NEXT_STEP',
-          },
-          latencyMs: Math.floor(Math.random() * 35 + 15),
-          statusCode: 200,
-        };
-
-      setTestOutput(outputPayload);
-      notify.success(`Kiểm thử thành công khối ${selectedNode.data?.label || selectedNode.id}!`);
-    }, 600);
+        },
+      };
+      setTestOutput(fallback);
+      notify.warning(`Không gọi được backend — hiển thị mô phỏng. Lỗi: ${err.message}`);
+    } finally {
+      setTesting(false);
+    }
   };
 
   // ══════════════════════════════════════════════════════════════════════════

@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Tag, Space, Tabs, Spin } from 'antd';
+import { Card, Row, Col, Tag, Space, Tabs, Spin, Popconfirm } from 'antd';
 import {
   SettingOutlined,
   PlusOutlined,
   ReloadOutlined,
   ThunderboltFilled,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { ConnectorConfigModal } from './ConnectorConfigModal';
 import { AddConnectorModal } from './AddConnectorModal';
 import { AIFlowArchitectDrawer } from '../workflow/panels/AIFlowArchitectDrawer';
 import { StatusTag, BaseButton, SearchInput, EmptyState, PageContainer } from '../base';
 import { notify } from '../../utils/notification';
-import { connectorsService, DbConnectorItem } from '../../services/connectors.service';
+import { connectorsService } from '../../services/connectors.service';
 import { getPartnerLogo } from '../../utils/partnerLogos';
 
 export interface ConnectorItem {
@@ -20,6 +21,7 @@ export interface ConnectorItem {
   category: 'MARKETPLACE' | 'POS_ERP' | 'LOGISTICS' | 'CHAT_SOCIAL' | 'SPREADSHEET' | 'LANDING_PAGE' | 'ACCOUNTING';
   categoryLabel: string;
   status: 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
+  readiness?: 'PRODUCTION_READY' | 'IN_DEVELOPMENT' | 'BETA';
   ordersSynced: number;
   latency: string;
   brandColor: string;
@@ -29,168 +31,123 @@ export interface ConnectorItem {
   endpoint?: string;
 }
 
-// ── DANH MỤC THƯƠNG HIỆU & KÊNH KẾT NỐI MẶC ĐỊNH (KHÔNG CHỨA SỐ LIỆU CỐ ĐỊNH) ──
-const defaultConnectorsList: ConnectorItem[] = [
-  {
-    id: 'tiktok',
-    name: 'TikTok Shop',
-    category: 'MARKETPLACE',
-    categoryLabel: 'Sàn TMĐT',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#000000',
-    description: 'Inbound Webhook 0-chạm, xác thực HMAC-SHA256 chuẩn SLA TikTok',
-  },
-  {
-    id: 'shopee',
-    name: 'Shopee Open Platform',
-    category: 'MARKETPLACE',
-    categoryLabel: 'Sàn TMĐT',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#EE4D2D',
-    description: 'Nhận push notification READY_TO_SHIP và pull đơn hàng chi tiết qua API v2',
-  },
-  {
-    id: 'lazada',
-    name: 'Lazada Open API',
-    category: 'MARKETPLACE',
-    categoryLabel: 'Sàn TMĐT',
-    status: 'DISCONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#0F146D',
-    description: 'Kết nối gian hàng Lazada Mall, đồng bộ trạng thái thanh toán tự động',
-  },
-  {
-    id: 'pancake',
-    name: 'Pancake POS & Social Chat',
-    category: 'CHAT_SOCIAL',
-    categoryLabel: 'CSKH & Hội thoại',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#2563EB',
-    description: 'Đồng bộ tin nhắn Fanpage Facebook, Zalo OA và AI CSKH tự động tư vấn chốt đơn',
-  },
-  {
-    id: 'zalo',
-    name: 'Zalo OA & ZNS Notification',
-    category: 'CHAT_SOCIAL',
-    categoryLabel: 'CSKH & Hội thoại',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#0068FF',
-    description: 'Tự động gửi thông báo biến động đơn hàng, mã tracking vận đơn qua Zalo ZNS',
-  },
-  {
-    id: 'telegram',
-    name: 'Telegram Bot Webhook',
-    category: 'CHAT_SOCIAL',
-    categoryLabel: 'CSKH & Hội thoại',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#24A1DE',
-    description: 'Nhận báo cáo đơn hàng mới, cảnh báo lỗi ánh xạ SKU và phê duyệt 1-click tức thì',
-  },
+// ── DANH MỤC THƯƠNG HIỆU & KÊNH KẾT NỐI MẪU (METADATA CATALOG) ──────────────
+const defaultConnectorsCatalog: ConnectorItem[] = [
   {
     id: 'sapo',
     name: 'Sapo POS & Omnichannel',
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#0088FF',
-    description: 'Trừ tồn kho tức thì (Live Inventory Deduct) và cập nhật phiếu xuất kho',
-  },
-  {
-    id: 'kiotviet',
-    name: 'KiotViet Retail API',
-    category: 'POS_ERP',
-    categoryLabel: 'Quản lý kho POS',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#004F9E',
-    description: 'Đồng bộ hóa đơn bán hàng và trừ tồn kho chi nhánh theo thời gian thực',
+    description: 'Trừ tồn kho tức thì (Live Inventory Deduct) và cập nhật phiếu xuất kho qua Sapo REST API',
   },
   {
     id: 'nhanh',
     name: 'Nhanh.vn Omnichannel POS',
     category: 'POS_ERP',
     categoryLabel: 'Quản lý kho POS',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#FF6F00',
-    description: 'Đồng bộ danh mục đa chi nhánh, trạng thái đối soát và phiếu chuyển kho nội bộ',
+    description: 'Đồng bộ danh mục đa chi nhánh, trạng thái đối soát và phiếu chuyển kho nội bộ API v2.0',
   },
   {
-    id: 'haravan',
-    name: 'Haravan Omnichannel',
-    category: 'POS_ERP',
-    categoryLabel: 'Quản lý kho POS',
+    id: 'pancake',
+    name: 'Pancake POS & Social Chat',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
     status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
-    brandColor: '#E65100',
-    description: 'Đồng bộ dữ liệu sản phẩm, giá bán và hóa đơn điện tử Haravan',
+    brandColor: '#2563EB',
+    description: 'Đồng bộ tin nhắn Fanpage Facebook, Zalo OA và AI CSKH tự động tư vấn chốt đơn',
+  },
+  {
+    id: 'shopee',
+    name: 'Shopee Open Platform',
+    category: 'MARKETPLACE',
+    categoryLabel: 'Sàn TMĐT',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#EE4D2D',
+    description: 'Nhận push notification READY_TO_SHIP và pull đơn hàng chi tiết qua Open API v2',
+  },
+  {
+    id: 'tiktok',
+    name: 'TikTok Shop',
+    category: 'MARKETPLACE',
+    categoryLabel: 'Sàn TMĐT',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#000000',
+    description: 'Inbound Webhook 0-chạm, xác thực HMAC-SHA256 chuẩn SLA TikTok Shop Partner API',
+  },
+  {
+    id: 'misa_meinvoice',
+    name: 'MISA meInvoice (Hóa đơn điện tử)',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#0070C0',
+    description: 'Phát hành hóa đơn GTGT điện tử ký số, tuân thủ Nghị định 117/2025 & Thông tư 40/2021',
+  },
+  {
+    id: 'misa_amis',
+    name: 'MISA AMIS Kế toán',
+    category: 'ACCOUNTING',
+    categoryLabel: 'Kế toán & Thuế',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#0070C0',
+    description: 'Tự động ghi sổ cái, xuất chứng từ và đồng bộ hóa đơn VAT sang MISA AMIS theo thời gian thực',
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram Bot Webhook',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#24A1DE',
+    description: 'Nhận báo cáo đơn hàng mới, cảnh báo lỗi ánh xạ SKU và phê duyệt 1-click tức thì',
   },
   {
     id: 'ladipage',
     name: 'LadiPage Form Inbound',
     category: 'LANDING_PAGE',
     categoryLabel: 'Landing Page & Form',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#10B981',
     description: 'Thu thập đơn hàng từ form Landing Page, tự động chuẩn hóa địa chỉ và đẩy sang POS',
   },
   {
-    id: 'ghtk',
-    name: 'Giao Hàng Tiết Kiệm (GHTK)',
-    category: 'LOGISTICS',
-    categoryLabel: 'Đơn vị vận chuyển',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#005D38',
-    description: 'Tạo vận đơn tự động, lấy mã tracking và in phiếu giao hàng A6 ngay lập tức',
-  },
-  {
-    id: 'ghn',
-    name: 'Giao Hàng Nhanh (GHN Express)',
-    category: 'LOGISTICS',
-    categoryLabel: 'Đơn vị vận chuyển',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#F26522',
-    description: 'Tự động tính cước vận chuyển chuẩn SLA và định tuyến thông minh (Smart Rerouting)',
-  },
-  {
-    id: 'viettelpost',
-    name: 'Viettel Post API',
-    category: 'LOGISTICS',
-    categoryLabel: 'Đơn vị vận chuyển',
-    status: 'CONNECTED',
-    ordersSynced: 0,
-    latency: '--',
-    brandColor: '#EE0033',
-    description: 'Đồng bộ đơn hàng vận chuyển Viettel Post và tra cứu hành trình trực tiếp',
-  },
-  {
     id: 'googlesheets',
     name: 'Google Sheets Live Sync',
     category: 'SPREADSHEET',
     categoryLabel: 'Bảng tính & Tệp tin',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#0F9D58',
@@ -201,33 +158,96 @@ const defaultConnectorsList: ConnectorItem[] = [
     name: 'Microsoft Excel / CSV Engine',
     category: 'SPREADSHEET',
     categoryLabel: 'Bảng tính & Tệp tin',
-    status: 'CONNECTED',
+    status: 'DISCONNECTED',
+    readiness: 'PRODUCTION_READY',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#107C41',
     description: 'Xuất file Excel (.xlsx) theo mẫu tùy biến, đồng bộ OneDrive & nhập xuất SKU hàng loạt',
   },
   {
-    id: 'misa_amis',
-    name: 'MISA AMIS Kế toán',
-    category: 'ACCOUNTING',
-    categoryLabel: 'Kế toán & Thuế',
-    status: 'CONNECTED',
+    id: 'ghtk',
+    name: 'Giao Hàng Tiết Kiệm (GHTK)',
+    category: 'LOGISTICS',
+    categoryLabel: 'Đơn vị vận chuyển',
+    status: 'DISCONNECTED',
+    readiness: 'BETA',
     ordersSynced: 0,
     latency: '--',
-    brandColor: '#0070C0',
-    description: 'Tự động ghi sổ cái, xuất chứng từ và đồng bộ hóa đơn VAT sang MISA AMIS theo thời gian thực',
+    brandColor: '#005D38',
+    description: 'Tạo vận đơn tự động, lấy mã tracking và in phiếu giao hàng A6 (cần Token đối tác)',
   },
   {
-    id: 'misa_meinvoice',
-    name: 'MISA meInvoice (Hóa đơn điện tử)',
-    category: 'ACCOUNTING',
-    categoryLabel: 'Kế toán & Thuế',
-    status: 'CONNECTED',
+    id: 'ghn',
+    name: 'Giao Hàng Nhanh (GHN Express)',
+    category: 'LOGISTICS',
+    categoryLabel: 'Đơn vị vận chuyển',
+    status: 'DISCONNECTED',
+    readiness: 'BETA',
     ordersSynced: 0,
     latency: '--',
-    brandColor: '#0070C0',
-    description: 'Phát hành hóa đơn GTGT điện tử ký số, tuân thủ Nghị định 117/2025 & Thông tư 40/2021',
+    brandColor: '#F26522',
+    description: 'Tự động tính cước vận chuyển chuẩn SLA và định tuyến thông minh (cần ShopID & Token)',
+  },
+  {
+    id: 'viettelpost',
+    name: 'Viettel Post API',
+    category: 'LOGISTICS',
+    categoryLabel: 'Đơn vị vận chuyển',
+    status: 'DISCONNECTED',
+    readiness: 'BETA',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#EE0033',
+    description: 'Đồng bộ đơn hàng vận chuyển Viettel Post và tra cứu hành trình trực tiếp',
+  },
+  {
+    id: 'kiotviet',
+    name: 'KiotViet Retail API',
+    category: 'POS_ERP',
+    categoryLabel: 'Quản lý kho POS',
+    status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#004F9E',
+    description: 'Đồng bộ hóa đơn bán hàng và trừ tồn kho chi nhánh (Đang phát triển adapter OAuth2 B2B)',
+  },
+  {
+    id: 'haravan',
+    name: 'Haravan Omnichannel',
+    category: 'POS_ERP',
+    categoryLabel: 'Quản lý kho POS',
+    status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#E65100',
+    description: 'Đồng bộ dữ liệu sản phẩm, giá bán và hóa đơn điện tử (Đang hoàn thiện Haravan App OAuth2)',
+  },
+  {
+    id: 'lazada',
+    name: 'Lazada Open API',
+    category: 'MARKETPLACE',
+    categoryLabel: 'Sàn TMĐT',
+    status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#0F146D',
+    description: 'Kết nối gian hàng Lazada Mall (Đang hoàn thiện xác thực ký số seller token)',
+  },
+  {
+    id: 'zalo',
+    name: 'Zalo OA & ZNS Notification',
+    category: 'CHAT_SOCIAL',
+    categoryLabel: 'CSKH & Hội thoại',
+    status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
+    ordersSynced: 0,
+    latency: '--',
+    brandColor: '#0068FF',
+    description: 'Tự động gửi thông báo biến động đơn và tracking (Đang chờ cấp phép ZNS Template)',
   },
   {
     id: 'fast_accounting',
@@ -235,10 +255,11 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#E65100',
-    description: 'Đối soát số dư tài khoản ngân hàng, tổng hợp báo cáo tài chính và kê khai thuế TNCN',
+    description: 'Đối soát số dư tài khoản ngân hàng và hạch toán thuế (Đang phát triển Enterprise API)',
   },
   {
     id: 'bravo_erp',
@@ -246,15 +267,16 @@ const defaultConnectorsList: ConnectorItem[] = [
     category: 'ACCOUNTING',
     categoryLabel: 'Kế toán & Thuế',
     status: 'DISCONNECTED',
+    readiness: 'IN_DEVELOPMENT',
     ordersSynced: 0,
     latency: '--',
     brandColor: '#1565C0',
-    description: 'Quản lý tài chính tổng hợp, phân tích lãi lỗ đa trung tâm chi phí và kiểm toán nội bộ',
+    description: 'Quản lý tài chính tổng hợp đa trung tâm chi phí (Đang phát triển Enterprise API)',
   },
 ];
 
 export const ConnectorsHub: React.FC = () => {
-  const [connectors, setConnectors] = useState<ConnectorItem[]>(defaultConnectorsList);
+  const [connectors, setConnectors] = useState<ConnectorItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -268,33 +290,34 @@ export const ConnectorsHub: React.FC = () => {
     setLoading(true);
     try {
       const dbList = await connectorsService.getConnectors();
-      if (dbList && dbList.length > 0) {
-        const dbMap = new Map<string, DbConnectorItem>();
-        dbList.forEach((item) => dbMap.set(item.connectorId, item));
-
-        // Hợp nhất danh mục đối tác với số liệu thực tế từ Database
-        setConnectors(
-          defaultConnectorsList.map((catalogItem) => {
-            const dbItem = dbMap.get(catalogItem.id);
-            if (dbItem) {
-              return {
-                ...catalogItem,
-                name: dbItem.name || catalogItem.name,
-                category: (dbItem.category as any) || catalogItem.category,
-                status: dbItem.status || catalogItem.status,
-                ordersSynced: dbItem.ordersSynced || 0,
-                latency: dbItem.latency || `${dbItem.latencyMs || 0}ms`,
-                appKey: dbItem.config?.appKey,
-                appSecret: dbItem.config?.appSecret,
-                endpoint: dbItem.config?.endpoint,
-              };
-            }
-            return catalogItem;
-          })
-        );
+      if (dbList && Array.isArray(dbList) && dbList.length > 0) {
+        const mappedList: ConnectorItem[] = dbList.map((dbItem) => {
+          const catalogItem = defaultConnectorsCatalog.find(
+            (c) => c.id.toLowerCase() === dbItem.connectorId.toLowerCase()
+          );
+          return {
+            id: dbItem.connectorId,
+            name: dbItem.name || catalogItem?.name || dbItem.connectorId,
+            category: (dbItem.category as any) || catalogItem?.category || 'MARKETPLACE',
+            categoryLabel: catalogItem?.categoryLabel || 'Kênh kết nối',
+            status: dbItem.status || 'CONNECTED',
+            readiness: catalogItem?.readiness || 'PRODUCTION_READY',
+            ordersSynced: dbItem.ordersSynced || 0,
+            latency: dbItem.latency || (dbItem.latencyMs ? `${dbItem.latencyMs}ms` : '--'),
+            brandColor: catalogItem?.brandColor || '#6366F1',
+            description: dbItem.config?.endpoint || catalogItem?.description || 'Kênh tích hợp tự động qua UDM Pipeline',
+            appKey: dbItem.config?.appKey,
+            appSecret: dbItem.config?.appSecret,
+            endpoint: dbItem.config?.endpoint,
+          };
+        });
+        setConnectors(mappedList);
+      } else {
+        setConnectors([]);
       }
     } catch (err: any) {
       console.warn('Lỗi tải dữ liệu cổng kết nối từ Database:', err.message);
+      setConnectors([]);
     } finally {
       setLoading(false);
     }
@@ -343,6 +366,7 @@ export const ConnectorsHub: React.FC = () => {
   const handleAddConnector = async (newConnector: ConnectorItem) => {
     try {
       await connectorsService.updateConnector(newConnector.id, {
+        connectorId: newConnector.id,
         name: newConnector.name,
         category: newConnector.category,
         status: newConnector.status,
@@ -356,10 +380,28 @@ export const ConnectorsHub: React.FC = () => {
         },
       });
 
-      setConnectors((prev) => [newConnector, ...prev]);
+      setConnectors((prev) => {
+        const idx = prev.findIndex((c) => c.id === newConnector.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = newConnector;
+          return next;
+        }
+        return [newConnector, ...prev];
+      });
       notify.success(`Đã thêm cổng kết nối ${newConnector.name} vào Database!`);
     } catch (err: any) {
       notify.error('Lỗi khi thêm kênh vào Database: ' + err.message);
+    }
+  };
+
+  const handleDeleteConnector = async (connectorId: string) => {
+    try {
+      await connectorsService.deleteConnector(connectorId);
+      setConnectors((prev) => prev.filter((c) => c.id !== connectorId));
+      notify.success('Đã ngắt kết nối và xóa kênh thành công!');
+    } catch (err: any) {
+      notify.error('Lỗi khi xóa kênh: ' + err.message);
     }
   };
 
@@ -423,10 +465,71 @@ export const ConnectorsHub: React.FC = () => {
         />
 
         {/* Connectors Grid */}
-        {loading && connectors.every((c) => c.ordersSynced === 0 && c.latency === '--') ? (
+        {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
-            <Spin tip="Đang tải dữ liệu cổng kết nối từ MongoDB Atlas..." size="large" />
+            <Spin tip="Đang tải dữ liệu cổng kết nối từ cơ sở dữ liệu..." size="large" />
           </div>
+        ) : connectors.length === 0 ? (
+          <Card
+            style={{
+              borderRadius: 16,
+              border: '1.5px dashed var(--border-subtle, #D1D5DB)',
+              background: 'var(--bg-surface, #FFFFFF)',
+              textAlign: 'center',
+              padding: '60px 24px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+            }}
+          >
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'rgba(99, 102, 241, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+                marginBottom: 20,
+              }}
+            >
+              🔌
+            </div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary, #111827)', marginBottom: 8 }}>
+              Tài khoản chưa có kênh kết nối nào
+            </h3>
+            <p
+              style={{
+                fontSize: 14.5,
+                color: 'var(--text-secondary, #6B7280)',
+                maxWidth: 580,
+                margin: '0 auto 24px',
+                lineHeight: 1.6,
+              }}
+            >
+              Không gian làm việc mới 100% sạch sẽ. Hãy bắt đầu bằng cách thêm kênh kết nối đầu tiên (Sapo, Nhanh.vn, Shopee, TikTok Shop, Pancake, MISA meInvoice, Telegram...).
+            </p>
+            <Space size="middle">
+              <BaseButton
+                variant="primary"
+                size="middle"
+                icon={<PlusOutlined />}
+                onClick={() => setAddModalOpen(true)}
+                style={{ padding: '0 24px', height: 42, fontWeight: 600, fontSize: 14 }}
+              >
+                + Thêm Kênh Kết Nối Đầu Tiên
+              </BaseButton>
+              <BaseButton
+                variant="secondary"
+                size="middle"
+                icon={<ThunderboltFilled style={{ color: '#8B5CF6' }} />}
+                onClick={() => setArchitectOpen(true)}
+                style={{ height: 42, fontWeight: 600, color: '#8B5CF6' }}
+              >
+                Tư Vấn Kiến Trúc Kênh (AI)
+              </BaseButton>
+            </Space>
+          </Card>
         ) : filteredConnectors.length === 0 ? (
           <EmptyState
             title="Không tìm thấy cổng kết nối phù hợp"
@@ -513,20 +616,34 @@ export const ConnectorsHub: React.FC = () => {
                             <div style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--text-primary, #111827)' }}>
                               {connector.name}
                             </div>
-                            <Tag
-                              style={{
-                                margin: 0,
-                                marginTop: 3,
-                                fontSize: 10.5,
-                                padding: '0 6px',
-                                borderRadius: 4,
-                                background: 'var(--bg-surface-alt, #F3F4F6)',
-                                border: '1px solid var(--border-subtle, #E5E7EB)',
-                                color: 'var(--text-secondary, #4B5563)',
-                              }}
-                            >
-                              {connector.categoryLabel}
-                            </Tag>
+                            <Space size={4} style={{ marginTop: 3 }} wrap>
+                              <Tag
+                                style={{
+                                  margin: 0,
+                                  fontSize: 10.5,
+                                  padding: '0 6px',
+                                  borderRadius: 4,
+                                  background: 'var(--bg-surface-alt, #F3F4F6)',
+                                  border: '1px solid var(--border-subtle, #E5E7EB)',
+                                  color: 'var(--text-secondary, #4B5563)',
+                                }}
+                              >
+                                {connector.categoryLabel}
+                              </Tag>
+                              {connector.readiness === 'PRODUCTION_READY' ? (
+                                <Tag color="success" style={{ margin: 0, fontSize: 10, padding: '0 5px', borderRadius: 4 }}>
+                                  ✓ Sẵn sàng
+                                </Tag>
+                              ) : connector.readiness === 'BETA' ? (
+                                <Tag color="processing" style={{ margin: 0, fontSize: 10, padding: '0 5px', borderRadius: 4 }}>
+                                  🧪 Cần Token
+                                </Tag>
+                              ) : (
+                                <Tag color="warning" style={{ margin: 0, fontSize: 10, padding: '0 5px', borderRadius: 4 }}>
+                                  ⏳ Đang phát triển
+                                </Tag>
+                              )}
+                            </Space>
                           </div>
                         </div>
 
@@ -587,15 +704,32 @@ export const ConnectorsHub: React.FC = () => {
                         </div>
                       </div>
 
-                      <BaseButton
-                        variant="secondary"
-                        size="small"
-                        icon={<SettingOutlined />}
-                        onClick={() => handleOpenConfig(connector)}
-                        style={{ width: '100%' }}
-                      >
-                        Cấu hình kết nối
-                      </BaseButton>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <BaseButton
+                          variant="secondary"
+                          size="small"
+                          icon={<SettingOutlined />}
+                          onClick={() => handleOpenConfig(connector)}
+                          style={{ flex: 1 }}
+                        >
+                          Cấu hình kết nối
+                        </BaseButton>
+                        <Popconfirm
+                          title="Xác nhận xóa kênh kết nối?"
+                          description={`Bạn có chắc muốn xóa kênh ${connector.name}?`}
+                          onConfirm={() => handleDeleteConnector(connector.id)}
+                          okText="Xóa"
+                          cancelText="Hủy"
+                          okButtonProps={{ danger: true }}
+                        >
+                          <BaseButton
+                            variant="ghost"
+                            size="small"
+                            icon={<DeleteOutlined style={{ color: '#EF4444' }} />}
+                            style={{ borderColor: '#FCA5A5' }}
+                          />
+                        </Popconfirm>
+                      </div>
                     </div>
                   </Card>
                 </Col>

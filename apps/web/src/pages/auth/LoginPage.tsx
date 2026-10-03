@@ -40,7 +40,16 @@ export const LoginPage: React.FC = () => {
             <ThunderboltOutlined />
             <span>Điền nhanh tài khoản Demo để kiểm thử</span>
           </div>
-          <div className="demo-btns-row" style={{ display: 'flex', gap: 8 }}>
+          <div className="demo-btns-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <BaseButton
+              variant="secondary"
+              size="small"
+              icon={<ThunderboltOutlined style={{ color: '#10B981' }} />}
+              onClick={() => fillCredentials('live@uniflow.vn', 'UniFlow@2026')}
+              style={{ borderColor: '#10B981', color: '#10B981', fontWeight: 600 }}
+            >
+              Tài Khoản Live (Trắng)
+            </BaseButton>
             <BaseButton
               variant="secondary"
               size="small"

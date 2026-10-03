@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <rect width="120" height="120" rx="24" fill="#0070BA"/>
+  <!-- MISA Diamond Tri-color Logo Icon -->
+  <g transform="translate(18, 22)">
+    <!-- Letter M and modern geometric shapes -->
+    <path d="M12 56 L12 24 L28 42 L42 24 L42 56" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="58" cy="24" r="5" fill="#FFD100"/>
+    <path d="M58 33 L58 56" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M70 52 C70 56 76 58 82 55 C86 52 86 46 80 44 L74 42 C68 40 68 34 72 31 C76 28 82 29 84 34" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none"/>
+  </g>
+  <text x="60" y="102" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="16" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">meInvoice</text>
+</svg>

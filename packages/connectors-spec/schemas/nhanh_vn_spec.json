@@ -1,0 +1,437 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — Nhanh.vn Open API v3 Deep Multi-Level Specification",
+    "version": "3.0.0",
+    "description": "Đặc tả chuẩn hóa toàn diện cấu trúc đa tầng của API Nhanh.vn v3 (Trích xuất từ 15,251 dòng tài liệu gốc), kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/nhanh",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://open.nhanh.vn/api",
+      "description": "Nhanh.vn Open API Production Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "NHANH_VN",
+    "category": "POS_ERP",
+    "authType": "API_KEY_SECRET",
+    "baseUrls": {
+      "production": "https://open.nhanh.vn/api"
+    },
+    "rateLimit": {
+      "requestsPerMinute": 60,
+      "burstCapacity": 10
+    },
+    "webhookSecurity": {
+      "verificationMethod": "BODY_TOKEN",
+      "tokenField": "webhooksVerifyToken"
+    }
+  },
+  "paths": {
+    "/order/add": {
+      "post": {
+        "summary": "Tạo đơn hàng mới đồng bộ sang Nhanh.vn (Outbound Order Push)",
+        "operationId": "nhanh_order_add",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/NhanhOrderAddRequest"
+              },
+              "example": {
+                "version": "2.0",
+                "appId": "uniflow_app_id_8899",
+                "businessId": "10283",
+                "accessToken": "nhanh_access_token_secure_xyz",
+                "data": {
+                  "id": "ORD-SHOPEE-889921",
+                  "depotId": 102,
+                  "type": "Shipping",
+                  "customerName": "Tuấn Nguyễn",
+                  "customerMobile": "0987654321",
+                  "customerAddress": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                  "shipFee": 30000,
+                  "moneyDiscount": 15000,
+                  "description": "Đơn hàng đồng bộ tự động từ UniFlow AI",
+                  "productList": [
+                    {
+                      "idProduct": "SKU-AO-POLO-DEN",
+                      "name": "Áo Polo Nam Classic",
+                      "quantity": 2,
+                      "price": 250000,
+                      "discount": 0
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kết quả tạo đơn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhanhApiResponseOrderResult"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Tạo đơn thành công (HTTP 200, code=1)",
+                    "value": {
+                      "code": 1,
+                      "messages": ["Thêm đơn hàng thành công"],
+                      "data": {
+                        "orderId": 10839218
+                      }
+                    }
+                  },
+                  "outOfStockError": {
+                    "summary": "Lỗi hết tồn kho (HTTP 200, code=0)",
+                    "value": {
+                      "code": 0,
+                      "messages": [
+                        "Sản phẩm có mã SKU-AO-POLO-DEN không đủ tồn kho tại Depot ID 102 để xuất bán"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/index": {
+      "post": {
+        "summary": "Tìm kiếm và đối soát danh sách đơn hàng (Pull/Polling)",
+        "operationId": "nhanh_order_search",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/NhanhOrderSearchRequest"
+              },
+              "example": {
+                "version": "2.0",
+                "appId": "uniflow_app_id_8899",
+                "businessId": "10283",
+                "accessToken": "nhanh_access_token_secure_xyz",
+                "data": {
+                  "page": 1,
+                  "fromDate": "2026-10-01",
+                  "toDate": "2026-10-03",
+                  "status": "Confirmed"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhanhOrderSearchResponse"
+                },
+                "example": {
+                  "code": 1,
+                  "data": {
+                    "page": 1,
+                    "totalPages": 1,
+                    "totalRecords": 1,
+                    "orders": [
+                      {
+                        "id": "ORD-SHOPEE-889921",
+                        "depotId": 102,
+                        "customerName": "Tuấn Nguyễn",
+                        "customerMobile": "0987654321",
+                        "customerAddress": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                        "shipFee": 30000,
+                        "productList": [
+                          {
+                            "idProduct": "SKU-AO-POLO-DEN",
+                            "name": "Áo Polo Nam Classic",
+                            "quantity": 2,
+                            "price": 250000
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product/inventory": {
+      "post": {
+        "summary": "Quét tồn kho chi tiết theo từng kho hàng / Depot (Pull Inventory)",
+        "operationId": "nhanh_product_inventory",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/NhanhInventoryRequest"
+              },
+              "example": {
+                "version": "2.0",
+                "appId": "uniflow_app_id_8899",
+                "businessId": "10283",
+                "accessToken": "nhanh_access_token_secure_xyz",
+                "data": {
+                  "depotId": 102,
+                  "page": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 1,
+                  "data": {
+                    "totalRecords": 1,
+                    "products": {
+                      "SKU-AO-POLO-DEN": {
+                        "depotId": 102,
+                        "available": 45,
+                        "remain": 50,
+                        "shipping": 5
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/business/depot": {
+      "post": {
+        "summary": "Lấy danh sách các kho hàng / Chi nhánh (Depots)",
+        "operationId": "nhanh_depot_list",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 1,
+                  "data": [
+                    {
+                      "id": 102,
+                      "name": "Kho Tổng Cầu Giấy - Hà Nội",
+                      "address": "302 Cầu Giấy, Quận Cầu Giấy, Hà Nội"
+                    },
+                    {
+                      "id": 103,
+                      "name": "Kho Chi Nhánh Tân Bình - TP.HCM",
+                      "address": "123 Cộng Hòa, Quận Tân Bình, TP.HCM"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "nhanh_order_status_update": {
+      "post": {
+        "summary": "Webhook nhận thông báo khi trạng thái đơn trên Nhanh thay đổi (Inbound Push)",
+        "x-uniflow-flow-type": "PUSH_WEBHOOK",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NhanhWebhookOrderPayload"
+              },
+              "example": {
+                "event": "orderUpdate",
+                "webhooksVerifyToken": "token_verified_xyz",
+                "businessId": 10283,
+                "data": {
+                  "orderId": 10839218,
+                  "partnerOrderId": "ORD-SHOPEE-889921",
+                  "status": "Confirmed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "nhanh_inventory_change": {
+      "post": {
+        "summary": "Webhook nhận thông báo khi tồn kho kho hàng thay đổi (Inbound Push)",
+        "x-uniflow-flow-type": "PUSH_WEBHOOK",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NhanhWebhookInventoryPayload"
+              },
+              "example": {
+                "event": "inventoryUpdate",
+                "webhooksVerifyToken": "token_verified_xyz",
+                "data": {
+                  "productId": "SKU-AO-POLO-DEN",
+                  "depotId": 102,
+                  "available": 43
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NhanhOrderAddRequest": {
+        "type": "object",
+        "required": ["version", "appId", "businessId", "accessToken", "data"],
+        "properties": {
+          "version": { "type": "string", "example": "2.0" },
+          "appId": { "type": "string" },
+          "businessId": { "type": "string" },
+          "accessToken": { "type": "string" },
+          "data": { "$ref": "#/components/schemas/NhanhOrderAddData" }
+        }
+      },
+      "NhanhOrderAddData": {
+        "type": "object",
+        "description": "Cấp độ 1: Dữ liệu đơn hàng chi tiết đẩy sang Nhanh",
+        "required": ["depotId", "customerName", "customerMobile", "productList"],
+        "properties": {
+          "id": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "depotId": { "type": "integer" },
+          "type": { "type": "string", "enum": ["Shipping", "Shopping"], "default": "Shipping" },
+          "customerName": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedName" },
+          "customerMobile": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedPhone" },
+          "customerEmail": { "type": "string" },
+          "customerAddress": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.fullAddress" },
+          "shipFee": { "type": "number", "x-uniflow-udm-target": "order.totals.shippingFeePaid" },
+          "moneyDiscount": { "type": "number", "x-uniflow-udm-target": "order.totals.discountSeller" },
+          "description": { "type": "string" },
+          "productList": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/NhanhProductItem" }
+          }
+        }
+      },
+      "NhanhProductItem": {
+        "type": "object",
+        "description": "Cấp độ 2: Chi tiết từng dòng sản phẩm",
+        "required": ["idProduct", "quantity", "price"],
+        "properties": {
+          "idProduct": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceSkuCode" },
+          "code": { "type": "string" },
+          "name": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceItemName" },
+          "quantity": { "type": "integer", "x-uniflow-udm-target": "order.items[].quantity" },
+          "price": { "type": "number", "x-uniflow-udm-target": "order.items[].unitPrice" },
+          "discount": { "type": "number", "default": 0 },
+          "vat": { "type": "number", "default": 0 },
+          "imeiList": {
+            "type": "array",
+            "description": "Cấp độ 3: Danh sách số serial / IMEI đối với đồ điện tử",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "NhanhOrderSearchRequest": {
+        "type": "object",
+        "properties": {
+          "version": { "type": "string", "default": "2.0" },
+          "appId": { "type": "string" },
+          "businessId": { "type": "string" },
+          "accessToken": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      },
+      "NhanhOrderSearchResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "integer" },
+          "data": { "type": "object" }
+        }
+      },
+      "NhanhInventoryRequest": {
+        "type": "object",
+        "properties": {
+          "version": { "type": "string", "default": "2.0" },
+          "appId": { "type": "string" },
+          "businessId": { "type": "string" },
+          "accessToken": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      },
+      "NhanhWebhookOrderPayload": {
+        "type": "object",
+        "required": ["event", "webhooksVerifyToken", "data"],
+        "properties": {
+          "event": { "type": "string" },
+          "webhooksVerifyToken": { "type": "string" },
+          "businessId": { "type": "integer" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "orderId": { "type": "integer" },
+              "partnerOrderId": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+              "status": { "type": "string", "x-uniflow-udm-target": "order.status" }
+            }
+          }
+        }
+      },
+      "NhanhWebhookInventoryPayload": {
+        "type": "object",
+        "required": ["event", "webhooksVerifyToken", "data"],
+        "properties": {
+          "event": { "type": "string" },
+          "webhooksVerifyToken": { "type": "string" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string", "x-uniflow-udm-target": "inventory.skuCode" },
+              "depotId": { "type": "integer" },
+              "available": { "type": "integer", "x-uniflow-udm-target": "inventory.availableStock" }
+            }
+          }
+        }
+      },
+      "NhanhApiResponseOrderResult": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "integer" },
+          "messages": { "type": "array", "items": { "type": "string" } },
+          "data": {
+            "type": "object",
+            "properties": {
+              "orderId": { "type": "integer" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

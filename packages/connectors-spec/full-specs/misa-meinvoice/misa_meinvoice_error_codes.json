@@ -1,0 +1,174 @@
+[
+  {
+    "code": "TokenExpiredCode",
+    "description": "Token hết hạn - Cần gọi hàm RefreshToken"
+  },
+  {
+    "code": "InvalidTokenCode",
+    "description": "Token lỗi cần đăng nhập lại"
+  },
+  {
+    "code": "DuplicateTemplateName",
+    "description": "Lỗi trùng tên mẫu"
+  },
+  {
+    "code": "DuplicateTemplateNo",
+    "description": "Lỗi trùng ký hiệu"
+  },
+  {
+    "code": "InvoiceTemplateNotExist",
+    "description": "Mẫu hóa đơn không tồn tại"
+  },
+  {
+    "code": "CreateInvoiceDataError",
+    "description": "Tạo XML hóa đơn lỗi không xác định"
+  },
+  {
+    "code": "InvoiceDetail&#95;{0}",
+    "description": "Nếu mã lỗi bắt đầu bằng InvoiceDetail&#95;{0} thì thông tin có tên trường dữ liệu phía sau không hợp lệ\n        - Không thuộc loại được cho phép\n        - Giá trị bắt buộc - không được trống\n        - Vượt quá giới hạn MaxLength cho phép"
+  },
+  {
+    "code": "StockInTaxCode&#95;NotInfo&#95;{0}&#95;{1}",
+    "description": "Nếu mã lỗi bắt đầu bằng StockInTaxCode&#95;NotInfo&#95;{0}&#95;{1} thì thông tin MST có nhưng thông tin đơn vị không có\n        0: Loại phiếu xuất kho\n        1: thông tin thiếu"
+  },
+  {
+    "code": "TaxRateInfo&#95;VATRateName",
+    "description": "Tên loại thuế suất trong Bảng tổng hợp thuế suất của hóa đơn có dữ liệu không hợp lệ"
+  },
+  {
+    "code": "InvoiceQuantityTooLarge",
+    "description": "Số lượng hóa đơn gửi lên trong 1 Request quá số lượng cho phép"
+  },
+  {
+    "code": "XMLTooLong",
+    "description": "File XML quá dài"
+  },
+  {
+    "code": "LicenseInfo&#95;NotBuy",
+    "description": "Chưa mua tài nguyên"
+  },
+  {
+    "code": "LicenseInfo&#95;OutOfInvoice",
+    "description": "Số lượng tài nguyên còn lại không đủ để phát hành toàn bộ các hóa đơn gửi lên"
+  },
+  {
+    "code": "LicenseInfo&#95;Expired",
+    "description": "Tài nguyên chưa thanh toán hoặc đã hết hạn"
+  },
+  {
+    "code": "RequireError&#95;{0}",
+    "description": "Nếu bắt đầu bằng RequireError&#95;{0} thì thông tin có tên trường dữ liệu phía sau không hợp lệ\n        - Không thuộc loại được cho phép\n        - Giá trị bắt buộc - không được trống\n        - Vượt quá giới hạn MaxLength cho phép"
+  },
+  {
+    "code": "InvalidTransactionID",
+    "description": "Mã tra cứu không hợp lệ"
+  },
+  {
+    "code": "DuplicateTransactionID",
+    "description": "Trùng Mã tra cứu"
+  },
+  {
+    "code": "SignatureEmpty",
+    "description": "Chữ ký số bị bỏ trống"
+  },
+  {
+    "code": "InvalidSignature",
+    "description": "Chữ ký số không hợp lệ"
+  },
+  {
+    "code": "CertRevocation",
+    "description": "Chữ ký số đã bị thu hồi"
+  },
+  {
+    "code": "InvalidCertByRegistration",
+    "description": "Chữ ký số không tồn tại trong tờ khai"
+  },
+  {
+    "code": "HasRegistrationStopUseCert",
+    "description": "Tồn tại tờ khai Ngừng sử dụng chứng thư số"
+  },
+  {
+    "code": "SigningTimeNotInRegistration",
+    "description": "Ngày ký không thuộc khoảng thời gian có hiệu lực của chứng thư số đã đăng ký với cơ quan thuế và được CQT chấp nhận"
+  },
+  {
+    "code": "InvalidXMLData",
+    "description": "XML không hợp lệ"
+  },
+  {
+    "code": "InvalidInvNo",
+    "description": "Số hóa đơn không hợp lệ"
+  },
+  {
+    "code": "InvalidTaxCode",
+    "description": "Mã số thuế không hợp lệ"
+  },
+  {
+    "code": "DuplicateInvoiceRefID",
+    "description": "Trùng RefID của hóa đơn"
+  },
+  {
+    "code": "InvoiceNumberNotCotinuous",
+    "description": "Số hóa đơn không liên tục"
+  },
+  {
+    "code": "InvoiceDuplicated",
+    "description": "Trùng hóa đơn - hóa đơn đã được phát hành"
+  },
+  {
+    "code": "Exception",
+    "description": "Thực hiện bị Exception - Không rõ nguyên nhân"
+  },
+  {
+    "code": "DeclarationNotExist",
+    "description": "Chưa tồn tại Tờ khai/Thay đổi thông tin"
+  },
+  {
+    "code": "InvalidDeclaration",
+    "description": "Chưa tồn tại Tờ khai/Thay đổi thông tin có trạng thái CQT chấp nhận"
+  },
+  {
+    "code": "ExistDeclarationNotReceive",
+    "description": "Tồn tại tờ khai có trạng thái: Đã gửi CQT/ CQT Tiếp nhận"
+  },
+  {
+    "code": "ExistsInvoiceNextYear",
+    "description": "Tồn tại hóa đơn của năm tiếp theo"
+  },
+  {
+    "code": "InvoiceTemplateNotValidInDeclaration",
+    "description": "Tờ khai/Thay đổi thông tin không chứa loại hóa đơn đang phát hành"
+  },
+  {
+    "code": "InvalidInvoiceDate",
+    "description": "Nếu ngày hóa đơn không hợp lệ, nhỏ hơn ngày của hóa đơn cuối cùng đã phát hành"
+  },
+  {
+    "code": "InvoiceCannotReplace",
+    "description": "Không thể thay thế hóa đơn đã hủy"
+  },
+  {
+    "code": "InvoiceCannotAdjust",
+    "description": "Không thể điều chỉnh hóa đơn đã hủy/thay thế"
+  },
+  {
+    "code": "TaxReductionDateInValid",
+    "description": "Ngày hóa đơn giảm thuế không hợp lệ"
+  },
+  {
+    "code": "X509SubjectName",
+    "description": "Không có SubjectName trên file XML đã ký"
+  },
+  {
+    "code": "X509Certificate",
+    "description": "Không có chứng thư số"
+  },
+  {
+    "code": "InvoiceCannotReplaceByStatusNew",
+    "description": "Hóa đơn gốc chưa được hủy, không thể thay thế"
+  },
+  {
+    "code": "HasAdjustmentInvoice",
+    "description": "Hóa đơn đã được lập hóa đơn điều chỉnh, không thể thay thế"
+  }
+]

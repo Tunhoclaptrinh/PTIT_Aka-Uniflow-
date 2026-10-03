@@ -18,12 +18,18 @@ export interface SyncLogItem {
 export class LoggingService extends BaseApiService<SyncLogItem> {
   protected endpoint = '/logs';
 
-  async getLogs(limit = 50): Promise<SyncLogItem[]> {
-    return baseApi.get<SyncLogItem[]>(`${this.endpoint}?limit=${limit}`);
+  private getEffectiveTenantId(tenantId?: string): string {
+    return tenantId || localStorage.getItem('uniflow_tenant_id') || '66c0e812a1b2c3d4e5f60001';
   }
 
-  async retrySync(orderId: string): Promise<any> {
-    return baseApi.post(`${this.endpoint}/retry/${orderId}`, {});
+  async getLogs(limit = 50, tenantId?: string): Promise<SyncLogItem[]> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
+    return baseApi.get<SyncLogItem[]>(`${this.endpoint}?limit=${limit}&tenantId=${effTenantId}`);
+  }
+
+  async retrySync(orderId: string, tenantId?: string): Promise<any> {
+    const effTenantId = this.getEffectiveTenantId(tenantId);
+    return baseApi.post(`${this.endpoint}/retry/${orderId}?tenantId=${effTenantId}`, {});
   }
 
   async logClientError(error: any, info?: any): Promise<void> {

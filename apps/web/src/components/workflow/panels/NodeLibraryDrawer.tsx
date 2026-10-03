@@ -426,26 +426,6 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
                                 {(() => {
                                   const logo = item.type === 'ai' ? '/favicon.svg' : getPartnerLogo(item.label);
-                                  if (!logo) {
-                                    return (
-                                      <div
-                                        style={{
-                                          width: 28,
-                                          height: 28,
-                                          borderRadius: 4,
-                                          background: isLight ? '#F1F5F9' : '#1E293B',
-                                          border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255, 255, 255, 0.08)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          flexShrink: 0,
-                                          color: catGroup.color,
-                                        }}
-                                      >
-                                        {catGroup.icon}
-                                      </div>
-                                    );
-                                  }
                                   return (
                                     <div
                                       style={{
@@ -457,11 +437,36 @@ export const NodeLibraryDrawer: React.FC<NodeLibraryDrawerProps> = ({
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        padding: 3,
+                                        padding: logo ? 3 : 0,
                                         flexShrink: 0,
+                                        position: 'relative',
+                                        color: catGroup.color,
                                       }}
                                     >
-                                      <img src={logo} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                      {logo ? (
+                                        <img
+                                          src={logo}
+                                          alt=""
+                                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                          onError={(e) => {
+                                            (e.target as HTMLElement).style.display = 'none';
+                                            const fb = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                                            if (fb) fb.style.display = 'flex';
+                                          }}
+                                        />
+                                      ) : null}
+                                      <div
+                                        style={{
+                                          display: logo ? 'none' : 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          width: '100%',
+                                          height: '100%',
+                                          fontSize: 14,
+                                        }}
+                                      >
+                                        {catGroup.icon}
+                                      </div>
                                     </div>
                                   );
                                 })()}

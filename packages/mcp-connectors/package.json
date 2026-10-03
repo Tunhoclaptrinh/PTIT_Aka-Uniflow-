@@ -1,0 +1,23 @@
+{
+  "name": "@uniflow/mcp-connectors",
+  "version": "1.0.0",
+  "description": "UniFlow AI — Production-ready Model Context Protocol (MCP) Server for Omnichannel Connectors (Sapo, Nhanh.vn, Pancake, MISA, Telegram, Shopee, TikTok Shop)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "uniflow-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@uniflow/shared-types": "*",
+    "@uniflow/udm-schema": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "typescript": "^5.4.5"
+  }
+}

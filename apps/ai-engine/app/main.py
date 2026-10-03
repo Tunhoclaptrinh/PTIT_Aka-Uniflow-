@@ -226,6 +226,47 @@ def heal_error(req: ErrorHealRequest):
     )
     return result
 
+# ── Vector DB Management Endpoints ──────────────────────────────────────────
+
+class VectorUpsertRequest(BaseModel):
+    product_id: str
+    sku: str
+    name: str
+    attributes: Optional[Dict[str, Any]] = None
+
+class VectorSearchRequest(BaseModel):
+    query_name: str
+    limit: Optional[int] = 5
+
+@app.post("/api/v1/ai/vector/init-collection")
+def init_vector_collection(collection_name: Optional[str] = None):
+    """Khởi tạo collection Qdrant Vector DB với cấu hình cosine similarity"""
+    return HybridSKUMatcher.init_collection(collection_name)
+
+@app.post("/api/v1/ai/vector/upsert")
+def upsert_vector_product(req: VectorUpsertRequest):
+    """Tạo embedding và lưu trữ sản phẩm vào Vector DB Qdrant"""
+    return HybridSKUMatcher.upsert_product(
+        product_id=req.product_id,
+        sku=req.sku,
+        name=req.name,
+        attributes=req.attributes
+    )
+
+@app.post("/api/v1/ai/vector/search")
+def search_similar_vectors(req: VectorSearchRequest):
+    """Tìm kiếm K sản phẩm tương đồng nhất trong Qdrant Vector DB"""
+    results = HybridSKUMatcher.search_similar_products(
+        query_name=req.query_name,
+        limit=req.limit or 5
+    )
+    return {
+        "query": req.query_name,
+        "count": len(results),
+        "results": results,
+        "qdrant_connected": HybridSKUMatcher.get_qdrant_client() is not None
+    }
+
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]
     # type: ignore

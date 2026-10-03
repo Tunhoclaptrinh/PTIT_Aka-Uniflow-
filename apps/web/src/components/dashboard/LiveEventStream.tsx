@@ -24,7 +24,7 @@ export const LiveEventStream: React.FC = () => {
         const mapped: LiveFeedItem[] = logs.map((l) => ({
           id: l._id,
           timestamp: new Date(l.createdAt).toLocaleTimeString('vi-VN'),
-          tenantId: '66c0e812a1b2c3d4e5f60001',
+          tenantId: l.tenantId || localStorage.getItem('uniflow_tenant_id') || '',
           platform: (l.platform as PlatformType) || PlatformType.TIKTOK_SHOP,
           sourceOrderId: l.sourceOrderId,
           message: l.message,
