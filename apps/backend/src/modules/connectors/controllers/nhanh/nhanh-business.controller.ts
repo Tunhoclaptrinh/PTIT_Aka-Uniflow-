@@ -8,7 +8,7 @@ import {
   NhanhBusinessSupplierAddDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 06. Doanh nghiệp (Business: Kho, NV, NCC)')
+@ApiTags('[02. POS-Nhanh] 06. Doanh nghiệp (Business: Kho, NV, NCC)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhBusinessController {
 

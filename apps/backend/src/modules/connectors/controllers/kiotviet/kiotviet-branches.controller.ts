@@ -8,7 +8,7 @@ import {
   KiotVietSurchargeDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 05. Branches & Master Data (Chi nhánh, Danh mục & Nhà cung cấp)')
+@ApiTags('[02. POS-KiotViet] 05. Branches & Master Data (Chi nhánh, Danh mục & Nhà cung cấp)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietBranchesController {
 

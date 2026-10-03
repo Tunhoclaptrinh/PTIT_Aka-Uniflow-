@@ -8,7 +8,7 @@ import {
   KiotVietCouponStatusDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 06. Vouchers & Surcharges (Voucher, Khuyến mãi & Phụ thu)')
+@ApiTags('[02. POS-KiotViet] 06. Vouchers & Surcharges (Voucher, Khuyến mãi & Phụ thu)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietPromotionsController {
 

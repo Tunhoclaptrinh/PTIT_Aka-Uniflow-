@@ -21,7 +21,7 @@ export class NhanhAddCategoryDto {
 }
 
 // ── Controller ──
-@ApiTags('[POS-Nhanh] 13. Báo cáo \u0026 Phân tích (Reports \u0026 Analytics)')
+@ApiTags('[02. POS-Nhanh] 13. Báo cáo \u0026 Phân tích (Reports \u0026 Analytics)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhReportsController {
   @ApiOperation({
@@ -70,7 +70,7 @@ export class NhanhReportsController {
   }
 }
 
-@ApiTags('[POS-Nhanh] 14. Danh mục \u0026 Thương hiệu (Categories \u0026 Brands)')
+@ApiTags('[02. POS-Nhanh] 14. Danh mục \u0026 Thương hiệu (Categories \u0026 Brands)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhCategoriesController {
   @ApiOperation({

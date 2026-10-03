@@ -7,7 +7,7 @@ import {
 } from '../../dto/pos-sapo.dto';
 
 // ── 1. InventoryLevel Resource ──
-@ApiTags('[POS-Sapo] 11. InventoryLevel')
+@ApiTags('[02. POS-Sapo] 11. InventoryLevel')
 @Controller('api/v1/infra/sapo')
 export class SapoInventoryLevelsController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -74,7 +74,7 @@ export class SapoInventoryLevelsController {
 }
 
 // ── 2. Location Resource ──
-@ApiTags('[POS-Sapo] 12. Location')
+@ApiTags('[02. POS-Sapo] 12. Location')
 @Controller('api/v1/infra/sapo')
 export class SapoLocationsController {
   @ApiOperation({

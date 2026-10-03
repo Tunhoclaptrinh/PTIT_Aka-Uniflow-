@@ -2,7 +2,7 @@ import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { PancakePosCreateTransactionDto, PancakePosAdvCostDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 08. Finance, Debt & Transactions (Tài chính, Công nợ & Sổ quỹ)')
+@ApiTags('[02. POS-Pancake] 08. Finance, Debt & Transactions (Tài chính, Công nợ & Sổ quỹ)')
 @Controller('api/v1/infra/pancake')
 export class PancakeFinanceController {
 

@@ -1,8 +1,13 @@
 import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
-import { JtExpressCreateOrderDto, NinjaVanCreateOrderDto } from '../../dto/finance-logistics.dto';
+import {
+  JtExpressCreateOrderDto,
+  NinjaVanCreateOrderDto,
+  JtCalculateFeeDto,
+  NinjaVanPricingDto,
+} from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 05. J&T Express & Ninja Van')
+@ApiTags('[05. Logistics-VN] 05. J&T Express & Ninja Van')
 @Controller('api/v1/infra/logistics')
 export class LogisticsJtNinjaVanController {
 
@@ -36,9 +41,9 @@ export class LogisticsJtNinjaVanController {
     summary: '[J&T - Tính cước] [POST /jt/v1/orders/fee] Tính cước vận chuyển chuẩn J&T Express',
     description: '[Thuộc danh mục: 01. J&T Express > Tính cước] Endpoint gốc: POST https://jtexpress.vn/api/order/fee',
   })
-  @ApiBody({ schema: { example: { sender_province: 'Hà Nội', receiver_province: 'TP.HCM', weight: 600 } } })
+  @ApiBody({ type: JtCalculateFeeDto })
   @Post('jt/v1/orders/fee')
-  async jtCalculateFee(@Body() body: any) {
+  async jtCalculateFee(@Body() body: JtCalculateFeeDto) {
     return {
       success: true,
       data: {
@@ -142,9 +147,9 @@ export class LogisticsJtNinjaVanController {
     summary: '[Ninja Van - Báo giá] [POST /ninjavan/v1/orders/pricing] Dự toán chi phí giao hàng Ninja Van',
     description: '[Thuộc danh mục: 02. Ninja Van > Báo giá] Endpoint gốc: POST https://api.ninjavan.co/vn/2.0/pricing',
   })
-  @ApiBody({ schema: { example: { from_postal_code: '100000', to_postal_code: '700000', weight: 500 } } })
+  @ApiBody({ type: NinjaVanPricingDto })
   @Post('ninjavan/v1/orders/pricing')
-  async ninjaVanPricing(@Body() body: any) {
+  async ninjaVanPricing(@Body() body: NinjaVanPricingDto) {
     return {
       price: 31000,
       currency: 'VND',

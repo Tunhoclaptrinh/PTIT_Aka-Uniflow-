@@ -353,3 +353,49 @@ export class MisaEshopValidateVoucherDto {
   @IsNumber()
   orderAmount: number;
 }
+
+// ── 7. MISA eShop - CASHFLOW (SỔ QUỸ TIỀN MẶT CỬA HÀNG) DTO ──
+export class MisaEshopCashflowDto {
+  @ApiProperty({ example: 'CN_CAUGIAY', description: 'Mã chi nhánh cửa hàng' })
+  @IsString()
+  branchCode: string;
+
+  @ApiProperty({ example: 'RECEIPT', enum: ['RECEIPT', 'PAYMENT'], description: 'Loại phiếu quỹ (RECEIPT: Thu tiền, PAYMENT: Chi tiền)' })
+  @IsString()
+  voucherType: string;
+
+  @ApiProperty({ example: 2500000, description: 'Số tiền thu/chi (VND)' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ example: 'Thu tiền bán phế liệu và thùng carton đóng gói', description: 'Lý do thu / chi tiền quỹ' })
+  @IsString()
+  reason: string;
+
+  @ApiProperty({ example: 'Nguyễn Thu Ngân', description: 'Người thực hiện giao dịch' })
+  @IsString()
+  createdByName: string;
+
+  @ApiProperty({ example: '2026-10-03T11:00:00Z', description: 'Thời điểm ghi sổ phiếu thu/chi' })
+  @IsString()
+  transactionDate: string;
+}
+
+// ── 8. MISA eShop - SHIPPING PARTNER (ĐỐI TÁC VẬN CHUYỂN LIÊN KẾT) DTO ──
+export class MisaEshopShippingPartnerDto {
+  @ApiProperty({ example: 'GHTK', enum: ['GHTK', 'GHN', 'VIETTEL_POST', 'AHAMOVE', 'GRAB_EXPRESS'], description: 'Mã hãng vận chuyển' })
+  @IsString()
+  carrierCode: string;
+
+  @ApiProperty({ example: 'Giao Hàng Tiết Kiệm (GHTK)', description: 'Tên hãng vận chuyển' })
+  @IsString()
+  carrierName: string;
+
+  @ApiProperty({ example: 'SHOP_TOKEN_SECRET_99', description: 'API Token do đơn vị vận chuyển cấp' })
+  @IsString()
+  apiToken: string;
+
+  @ApiProperty({ example: true, description: 'Kích hoạt đồng bộ đơn sang hãng' })
+  active: boolean;
+}
+

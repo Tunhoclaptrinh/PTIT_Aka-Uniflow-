@@ -1,12 +1,12 @@
 import { Controller, Post, Get, Put, Delete, Body, Param, Query, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiParam, ApiQuery, ApiHeader } from '@nestjs/swagger';
-import { HaravanCarrierServiceDto } from '../../dto/pos-haravan.dto';
+import { HaravanCarrierServiceDto, HaravanCreateDeliveryDto } from '../../dto/pos-haravan.dto';
 
 // ═══════════════════════════════════════════════════════════════
 // 6. SHIPPING CATEGORY (CarrierService, Shipping Rates, Deliveries)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 06. Shipping (Vận chuyển, Biểu phí & Giao hàng)')
+@ApiTags('[02. POS-Haravan] 06. Shipping (Vận chuyển, Biểu phí & Giao hàng)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCarrierServicesController {
   @ApiOperation({
@@ -112,8 +112,9 @@ export class HaravanCarrierServicesController {
     description: '[Thuộc danh mục: 06. Shipping > Vận đơn giao nhận bưu chính] Endpoint gốc: POST https://apis.haravan.com/com/deliveries.json | Khởi tạo vận đơn giao hàng bưu chính',
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
+  @ApiBody({ type: HaravanCreateDeliveryDto })
   @Post('com/deliveries.json')
-  async createDelivery(@Body() body: any, @Headers('x-uniflow-mode') mode?: string) {
+  async createDelivery(@Body() body: HaravanCreateDeliveryDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
       delivery: {
         id: Math.floor(Math.random() * 90000) + 10000,

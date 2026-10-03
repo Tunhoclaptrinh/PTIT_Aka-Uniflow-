@@ -5,7 +5,7 @@ import {
   SapoCashReceiptDto,
 } from '../../dto/pos-sapo.dto';
 
-@ApiTags('[POS-Sapo] 15. Purchase & Cash')
+@ApiTags('[02. POS-Sapo] 15. Purchase & Cash')
 @Controller('api/v1/infra/sapo')
 export class SapoFinanceController {
 

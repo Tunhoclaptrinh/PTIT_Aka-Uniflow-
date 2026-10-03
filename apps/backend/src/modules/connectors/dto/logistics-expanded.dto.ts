@@ -280,3 +280,145 @@ export class GrabExpressDeliveryDto {
   @ApiProperty({ example: 250000, description: 'Tiền ứng COD' })
   cash_on_delivery?: number;
 }
+
+export class VnpostAuthTokenDto {
+  @ApiProperty({ example: 'VNPOST_CLIENT_102', description: 'Client ID kết nối API' })
+  client_id: string;
+
+  @ApiProperty({ example: 'VNPOST_SECRET_2026', description: 'Client Secret đối tác' })
+  client_secret: string;
+}
+
+export class VnpostReconciliationDto {
+  @ApiProperty({ example: '2026-10-01', description: 'Từ ngày đối soát COD (YYYY-MM-DD)' })
+  from_date: string;
+
+  @ApiProperty({ example: '2026-10-04', description: 'Đến ngày đối soát COD (YYYY-MM-DD)' })
+  to_date: string;
+}
+
+export class VnpostWebhookDto {
+  @ApiProperty({ example: 'EA981273910VN', description: 'Mã bưu gửi EMS/VNPost' })
+  ItemCode: string;
+
+  @ApiProperty({ example: 'Delivered', description: 'Trạng thái phát hàng' })
+  Status: string;
+
+  @ApiProperty({ example: '2026-10-04T08:30:00Z', required: false, description: 'Thời gian cập nhật' })
+  EventTime?: string;
+}
+
+export class ViettelPostWebhookDto {
+  @ApiProperty({ example: 'VTP99812345', description: 'Mã vận đơn Viettel Post' })
+  ORDER_NUMBER: string;
+
+  @ApiProperty({ example: 'Giao thành công', description: 'Tên trạng thái' })
+  STATUS_NAME: string;
+
+  @ApiProperty({ example: 'Người nhận đã thanh toán tiền mặt đủ', required: false, description: 'Ghi chú bưu tá' })
+  NOTE?: string;
+
+  @ApiProperty({ example: '2026-10-04 09:15:00', required: false, description: 'Thời gian cập nhật' })
+  UPDATE_DATE?: string;
+}
+
+export class GhtkWebhookDto {
+  @ApiProperty({ example: 'S22941.ORD_123.981', description: 'Mã vận đơn GHTK' })
+  label_id: string;
+
+  @ApiProperty({ example: 'ORD_9912', description: 'Mã đơn hàng đối tác' })
+  partner_id: string;
+
+  @ApiProperty({ example: 6, description: 'Mã trạng thái giao hàng (6: Đã giao, 7: Không giao được)' })
+  status_id: number;
+
+  @ApiProperty({ example: '2026-10-04 09:20:00', description: 'Thời gian thao tác' })
+  action_time: string;
+
+  @ApiProperty({ example: 'Khách nhận và thanh toán đủ COD', required: false, description: 'Lý do / Ghi chú' })
+  reason?: string;
+}
+
+export class GhnWebhookDto {
+  @ApiProperty({ example: 'GHN_HRV_99812', description: 'Mã vận đơn GHN' })
+  OrderCode: string;
+
+  @ApiProperty({ example: 'delivered', description: 'Trạng thái giao nhận GHN' })
+  Status: string;
+
+  @ApiProperty({ example: 'ORD-9912', required: false, description: 'Mã đơn nội bộ' })
+  ClientOrderCode?: string;
+
+  @ApiProperty({ example: 'Giao hàng thành công', required: false, description: 'Mô tả trạng thái' })
+  Reason?: string;
+
+  @ApiProperty({ example: 450, required: false, description: 'Khối lượng thực tế bưu cục đo (gram)' })
+  Weight?: number;
+}
+
+export class JtCalculateFeeDto {
+  @ApiProperty({ example: 600, description: 'Trọng lượng gói hàng (gram)' })
+  weight: number;
+
+  @ApiProperty({ example: 20, required: false, description: 'Chiều dài (cm)' })
+  length?: number;
+
+  @ApiProperty({ example: 15, required: false, description: 'Chiều rộng (cm)' })
+  width?: number;
+
+  @ApiProperty({ example: 10, required: false, description: 'Chiều cao (cm)' })
+  height?: number;
+
+  @ApiProperty({ example: '100000', description: 'Mã bưu chính gửi hàng' })
+  sender_postcode: string;
+
+  @ApiProperty({ example: '700000', description: 'Mã bưu chính nhận hàng' })
+  receiver_postcode: string;
+}
+
+export class NinjaVanPricingDto {
+  @ApiProperty({ example: '100000', description: 'Mã bưu điện kho gửi' })
+  from_postal_code: string;
+
+  @ApiProperty({ example: '700000', description: 'Mã bưu điện người nhận' })
+  to_postal_code: string;
+
+  @ApiProperty({ example: 0.5, description: 'Khối lượng gói hàng (kg)' })
+  weight: number;
+
+  @ApiProperty({ example: 'Standard', enum: ['Standard', 'Nextday'], description: 'Gói dịch vụ vận chuyển Ninja Van' })
+  service_type: string;
+}
+
+export class AhamoveEstimatedFeeDto {
+  @ApiProperty({ example: 'SGM-BIKE', enum: ['SGM-BIKE', 'SGM-VAN500'], description: 'Phương tiện vận chuyển' })
+  service_id: string;
+
+  @ApiProperty({
+    example: [
+      { address: 'Số 18 Duy Tân, Cầu Giấy, Hà Nội' },
+      { address: 'Số 56 Nguyễn Chí Thanh, Ba Đình, Hà Nội' },
+    ],
+    description: 'Danh sách tọa độ/địa chỉ giao nhận',
+  })
+  path: any[];
+}
+
+export class AhamoveCancelOrderDto {
+  @ApiProperty({ example: 'AHA_ORD_88991', description: 'Mã chuyến xe Ahamove' })
+  order_id: string;
+
+  @ApiProperty({ example: 'Khách đổi giờ nhận sang buổi chiều', description: 'Lý do hủy đơn' })
+  comment: string;
+}
+
+export class GrabQuotesDto {
+  @ApiProperty({ example: 'Instant', enum: ['Instant', 'SameDay'], description: 'Loại hình GrabExpress' })
+  service_type: string;
+
+  @ApiProperty({ example: { address: '12 Tràng Thi, Hoàn Kiếm, Hà Nội' }, description: 'Điểm lấy hàng' })
+  origin: any;
+
+  @ApiProperty({ example: { address: '88 Phố Huế, Hai Bà Trưng, Hà Nội' }, description: 'Điểm giao hàng' })
+  destination: any;
+}

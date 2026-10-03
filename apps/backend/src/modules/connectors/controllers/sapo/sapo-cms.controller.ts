@@ -5,10 +5,11 @@ import {
   SapoUpdateArticleDto,
   SapoCreateBlogDto,
   SapoCreatePageDto,
+  SapoCreateCommentDto,
 } from '../../dto/pos-sapo.dto';
 
 // ── 1. Article Resource ──
-@ApiTags('[POS-Sapo] 20. Article')
+@ApiTags('[02. POS-Sapo] 20. Article')
 @Controller('api/v1/infra/sapo')
 export class SapoArticlesController {
   @ApiOperation({
@@ -118,7 +119,7 @@ export class SapoArticlesController {
 }
 
 // ── 2. Blog Resource ──
-@ApiTags('[POS-Sapo] 21. Blog')
+@ApiTags('[02. POS-Sapo] 21. Blog')
 @Controller('api/v1/infra/sapo')
 export class SapoBlogsController {
   @ApiOperation({
@@ -168,7 +169,7 @@ export class SapoBlogsController {
 }
 
 // ── 3. Comment Resource ──
-@ApiTags('[POS-Sapo] 22. Comment')
+@ApiTags('[02. POS-Sapo] 22. Comment')
 @Controller('api/v1/infra/sapo')
 export class SapoCommentsController {
   @ApiOperation({
@@ -188,8 +189,9 @@ export class SapoCommentsController {
     summary: '[POST /admin/comments.json] Đăng bình luận cho bài viết',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/comments.json | Thêm bình luận mới cho bài viết blog',
   })
+  @ApiBody({ type: SapoCreateCommentDto })
   @Post('admin/comments.json')
-  async createComment(@Body() body: any) {
+  async createComment(@Body() body: SapoCreateCommentDto) {
     return {
       comment: { id: Date.now(), article_id: body.article_id || 9101, author: body.author || 'Độc giả', body: body.body || '', status: 'published', created_at: new Date().toISOString() },
     };
@@ -206,7 +208,7 @@ export class SapoCommentsController {
 }
 
 // ── 4. Page Resource ──
-@ApiTags('[POS-Sapo] 23. Page')
+@ApiTags('[02. POS-Sapo] 23. Page')
 @Controller('api/v1/infra/sapo')
 export class SapoPagesController {
   @ApiOperation({

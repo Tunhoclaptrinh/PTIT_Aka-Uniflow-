@@ -2,7 +2,7 @@ import { Controller, Post, Get, Delete, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiParam } from '@nestjs/swagger';
 import { KiotVietWebhookDto, KiotVietTokenRequestDto } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 07. Webhooks & Authentication (Webhooks & Token OAuth)')
+@ApiTags('[02. POS-KiotViet] 07. Webhooks & Authentication (Webhooks & Token OAuth)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietWebhooksController {
 

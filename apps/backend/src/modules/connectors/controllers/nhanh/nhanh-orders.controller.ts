@@ -9,7 +9,7 @@ import {
   NhanhCancelOrderDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 01. Đơn hàng (Orders)')
+@ApiTags('[02. POS-Nhanh] 01. Đơn hàng (Orders)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhOrdersController {
   constructor(private readonly actionsService: ActionsService) {}

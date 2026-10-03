@@ -5,9 +5,10 @@ import {
   KiotVietUpdateCustomerDto,
   KiotVietLoyaltyPointDto,
   KiotVietCashFlowDto,
+  KiotVietBatchCustomersDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 04. Customers & Cashflow (Khách hàng & Sổ quỹ)')
+@ApiTags('[02. POS-KiotViet] 04. Customers & Cashflow (Khách hàng & Sổ quỹ)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietCustomersController {
 
@@ -91,20 +92,20 @@ export class KiotVietCustomersController {
     summary: '[Customer Batch - Khách hàng hàng loạt] [POST /customers/batch] Thêm mới danh sách khách hàng hàng loạt',
     description: '[Thuộc danh mục: 2.6. Khách hàng > Customer Batch] Endpoint gốc: POST https://public.kiotapi.com/customers/batch | Thêm mới đồng thời nhiều khách hàng trong 1 request',
   })
-  @ApiBody({ description: 'Mảng danh sách khách hàng cần thêm mới' })
+  @ApiBody({ type: KiotVietBatchCustomersDto, description: 'Mảng danh sách khách hàng cần thêm mới' })
   @Post('customers/batch')
-  async batchCreateCustomers(@Body() body: any) {
-    return { responseStatus: 'success', message: 'Thêm mới danh sách khách hàng thành công' };
+  async batchCreateCustomers(@Body() body: KiotVietBatchCustomersDto) {
+    return { responseStatus: 'success', count: body.customers?.length || 0, message: 'Thêm mới danh sách khách hàng thành công' };
   }
 
   @ApiOperation({
     summary: '[Customer Batch - Khách hàng hàng loạt] [PUT /customers/batch] Cập nhật danh sách khách hàng hàng loạt',
     description: '[Thuộc danh mục: 2.6. Khách hàng > Customer Batch] Endpoint gốc: PUT https://public.kiotapi.com/customers/batch | Cập nhật đồng loạt danh sách khách hàng',
   })
-  @ApiBody({ description: 'Mảng danh sách khách hàng cần cập nhật' })
+  @ApiBody({ type: KiotVietBatchCustomersDto, description: 'Mảng danh sách khách hàng cần cập nhật' })
   @Put('customers/batch')
-  async batchUpdateCustomers(@Body() body: any) {
-    return { responseStatus: 'success', message: 'Cập nhật danh sách khách hàng thành công' };
+  async batchUpdateCustomers(@Body() body: KiotVietBatchCustomersDto) {
+    return { responseStatus: 'success', count: body.customers?.length || 0, message: 'Cập nhật danh sách khách hàng thành công' };
   }
 
   @ApiOperation({

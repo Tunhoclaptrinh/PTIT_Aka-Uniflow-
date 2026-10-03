@@ -6,9 +6,12 @@ import {
   PancakePosCreateProductDto,
   PancakePosUpdateVariationQuantityDto,
   PancakePosCreateComboDto,
+  PancakePosUpdateProductDto,
+  PancakePosMultiVariationQuantityDto,
+  PancakePosUpdateCompositeProductDto,
 } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 04. Products & Categories (Sản phẩm, Biến thể & Danh mục)')
+@ApiTags('[02. POS-Pancake] 04. Products & Categories (Sản phẩm, Biến thể & Danh mục)')
 @Controller('api/v1/infra/pancake')
 export class PancakeProductsController {
 
@@ -37,8 +40,9 @@ export class PancakeProductsController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'productId', example: '1001' })
+  @ApiBody({ type: PancakePosUpdateProductDto })
   @Put('shops/:shopId/products/:productId')
-  async updateProductOfficial(@Param('shopId') shopId: string, @Param('productId') productId: string, @Body() body: any) {
+  async updateProductOfficial(@Param('shopId') shopId: string, @Param('productId') productId: string, @Body() body: PancakePosUpdateProductDto) {
     return {
       success: true,
       shop_id: shopId,
@@ -75,8 +79,9 @@ export class PancakeProductsController {
     description: '[Thuộc danh mục: 16. Product > Tồn hàng loạt] Endpoint gốc: POST https://pos.pages.fm/api/v1/shops/{SHOP_ID}/variations/update_quantity | Cập nhật tồn kho đồng thời cho nhiều biến thể',
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
+  @ApiBody({ type: PancakePosMultiVariationQuantityDto })
   @Post('shops/:shopId/variations/update_quantity')
-  async updateMultiVariationsQuantityOfficial(@Param('shopId') shopId: string, @Body() body: any) {
+  async updateMultiVariationsQuantityOfficial(@Param('shopId') shopId: string, @Body() body: PancakePosMultiVariationQuantityDto) {
     return {
       success: true,
       shop_id: shopId,
@@ -90,11 +95,13 @@ export class PancakeProductsController {
     description: '[Thuộc danh mục: 16. Product > Sản phẩm đóng gói] Endpoint gốc: POST https://pos.pages.fm/api/v1/shops/{SHOP_ID}/variations/update_composite_product | Cấu hình định mức nguyên liệu / thành phần',
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
+  @ApiBody({ type: PancakePosUpdateCompositeProductDto })
   @Post('shops/:shopId/variations/update_composite_product')
-  async updateCompositeProductOfficial(@Param('shopId') shopId: string, @Body() body: any) {
+  async updateCompositeProductOfficial(@Param('shopId') shopId: string, @Body() body: PancakePosUpdateCompositeProductDto) {
     return {
       success: true,
       shop_id: shopId,
+      itemsCount: body.items?.length || 0,
       message: 'Cập nhật sản phẩm đóng gói thành công',
     };
   }

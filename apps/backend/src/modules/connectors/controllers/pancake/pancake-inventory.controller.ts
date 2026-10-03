@@ -6,9 +6,13 @@ import {
   PancakePosCreateTransferDto,
   PancakePosCreateStocktakingDto,
   PancakePosCreateExportDto,
+  PancakePosUpdateWarehouseDto,
+  PancakePosUpdateTransferDto,
+  PancakePosUpdateStocktakingDto,
+  PancakePosUpdateExportDto,
 } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 05. Inventory, Warehouse & Transfers (Kho bãi, Tồn kho & Chuyển kho)')
+@ApiTags('[02. POS-Pancake] 05. Inventory, Warehouse & Transfers (Kho bãi, Tồn kho & Chuyển kho)')
 @Controller('api/v1/infra/pancake')
 export class PancakeInventoryController {
 
@@ -50,8 +54,9 @@ export class PancakeInventoryController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'warehouseId', example: '1' })
+  @ApiBody({ type: PancakePosUpdateWarehouseDto })
   @Put('shops/:shopId/warehouses/:warehouseId')
-  async updateWarehouseOfficial(@Param('shopId') shopId: string, @Param('warehouseId') warehouseId: string, @Body() body: any) {
+  async updateWarehouseOfficial(@Param('shopId') shopId: string, @Param('warehouseId') warehouseId: string, @Body() body: PancakePosUpdateWarehouseDto) {
     return {
       success: true,
       shop_id: shopId,
@@ -114,12 +119,14 @@ export class PancakeInventoryController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'transferId', example: '1' })
+  @ApiBody({ type: PancakePosUpdateTransferDto })
   @Put('shops/:shopId/transfers/:transferId')
-  async updateTransferOfficial(@Param('shopId') shopId: string, @Param('transferId') transferId: string, @Body() body: any) {
+  async updateTransferOfficial(@Param('shopId') shopId: string, @Param('transferId') transferId: string, @Body() body: PancakePosUpdateTransferDto) {
     return {
       success: true,
       transfer_id: Number(transferId),
       status: body.status || 'received',
+      note: body.note,
       updated_at: new Date().toISOString(),
     };
   }
@@ -198,12 +205,14 @@ export class PancakeInventoryController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'stocktakingId', example: '1' })
+  @ApiBody({ type: PancakePosUpdateStocktakingDto })
   @Put('shops/:shopId/stocktakings/:stocktakingId')
-  async updateStocktakingOfficial(@Param('shopId') shopId: string, @Param('stocktakingId') stocktakingId: string, @Body() body: any) {
+  async updateStocktakingOfficial(@Param('shopId') shopId: string, @Param('stocktakingId') stocktakingId: string, @Body() body: PancakePosUpdateStocktakingDto) {
     return {
       success: true,
       stocktaking_id: Number(stocktakingId),
       status: body.status || 'balanced',
+      note: body.note,
       updated_at: new Date().toISOString(),
     };
   }
@@ -245,8 +254,9 @@ export class PancakeInventoryController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'exportId', example: '1' })
+  @ApiBody({ type: PancakePosUpdateExportDto })
   @Put('shops/:shopId/export/:exportId')
-  async updateExportOfficial(@Param('shopId') shopId: string, @Param('exportId') exportId: string, @Body() body: any) {
+  async updateExportOfficial(@Param('shopId') shopId: string, @Param('exportId') exportId: string, @Body() body: PancakePosUpdateExportDto) {
     return {
       success: true,
       export_id: Number(exportId),

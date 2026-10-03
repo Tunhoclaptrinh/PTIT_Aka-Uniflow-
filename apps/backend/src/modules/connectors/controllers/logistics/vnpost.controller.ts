@@ -1,8 +1,14 @@
 import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
-import { VnpostCalculateRateDto, VnpostCreateOrderDto } from '../../dto/finance-logistics.dto';
+import {
+  VnpostCalculateRateDto,
+  VnpostCreateOrderDto,
+  VnpostAuthTokenDto,
+  VnpostReconciliationDto,
+  VnpostWebhookDto,
+} from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 04. Vietnam Post (VNPost & EMS)')
+@ApiTags('[05. Logistics-VN] 04. Vietnam Post (VNPost & EMS)')
 @Controller('api/v1/infra/logistics')
 export class LogisticsVnpostController {
 
@@ -10,9 +16,9 @@ export class LogisticsVnpostController {
     summary: '[Auth - Token] [POST /vnpost/v1/auth/token] Lấy Bearer Token xác thực đối tác VNPost',
     description: '[Thuộc danh mục: 01. Xác thực > Token đối tác] Endpoint gốc: POST https://api.vnpost.vn/v1/auth/token | Cấp quyền kết nối Bưu điện Việt Nam',
   })
-  @ApiBody({ schema: { example: { client_id: 'VNPOST_CLIENT_102', client_secret: 'VNPOST_SECRET_2026' } } })
+  @ApiBody({ type: VnpostAuthTokenDto })
   @Post('vnpost/v1/auth/token')
-  async vnpostToken(@Body() body: any) {
+  async vnpostToken(@Body() body: VnpostAuthTokenDto) {
     return {
       success: true,
       token_type: 'Bearer',
@@ -128,9 +134,9 @@ export class LogisticsVnpostController {
     summary: '[Reconciliation - Đối soát COD] [POST /vnpost/v1/statement/reconciliation] Đối soát tiền COD bưu điện',
     description: '[Thuộc danh mục: 04. Tài chính đối soát > Đối soát COD] Endpoint gốc: POST https://api.vnpost.vn/v1/statement/reconciliation',
   })
-  @ApiBody({ schema: { example: { from_date: '2026-10-01', to_date: '2026-10-04' } } })
+  @ApiBody({ type: VnpostReconciliationDto })
   @Post('vnpost/v1/statement/reconciliation')
-  async vnpostReconciliation(@Body() body: any) {
+  async vnpostReconciliation(@Body() body: VnpostReconciliationDto) {
     return {
       success: true,
       period: `${body.from_date} - ${body.to_date}`,
@@ -146,8 +152,9 @@ export class LogisticsVnpostController {
     summary: '[Webhook - Cập nhật trạng thái] [POST /vnpost/v1/webhook/status] Webhook nhận trạng thái bưu gửi realtime',
     description: '[Thuộc danh mục: 05. Webhook > Trạng thái bưu gửi] Endpoint gốc: POST Webhook Callback VNPost',
   })
+  @ApiBody({ type: VnpostWebhookDto })
   @Post('vnpost/v1/webhook/status')
-  async vnpostWebhook(@Body() body: any) {
+  async vnpostWebhook(@Body() body: VnpostWebhookDto) {
     return {
       success: true,
       received: true,

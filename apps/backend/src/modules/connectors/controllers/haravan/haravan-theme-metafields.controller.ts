@@ -11,7 +11,7 @@ import {
 // 7. ONLINE STORE — THEMES, ASSETS, REDIRECTS & SCRIPT TAGS
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanThemeAssetsController {
   @ApiOperation({
@@ -77,7 +77,7 @@ export class HaravanThemeAssetsController {
 // 8. METAFIELD CATEGORY (Trường dữ liệu mở rộng)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 08. Metafield (Trường dữ liệu mở rộng)')
+@ApiTags('[02. POS-Haravan] 08. Metafield (Trường dữ liệu mở rộng)')
 @Controller('api/v1/infra/haravan')
 export class HaravanMetafieldsController {
   @ApiOperation({
@@ -140,7 +140,7 @@ export class HaravanMetafieldsController {
 // 7. ONLINE STORE — REDIRECTS & SCRIPT TAGS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanRedirectScriptTagsController {
   @ApiOperation({

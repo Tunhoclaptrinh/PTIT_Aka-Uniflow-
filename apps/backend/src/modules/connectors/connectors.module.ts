@@ -137,19 +137,21 @@ import {
 
 // 5. MISA ECOSYSTEM RESOURCE CONTROLLERS (18 Dedicated Resources)
 import {
-  // MISA eShop (6)
+  // MISA eShop (8)
   MisaEshopOrdersController,
   MisaEshopProductsController,
   MisaEshopInventoryController,
   MisaEshopCustomersController,
   MisaEshopShiftsController,
   MisaEshopPromotionsController,
+  MisaEshopCashflowController,
+  MisaEshopShippingPartnersController,
   // MISA meInvoice (4)
   MisaMeinvoiceInvoicesController,
   MisaMeinvoiceHsmController,
   MisaMeinvoiceLifecycleController,
   MisaMeinvoiceTaxPreviewController,
-  // MISA AMIS CRM (9)
+  // MISA AMIS CRM (12)
   MisaAmisCrmAccountController,
   MisaAmisCrmCustomersController,
   MisaAmisCrmContactsController,
@@ -159,6 +161,9 @@ import {
   MisaAmisCrmLeadsController,
   MisaAmisCrmOpportunitiesController,
   MisaAmisCrmQuotationsController,
+  MisaAmisCrmCampaignsController,
+  MisaAmisCrmActivitiesController,
+  MisaAmisCrmDepartmentsController,
   // MISA AMIS Accounting (4)
   MisaAmisAccountingVouchersController,
   MisaAmisAccountingProductsController,
@@ -295,18 +300,20 @@ import {
     HaravanWebhooksController,
     HaravanAccessScopesController,
 
-    // MISA Ecosystem (18 Resources)
+    // MISA Ecosystem (23 Resources)
     MisaEshopOrdersController,
     MisaEshopProductsController,
     MisaEshopInventoryController,
     MisaEshopCustomersController,
     MisaEshopShiftsController,
     MisaEshopPromotionsController,
+    MisaEshopCashflowController,
+    MisaEshopShippingPartnersController,
     MisaMeinvoiceInvoicesController,
     MisaMeinvoiceHsmController,
     MisaMeinvoiceLifecycleController,
     MisaMeinvoiceTaxPreviewController,
-    // MISA AMIS CRM (9)
+    // MISA AMIS CRM (12)
     MisaAmisCrmAccountController,
     MisaAmisCrmCustomersController,
     MisaAmisCrmContactsController,
@@ -316,6 +323,10 @@ import {
     MisaAmisCrmLeadsController,
     MisaAmisCrmOpportunitiesController,
     MisaAmisCrmQuotationsController,
+    MisaAmisCrmCampaignsController,
+    MisaAmisCrmActivitiesController,
+    MisaAmisCrmDepartmentsController,
+    // MISA AMIS Accounting (4)
     MisaAmisAccountingVouchersController,
     MisaAmisAccountingProductsController,
     MisaAmisAccountingCallbackController,

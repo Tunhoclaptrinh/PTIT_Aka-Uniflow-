@@ -5,9 +5,11 @@ import {
   KiotVietStockTakeDto,
   KiotVietTransferStockDto,
   KiotVietPurchaseOrderDto,
+  KiotVietUpdateTransferDto,
+  KiotVietUpdatePurchaseOrderDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 03. Inventory & Transfers (Tồn kho, Chuyển kho & Nhập hàng)')
+@ApiTags('[02. POS-KiotViet] 03. Inventory & Transfers (Tồn kho, Chuyển kho & Nhập hàng)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietInventoryController {
 
@@ -152,9 +154,10 @@ export class KiotVietInventoryController {
     description: '[Thuộc danh mục: 2.16. Chuyển hàng > Transfer] Endpoint gốc: PUT https://public.kiotapi.com/transfers/{id} | Cập nhật số lượng nhận hàng hoặc trạng thái hoàn tất chuyển',
   })
   @ApiParam({ name: 'id', example: '901' })
+  @ApiBody({ type: KiotVietUpdateTransferDto })
   @Put('transfers/:id')
-  async updateTransfer(@Param('id') id: string, @Body() body: any) {
-    return { responseStatus: 'success', data: { id: Number(id), updated: true } };
+  async updateTransfer(@Param('id') id: string, @Body() body: KiotVietUpdateTransferDto) {
+    return { responseStatus: 'success', data: { id: Number(id), status: body.status, note: body.note, updated: true } };
   }
 
   @ApiOperation({
@@ -226,9 +229,10 @@ export class KiotVietInventoryController {
     description: '[Thuộc danh mục: 2.15. Nhập hàng > Purchase Order] Endpoint gốc: PUT https://public.kiotapi.com/purchaseorders/{id} | Cập nhật thông tin chi tiết phiếu nhập mua',
   })
   @ApiParam({ name: 'id', example: '601' })
+  @ApiBody({ type: KiotVietUpdatePurchaseOrderDto })
   @Put('purchaseorders/:id')
-  async updatePurchaseOrder(@Param('id') id: string, @Body() body: any) {
-    return { responseStatus: 'success', data: { id: Number(id), updated: true } };
+  async updatePurchaseOrder(@Param('id') id: string, @Body() body: KiotVietUpdatePurchaseOrderDto) {
+    return { responseStatus: 'success', data: { id: Number(id), status: body.status, note: body.note, updated: true } };
   }
 
   @ApiOperation({

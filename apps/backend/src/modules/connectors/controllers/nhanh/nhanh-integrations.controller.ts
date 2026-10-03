@@ -7,7 +7,7 @@ import {
   NhanhEcomSyncOrderDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 10. Zalo & Đồng bộ sàn (Zalo & Ecom)')
+@ApiTags('[02. POS-Nhanh] 10. Zalo & Đồng bộ sàn (Zalo & Ecom)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhIntegrationsController {
   constructor(private readonly actionsService: ActionsService) {}

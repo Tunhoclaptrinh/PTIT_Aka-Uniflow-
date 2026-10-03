@@ -1,8 +1,14 @@
 import { Controller, Post, Get, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  SapoUpdateAssetDto,
+  SapoCreateMetafieldDto,
+  SapoCreateRedirectDto,
+  SapoCreateScriptTagDto,
+} from '../../dto/pos-sapo.dto';
 
 // ── 1. Asset Resource ──
-@ApiTags('[POS-Sapo] 24. Asset')
+@ApiTags('[02. POS-Sapo] 24. Asset')
 @Controller('api/v1/infra/sapo')
 export class SapoAssetsController {
   @ApiOperation({
@@ -24,8 +30,9 @@ export class SapoAssetsController {
     summary: '[PUT /admin/themes/:theme_id/assets.json] Cập nhật / Tải lên file Asset',
     description: 'Endpoint gốc: PUT https://{store_name}.mysapo.net/admin/themes/{theme_id}/assets.json | Tải lên nội dung file CSS/JS hoặc template vào giao diện',
   })
+  @ApiBody({ type: SapoUpdateAssetDto })
   @Put('admin/themes/:theme_id/assets.json')
-  async updateAsset(@Param('theme_id') themeId: string, @Body() body: any) {
+  async updateAsset(@Param('theme_id') themeId: string, @Body() body: SapoUpdateAssetDto) {
     return {
       asset: {
         key: body.key || 'assets/custom.css',
@@ -46,7 +53,7 @@ export class SapoAssetsController {
 }
 
 // ── 2. Metafield Resource ──
-@ApiTags('[POS-Sapo] 25. Metafield')
+@ApiTags('[02. POS-Sapo] 25. Metafield')
 @Controller('api/v1/infra/sapo')
 export class SapoMetafieldsController {
   @ApiOperation({
@@ -67,8 +74,9 @@ export class SapoMetafieldsController {
     summary: '[POST /admin/metafields.json] Tạo trường tùy biến Metafield',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/metafields.json | Thêm thuộc tính mở rộng cho sản phẩm, đơn hàng hoặc cửa hàng',
   })
+  @ApiBody({ type: SapoCreateMetafieldDto })
   @Post('admin/metafields.json')
-  async createMetafield(@Body() body: any) {
+  async createMetafield(@Body() body: SapoCreateMetafieldDto) {
     return {
       metafield: {
         id: Date.now(),
@@ -91,7 +99,7 @@ export class SapoMetafieldsController {
 }
 
 // ── 3. Redirect Resource ──
-@ApiTags('[POS-Sapo] 26. Redirect')
+@ApiTags('[02. POS-Sapo] 26. Redirect')
 @Controller('api/v1/infra/sapo')
 export class SapoRedirectsController {
   @ApiOperation({
@@ -111,8 +119,9 @@ export class SapoRedirectsController {
     summary: '[POST /admin/redirects.json] Tạo chuyển hướng URL mới',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/redirects.json | Thêm quy tắc chuyển hướng 301 tự động cho đường dẫn cũ',
   })
+  @ApiBody({ type: SapoCreateRedirectDto })
   @Post('admin/redirects.json')
-  async createRedirect(@Body() body: any) {
+  async createRedirect(@Body() body: SapoCreateRedirectDto) {
     return {
       redirect: { id: Date.now(), path: body.path || '/old-url', target: body.target || '/new-url', created_at: new Date().toISOString() },
     };
@@ -129,7 +138,7 @@ export class SapoRedirectsController {
 }
 
 // ── 4. ScriptTag Resource ──
-@ApiTags('[POS-Sapo] 27. ScriptTag')
+@ApiTags('[02. POS-Sapo] 27. ScriptTag')
 @Controller('api/v1/infra/sapo')
 export class SapoScriptTagsController {
   @ApiOperation({
@@ -149,8 +158,9 @@ export class SapoScriptTagsController {
     summary: '[POST /admin/script_tags.json] Thêm mã nhúng ScriptTag mới',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/script_tags.json | Nhúng file JS tiện ích, livechat hoặc tracking vào toàn bộ trang website Sapo',
   })
+  @ApiBody({ type: SapoCreateScriptTagDto })
   @Post('admin/script_tags.json')
-  async createScriptTag(@Body() body: any) {
+  async createScriptTag(@Body() body: SapoCreateScriptTagDto) {
     return {
       script_tag: { id: Date.now(), event: body.event || 'onload', src: body.src || 'https://uniflow.app/sdk.js', created_at: new Date().toISOString() },
     };

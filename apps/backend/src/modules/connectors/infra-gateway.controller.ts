@@ -21,7 +21,7 @@ export class ExecuteActionDto {
   payload: any;
 }
 
-@ApiTags('[UniFlow-Infra] 01. Control Gateway')
+@ApiTags('[01. UniFlow-Platform] 01. Control Gateway (Điều khiển hạ tầng & Sandbox)')
 @Controller('api/v1/infra')
 export class InfraGatewayController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -86,7 +86,7 @@ export class InfraGatewayController {
   }
 }
 
-@ApiTags('[UniFlow-Infra] 01. Control Gateway')
+@ApiTags('[01. UniFlow-Platform] 01. Control Gateway (Điều khiển hạ tầng & Sandbox)')
 @Controller('api/v1/sandbox')
 export class SandboxSimulatorController {
   @ApiOperation({ summary: 'Sandbox Proxy Simulator (POST)', description: 'Giả lập endpoint API của các nền tảng bên thứ 3 trong môi trường Sandbox' })

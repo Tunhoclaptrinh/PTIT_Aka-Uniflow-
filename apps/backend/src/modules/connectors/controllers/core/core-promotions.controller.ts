@@ -5,7 +5,7 @@ import {
   ValidateVoucherDto,
 } from '../../dto/finance-logistics.dto';
 
-@ApiTags('[UniFlow-Core] 01. Khuyến mãi & Vouchers')
+@ApiTags('[01. UniFlow-Platform] 02. Khuyến mãi & Vouchers (Voucher Generator)')
 @Controller('api/v1/infra/promotions')
 export class CorePromotionsController {
   @ApiOperation({

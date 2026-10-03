@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 
-@ApiTags('[POS-Pancake] 09. Analytics & Reports (Báo cáo & Thống kê kinh doanh)')
+@ApiTags('[02. POS-Pancake] 09. Analytics & Reports (Báo cáo & Thống kê kinh doanh)')
 @Controller('api/v1/infra/pancake')
 export class PancakeAnalyticsController {
 

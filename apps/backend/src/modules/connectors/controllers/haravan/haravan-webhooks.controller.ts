@@ -6,7 +6,7 @@ import { HaravanWebhookSubscribeDto, HaravanOAuthTokenDto } from '../../dto/pos-
 // 09. EVENTS CATEGORY (Nhật ký kiểm toán hệ thống)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 09. Events (Nhật ký kiểm toán hệ thống)')
+@ApiTags('[02. POS-Haravan] 09. Events (Nhật ký kiểm toán hệ thống)')
 @Controller('api/v1/infra/haravan')
 export class HaravanEventsController {
   @ApiOperation({
@@ -59,7 +59,7 @@ export class HaravanEventsController {
 // 10. STORE PROPERTIES CATEGORY (Shop Profile, Countries, Provinces)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 10. Store properties (Cấu hình Shop & Khu vực)')
+@ApiTags('[02. POS-Haravan] 10. Store properties (Cấu hình Shop & Khu vực)')
 @Controller('api/v1/infra/haravan')
 export class HaravanStorePropertiesController {
   @ApiOperation({
@@ -123,7 +123,7 @@ export class HaravanStorePropertiesController {
 // 11. SUBSCRIPTION CATEGORY (Webhooks Realtime & Topics)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 11. Subscription (Đăng ký Webhook & Sự kiện Realtime)')
+@ApiTags('[02. POS-Haravan] 11. Subscription (Đăng ký Webhook & Sự kiện Realtime)')
 @Controller('api/v1/infra/haravan')
 export class HaravanWebhooksController {
   @ApiOperation({
@@ -234,7 +234,7 @@ export class HaravanWebhooksController {
 // 12. ACCESSSCOPE & AUTHENTICATION CATEGORY (OAuth 2.0 & Scopes)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 12. AccessScope & Authentication (OAuth & Quyền truy cập)')
+@ApiTags('[02. POS-Haravan] 12. AccessScope & Authentication (OAuth & Quyền truy cập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanAccessScopesController {
   @ApiOperation({

@@ -1,8 +1,8 @@
 import { Controller, Post, Get, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
-import { PancakePosCreatePurchaseDto } from '../../dto/pos-pancake.dto';
+import { PancakePosCreatePurchaseDto, PancakePosUpdatePurchaseDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 06. Purchases & Suppliers (Nhập hàng & Nhà cung cấp)')
+@ApiTags('[02. POS-Pancake] 06. Purchases & Suppliers (Nhập hàng & Nhà cung cấp)')
 @Controller('api/v1/infra/pancake')
 export class PancakePurchasesController {
 
@@ -43,8 +43,9 @@ export class PancakePurchasesController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'purchaseId', example: '1' })
+  @ApiBody({ type: PancakePosUpdatePurchaseDto })
   @Put('shops/:shopId/purchases/:purchaseId')
-  async updatePurchaseOfficial(@Param('shopId') shopId: string, @Param('purchaseId') purchaseId: string, @Body() body: any) {
+  async updatePurchaseOfficial(@Param('shopId') shopId: string, @Param('purchaseId') purchaseId: string, @Body() body: PancakePosUpdatePurchaseDto) {
     return {
       success: true,
       purchase_id: Number(purchaseId),

@@ -318,3 +318,438 @@ export class MisaActOpenCallbackDemoDto {
   message: string;
 }
 
+// ── 6. MISA ACT OPEN - BASE FILTER DTO (LOẠI BỎ ANY TRONG API QUERY/BODY) ──
+export class MisaActOpenBaseFilterDto {
+  @ApiProperty({ example: 0, required: false, description: 'Vị trí bắt đầu lấy bản ghi (skip / offset)' })
+  @IsOptional()
+  @IsNumber()
+  skip?: number;
+
+  @ApiProperty({ example: 50, required: false, description: 'Số lượng bản ghi cần lấy (take / limit, tối đa 200)' })
+  @IsOptional()
+  @IsNumber()
+  take?: number;
+
+  @ApiProperty({ example: '2026-10-01', required: false, description: 'Lọc từ ngày (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  from_date?: string;
+
+  @ApiProperty({ example: '2026-10-03', required: false, description: 'Lọc đến ngày (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  to_date?: string;
+
+  @ApiProperty({ example: 'CN_HN', required: false, description: 'Mã chi nhánh đơn vị hạch toán' })
+  @IsOptional()
+  @IsString()
+  branch_id?: string;
+
+  @ApiProperty({ example: '', required: false, description: 'Từ khóa tìm kiếm theo mã hoặc tên' })
+  @IsOptional()
+  @IsString()
+  keyword?: string;
+}
+
+// ── 7. CHỨNG TỪ BÁN HÀNG KIÊM PHIẾU XUẤT KHO (SA_INVOICE) ──
+export class MisaSaInvoiceMasterDto {
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày hạch toán (YYYY-MM-DD)' })
+  @IsString()
+  refdate: string;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày chứng từ (YYYY-MM-DD)' })
+  @IsString()
+  posted_date: string;
+
+  @ApiProperty({ example: 'HDBL-202610-001', description: 'Số chứng từ bán hàng' })
+  @IsString()
+  refno: string;
+
+  @ApiProperty({ example: '00000088', description: 'Số hóa đơn giá trị gia tăng (nếu có)' })
+  @IsString()
+  inv_no: string;
+
+  @ApiProperty({ example: '1C26TAA', description: 'Ký hiệu mẫu số hóa đơn (VD: 1C26TAA)' })
+  @IsString()
+  inv_series: string;
+
+  @ApiProperty({ example: 'KH001', description: 'Mã đối tượng khách hàng (account_object_code)' })
+  @IsString()
+  account_object_code: string;
+
+  @ApiProperty({ example: 'Công ty Cổ phần Công Nghệ Tân Á', description: 'Tên đối tượng khách hàng' })
+  @IsString()
+  account_object_name: string;
+
+  @ApiProperty({ example: 'Tầng 8, Tòa Discovery Complex, Cầu Giấy, Hà Nội', description: 'Địa chỉ khách hàng' })
+  @IsString()
+  account_object_address: string;
+
+  @ApiProperty({ example: '0108999888', description: 'Mã số thuế khách hàng (10 hoặc 13 số)' })
+  @IsString()
+  account_object_tax_code: string;
+
+  @ApiProperty({ example: 'Nguyễn Văn Minh', description: 'Người liên hệ đại diện khách hàng', required: false })
+  @IsOptional()
+  @IsString()
+  contact_name?: string;
+
+  @ApiProperty({ example: 'Bán hàng UniFlow Enterprise cho Công ty Tân Á', description: 'Diễn giải hạch toán chứng từ' })
+  @IsString()
+  journal_memo: string;
+
+  @ApiProperty({ example: 'NV_SALE_01', description: 'Mã nhân viên bán hàng phụ trách', required: false })
+  @IsOptional()
+  @IsString()
+  employee_code?: string;
+
+  @ApiProperty({ example: 10800000, description: 'Tổng tiền thanh toán trên hóa đơn (VND)' })
+  @IsNumber()
+  total_amount: number;
+
+  @ApiProperty({ example: 800000, description: 'Tổng tiền thuế GTGT đầu ra (VND)' })
+  @IsNumber()
+  total_vat_amount: number;
+
+  @ApiProperty({ example: 'CHUYEN_KHOAN', enum: ['TIEN_MAT', 'CHUYEN_KHOAN', 'CHUA_THANH_TOAN'], description: 'Hình thức thanh toán' })
+  @IsString()
+  payment_method: string;
+
+  @ApiProperty({ example: true, description: 'Kiêm phiếu xuất kho bán hàng (Tự động trừ tồn kho)' })
+  is_export: boolean;
+}
+
+export class MisaSaInvoiceDetailDto {
+  @ApiProperty({ example: 'SP_AP_POLO_01', description: 'Mã vật tư hàng hóa (inventory_item_code)' })
+  @IsString()
+  inventory_item_code: string;
+
+  @ApiProperty({ example: 'Áo Polo Nam Cotton Compact Size L', description: 'Tên hàng hóa' })
+  @IsString()
+  inventory_item_name: string;
+
+  @ApiProperty({ example: 'KHO_TONG', description: 'Mã kho xuất hàng (stock_code)' })
+  @IsString()
+  stock_code: string;
+
+  @ApiProperty({ example: '1121', description: 'Tài khoản Nợ (Chuẩn TT200: 1111 Tiền mặt, 1121 Tiền gửi, 131 Phải thu KH)' })
+  @IsString()
+  debit_account: string;
+
+  @ApiProperty({ example: '5111', description: 'Tài khoản Có (Chuẩn TT200: 5111 Doanh thu bán hàng hóa)' })
+  @IsString()
+  credit_account: string;
+
+  @ApiProperty({ example: 'CHIEC', description: 'Đơn vị tính' })
+  @IsString()
+  unit_code: string;
+
+  @ApiProperty({ example: 10, description: 'Số lượng xuất bán' })
+  @IsNumber()
+  quantity: number;
+
+  @ApiProperty({ example: 1000000, description: 'Đơn giá bán chưa VAT (VND)' })
+  @IsNumber()
+  unit_price: number;
+
+  @ApiProperty({ example: 10000000, description: 'Thành tiền bán chưa VAT (VND)' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ example: 8, description: 'Thuế suất GTGT (0, 5, 8, 10, -1 là KCT)' })
+  @IsNumber()
+  vat_rate: number;
+
+  @ApiProperty({ example: 800000, description: 'Tiền thuế GTGT dòng hàng (VND)' })
+  @IsNumber()
+  vat_amount: number;
+
+  @ApiProperty({ example: '33311', description: 'Tài khoản thuế GTGT đầu ra (Chuẩn TT200: 33311)' })
+  @IsString()
+  vat_account: string;
+
+  @ApiProperty({ example: '632', description: 'Tài khoản giá vốn (Chuẩn TT200: 632 Giá vốn hàng bán)' })
+  @IsString()
+  cost_account: string;
+
+  @ApiProperty({ example: '1561', description: 'Tài khoản kho xuất (Chuẩn TT200: 1561 Hàng hóa)' })
+  @IsString()
+  stock_account: string;
+
+  @ApiProperty({ example: 600000, description: 'Đơn giá vốn xuất kho (VND)' })
+  @IsNumber()
+  cost_price: number;
+
+  @ApiProperty({ example: 6000000, description: 'Tiền giá vốn xuất kho (VND)' })
+  @IsNumber()
+  cost_amount: number;
+}
+
+export class MisaSaInvoiceVoucherDto {
+  @ApiProperty({ example: 'sa_invoice', description: 'Loại chứng từ: sa_invoice (Hóa đơn bán hàng)' })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_SA_001', description: 'Mã tham chiếu duy nhất từ hệ thống ngoài' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({ type: MisaSaInvoiceMasterDto, description: 'Thông tin chung chứng từ bán hàng' })
+  @ValidateNested()
+  @Type(() => MisaSaInvoiceMasterDto)
+  master_data: MisaSaInvoiceMasterDto;
+
+  @ApiProperty({ type: [MisaSaInvoiceDetailDto], description: 'Chi tiết các dòng hàng hóa xuất bán và định khoản kép TT200' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MisaSaInvoiceDetailDto)
+  detail_data: MisaSaInvoiceDetailDto[];
+}
+
+// ── 8. PHIẾU THU TIỀN MẶT (CA_RECEIPT) ──
+export class MisaCaReceiptMasterDto {
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày hạch toán (YYYY-MM-DD)' })
+  @IsString()
+  refdate: string;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày chứng từ (YYYY-MM-DD)' })
+  @IsString()
+  posted_date: string;
+
+  @ApiProperty({ example: 'PT-202610-001', description: 'Số phiếu thu tiền mặt' })
+  @IsString()
+  refno: string;
+
+  @ApiProperty({ example: 'KH001', description: 'Mã đối tượng nộp tiền' })
+  @IsString()
+  account_object_code: string;
+
+  @ApiProperty({ example: 'Công ty Cổ phần Công Nghệ Tân Á', description: 'Tên đối tượng nộp tiền' })
+  @IsString()
+  account_object_name: string;
+
+  @ApiProperty({ example: 'Lê Văn Nam', description: 'Họ tên người nộp tiền thực tế' })
+  @IsString()
+  payer: string;
+
+  @ApiProperty({ example: 'Thu hồi công nợ tiền hàng đợt 1', description: 'Lý do thu tiền' })
+  @IsString()
+  journal_memo: string;
+
+  @ApiProperty({ example: 15400000, description: 'Tổng số tiền thu (VND)' })
+  @IsNumber()
+  total_amount: number;
+}
+
+export class MisaCaReceiptDetailDto {
+  @ApiProperty({ example: 'Thu tiền công nợ khách hàng Tân Á', description: 'Diễn giải dòng bút toán' })
+  @IsString()
+  description: string;
+
+  @ApiProperty({ example: '1111', description: 'Tài khoản Nợ (Chuẩn TT200: 1111 Tiền Việt Nam)' })
+  @IsString()
+  debit_account: string;
+
+  @ApiProperty({ example: '131', description: 'Tài khoản Có (Chuẩn TT200: 131 Phải thu khách hàng)' })
+  @IsString()
+  credit_account: string;
+
+  @ApiProperty({ example: 15400000, description: 'Số tiền phát sinh (VND)' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ example: 'KH001', description: 'Mã đối tượng theo dõi công nợ chi tiết' })
+  @IsString()
+  account_object_code: string;
+}
+
+export class MisaCaReceiptVoucherDto {
+  @ApiProperty({ example: 'ca_receipt', description: 'Loại chứng từ: ca_receipt (Phiếu thu tiền mặt)' })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_PT_001', description: 'Mã tham chiếu duy nhất' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({ type: MisaCaReceiptMasterDto })
+  @ValidateNested()
+  @Type(() => MisaCaReceiptMasterDto)
+  master_data: MisaCaReceiptMasterDto;
+
+  @ApiProperty({ type: [MisaCaReceiptDetailDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MisaCaReceiptDetailDto)
+  detail_data: MisaCaReceiptDetailDto[];
+}
+
+// ── 9. PHIẾU CHI TIỀN MẶT (CA_PAYMENT) ──
+export class MisaCaPaymentMasterDto {
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày hạch toán (YYYY-MM-DD)' })
+  @IsString()
+  refdate: string;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày chứng từ (YYYY-MM-DD)' })
+  @IsString()
+  posted_date: string;
+
+  @ApiProperty({ example: 'PC-202610-001', description: 'Số phiếu chi tiền mặt' })
+  @IsString()
+  refno: string;
+
+  @ApiProperty({ example: 'NCC002', description: 'Mã nhà cung cấp / đối tượng nhận tiền' })
+  @IsString()
+  account_object_code: string;
+
+  @ApiProperty({ example: 'Công ty TNHH Bao Bì Đông Á', description: 'Tên đối tượng nhận tiền' })
+  @IsString()
+  account_object_name: string;
+
+  @ApiProperty({ example: 'Nguyễn Thị Hoa', description: 'Họ tên người nhận tiền thực tế' })
+  @IsString()
+  receiver: string;
+
+  @ApiProperty({ example: 'Chi trả tiền mua bao bì đóng gói hàng hóa', description: 'Lý do chi tiền' })
+  @IsString()
+  journal_memo: string;
+
+  @ApiProperty({ example: 4500000, description: 'Tổng số tiền chi (VND)' })
+  @IsNumber()
+  total_amount: number;
+}
+
+export class MisaCaPaymentDetailDto {
+  @ApiProperty({ example: 'Thanh toán tiền bao bì carton', description: 'Diễn giải dòng bút toán' })
+  @IsString()
+  description: string;
+
+  @ApiProperty({ example: '331', description: 'Tài khoản Nợ (Chuẩn TT200: 331 Phải trả người bán, hoặc 642, 1561...)' })
+  @IsString()
+  debit_account: string;
+
+  @ApiProperty({ example: '1111', description: 'Tài khoản Có (Chuẩn TT200: 1111 Tiền mặt)' })
+  @IsString()
+  credit_account: string;
+
+  @ApiProperty({ example: 4500000, description: 'Số tiền chi (VND)' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ example: 'NCC002', description: 'Mã đối tượng theo dõi công nợ chi tiết' })
+  @IsString()
+  account_object_code: string;
+}
+
+export class MisaCaPaymentVoucherDto {
+  @ApiProperty({ example: 'ca_payment', description: 'Loại chứng từ: ca_payment (Phiếu chi tiền mặt)' })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_PC_001', description: 'Mã tham chiếu duy nhất' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({ type: MisaCaPaymentMasterDto })
+  @ValidateNested()
+  @Type(() => MisaCaPaymentMasterDto)
+  master_data: MisaCaPaymentMasterDto;
+
+  @ApiProperty({ type: [MisaCaPaymentDetailDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MisaCaPaymentDetailDto)
+  detail_data: MisaCaPaymentDetailDto[];
+}
+
+// ── 10. PHIẾU NHẬP KHO (IN_INWARD) ──
+export class MisaInInwardMasterDto {
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày hạch toán (YYYY-MM-DD)' })
+  @IsString()
+  refdate: string;
+
+  @ApiProperty({ example: '2026-10-03', description: 'Ngày chứng từ (YYYY-MM-DD)' })
+  @IsString()
+  posted_date: string;
+
+  @ApiProperty({ example: 'PNK-202610-001', description: 'Số phiếu nhập kho' })
+  @IsString()
+  refno: string;
+
+  @ApiProperty({ example: 'KHO_TONG', description: 'Mã kho nhập' })
+  @IsString()
+  stock_code: string;
+
+  @ApiProperty({ example: 'NCC002', description: 'Mã nhà cung cấp / đối tượng giao hàng' })
+  @IsString()
+  account_object_code: string;
+
+  @ApiProperty({ example: 'Nhập kho mua hàng từ NCC Đông Á', description: 'Diễn giải phiếu nhập' })
+  @IsString()
+  journal_memo: string;
+
+  @ApiProperty({ example: 25000000, description: 'Tổng giá trị hàng nhập kho (VND)' })
+  @IsNumber()
+  total_amount: number;
+}
+
+export class MisaInInwardDetailDto {
+  @ApiProperty({ example: 'SP_AP_POLO_01', description: 'Mã vật tư hàng hóa nhập kho' })
+  @IsString()
+  inventory_item_code: string;
+
+  @ApiProperty({ example: 'Áo Polo Nam Cotton Compact Size L', description: 'Tên hàng hóa' })
+  @IsString()
+  inventory_item_name: string;
+
+  @ApiProperty({ example: 'KHO_TONG', description: 'Mã kho nhập' })
+  @IsString()
+  stock_code: string;
+
+  @ApiProperty({ example: 'CHIEC', description: 'Đơn vị tính' })
+  @IsString()
+  unit_code: string;
+
+  @ApiProperty({ example: 250, description: 'Số lượng nhập kho' })
+  @IsNumber()
+  quantity: number;
+
+  @ApiProperty({ example: 100000, description: 'Đơn giá mua nhập kho (VND)' })
+  @IsNumber()
+  unit_price: number;
+
+  @ApiProperty({ example: 25000000, description: 'Thành tiền nhập kho (VND)' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ example: '1561', description: 'Tài khoản Nợ (Chuẩn TT200: 1561 Hàng hóa, 152 Nguyên vật liệu)' })
+  @IsString()
+  debit_account: string;
+
+  @ApiProperty({ example: '331', description: 'Tài khoản Có (Chuẩn TT200: 331 Phải trả NCC, hoặc 1111, 1121...)' })
+  @IsString()
+  credit_account: string;
+}
+
+export class MisaInInwardVoucherDto {
+  @ApiProperty({ example: 'in_inward', description: 'Loại chứng từ: in_inward (Phiếu nhập kho)' })
+  @IsString()
+  voucher_type: string;
+
+  @ApiProperty({ example: 'REF_202610_PNK_001', description: 'Mã tham chiếu duy nhất' })
+  @IsString()
+  ref_id: string;
+
+  @ApiProperty({ type: MisaInInwardMasterDto })
+  @ValidateNested()
+  @Type(() => MisaInInwardMasterDto)
+  master_data: MisaInInwardMasterDto;
+
+  @ApiProperty({ type: [MisaInInwardDetailDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MisaInInwardDetailDto)
+  detail_data: MisaInInwardDetailDto[];
+}
+
+

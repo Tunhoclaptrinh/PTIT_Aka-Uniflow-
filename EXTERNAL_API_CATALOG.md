@@ -23,17 +23,18 @@ Mỗi API tích hợp đều tuân thủ nguyên tắc:
 
 ## 2. BẢNG TỔNG HỢP NỀN TẢNG & KIẾN TRÚC MODULAR CONTROLLERS
 
-| Nhóm | Nền tảng | Cấu trúc Modular Controllers | Số Module | Số API Tích Hợp | Link Tài liệu Chính thức |
+| Nhóm Domain | Nền tảng | Cấu trúc Modular Controllers | Số Module | Số API Tích Hợp | Link Tài liệu Chính thức |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **POS** | **Nhanh.vn** | `controllers/nhanh/` (14 controller classes) | 14 modules | 56 endpoints | [developers.nhanh.group](https://developers.nhanh.group/) |
-| **POS & CMS** | **Sapo Omnichannel** | `controllers/sapo/` (10 controller files, 29 resource groups) | 29 resources | 96 endpoints | [support.sapo.vn](https://support.sapo.vn/gioi-thieu-api) |
-| **POS** | **KiotViet** | `controllers/kiotviet/` (7 controller files, 7 official modules) | 7 modules | 96 endpoints | [kiotviet.vn/public-api](https://www.kiotviet.vn/huong-dan-su-dung-kiotviet/retail-ket-noi-api/public-api/) |
-| **POS & CMS** | **Haravan Omnichannel** | `controllers/haravan/` (9 controller files, 12 official categories) | 12 categories | 197 endpoints | [docs.haravan.com/docs/omni-apis/](https://docs.haravan.com/docs/omni-apis/) |
-| **Social POS** | **Pancake POS** | `controllers/pancake/` (11 controller files, 11 official modules) | 11 modules | 120 endpoints (103 official + 17 legacy) | [docs.pancake.biz/pos/api/](https://docs.pancake.biz/pos/api/) |
-| **Hệ sinh thái MISA** | **eShop, meInvoice, AMIS CRM v2, AMIS Kế toán ACT Open API** | `controllers/misa/` (4 controller files, 23 resource groups across 4 major platforms) | 23 modules | 115 endpoints | [crmconnect.misa.vn](https://crmconnect.misa.vn/docs-v2/index.html) / [actdocs.misa.vn](https://actdocs.misa.vn/g2/graph/ACTOpenAPIHelp/index.html) / [meinvoice.vn](https://meinvoice.vn/) / [eshop.misa.vn](https://eshop.misa.vn/) |
-| **Logistics** | **GHTK / GHN / Viettel Post / VNPost / J&T / Ninja Van / Ahamove / GrabExpress** | `controllers/logistics/` (6 controller files, 6 carrier modules) | 6 modules | 96 endpoints | [docs.giaohangtietkiem.vn](https://docs.giaohangtietkiem.vn/) / [developer.ghn.vn](https://developer.ghn.vn/) / [partner.viettelpost.vn](https://partner.viettelpost.vn/) / [api.vnpost.vn](https://api.vnpost.vn/) |
-| **Sàn TMĐT** | **Shopee, TikTok, Lazada, Tiki, Shopify** | `controllers/marketplaces.controller.ts` (5 platform groups) | 5 modules | 23 endpoints | Shopee Open API / TikTok Shop Open API |
-| **UniFlow Core** | **Infra Gateway, Promotions, Gateways** | `infra-gateway.controller.ts`, `core/`, `gateways/` | 3 modules | 11 endpoints | UniFlow Master Control Plane |
+| **`[01. UniFlow-Platform]`** | **Infra Gateway, Promotions, Gateways** | `infra-gateway.controller.ts`, `core/`, `gateways/` | 3 modules | 11 endpoints | UniFlow Master Control Plane |
+| **`[02. POS-Nhanh]`** | **Nhanh.vn** | `controllers/nhanh/` (14 controller classes) | 14 modules | 56 endpoints | [developers.nhanh.group](https://developers.nhanh.group/) |
+| **`[02. POS-Sapo]`** | **Sapo Omnichannel** | `controllers/sapo/` (10 controller files, 29 resource groups) | 29 resources | 96 endpoints | [support.sapo.vn](https://support.sapo.vn/gioi-thieu-api) |
+| **`[02. POS-KiotViet]`** | **KiotViet** | `controllers/kiotviet/` (7 controller files, 7 official modules) | 7 modules | 98 endpoints | [kiotviet.vn/public-api](https://www.kiotviet.vn/huong-dan-su-dung-kiotviet/retail-ket-noi-api/public-api/) |
+| **`[02. POS-Haravan]`** | **Haravan Omnichannel** | `controllers/haravan/` (9 controller files, 12 official categories) | 12 categories | 197 endpoints | [docs.haravan.com/docs/omni-apis/](https://docs.haravan.com/docs/omni-apis/) |
+| **`[02. POS-Pancake]`** | **Pancake POS** | `controllers/pancake/` (11 controller files, 11 official modules) | 11 modules | 120 endpoints (103 official + 17 legacy) | [docs.pancake.biz/pos/api/](https://docs.pancake.biz/pos/api/) |
+| **`[03. Marketplace]`** | **Shopee, TikTok, Lazada, Tiki, Shopify** | `controllers/marketplaces.controller.ts` (5 platform groups) | 5 modules | 23 endpoints | Shopee Open API / TikTok Shop Open API |
+| **`[04. ERP-MISA]`** | **eShop, meInvoice, AMIS CRM v2, AMIS Kế toán ACT Open API** | `controllers/misa/` (4 controller files, 28 resource groups across 4 major platforms) | 28 modules | 152 operations (120 REST routes) | [crmconnect.misa.vn](https://crmconnect.misa.vn/docs-v2/index.html) / [actdocs.misa.vn](https://actdocs.misa.vn/g2/graph/ACTOpenAPIHelp/index.html) / [meinvoice.vn](https://meinvoice.vn/) / [eshop.misa.vn](https://eshop.misa.vn/) |
+| **`[05. Logistics-VN]`** | **GHTK / GHN / Viettel Post / VNPost / J&T / Ninja Van / Ahamove / GrabExpress** | `controllers/logistics/` (6 controller files, 6 carrier modules) | 6 modules | 96 endpoints | [docs.giaohangtietkiem.vn](https://docs.giaohangtietkiem.vn/) / [developer.ghn.vn](https://developer.ghn.vn/) / [partner.viettelpost.vn](https://partner.viettelpost.vn/) / [api.vnpost.vn](https://api.vnpost.vn/) |
+| **TỔNG CỘNG** | **Toàn bộ 5 Enterprise Domains** | **64 Controller Files** | **115 Modules** | **986 Operations** | **100% Strongly-Typed Schemas & Dual-Mode** |
 
 ---
 

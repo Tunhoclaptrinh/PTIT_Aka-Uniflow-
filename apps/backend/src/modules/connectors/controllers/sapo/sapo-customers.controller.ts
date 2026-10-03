@@ -5,10 +5,11 @@ import {
   SapoCreateCustomerDto,
   SapoUpdateCustomerDto,
   SapoAdjustLoyaltyPointsDto,
+  SapoCreateCustomerAddressDto,
 } from '../../dto/pos-sapo.dto';
 
 // ── 1. Customer Resource ──
-@ApiTags('[POS-Sapo] 13. Customer')
+@ApiTags('[02. POS-Sapo] 13. Customer')
 @Controller('api/v1/infra/sapo')
 export class SapoCustomersController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -92,7 +93,7 @@ export class SapoCustomersController {
 }
 
 // ── 2. CustomerAddress Resource ──
-@ApiTags('[POS-Sapo] 14. CustomerAddress')
+@ApiTags('[02. POS-Sapo] 14. CustomerAddress')
 @Controller('api/v1/infra/sapo')
 export class SapoCustomerAddressesController {
   @ApiOperation({
@@ -113,8 +114,9 @@ export class SapoCustomerAddressesController {
     summary: '[POST /admin/customers/:customer_id/addresses.json] Thêm địa chỉ mới cho khách hàng',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/customers/{customer_id}/addresses.json | Thêm địa chỉ giao hàng vào sổ địa chỉ',
   })
+  @ApiBody({ type: SapoCreateCustomerAddressDto })
   @Post('admin/customers/:customer_id/addresses.json')
-  async addAddress(@Param('customer_id') customerId: string, @Body() body: any) {
+  async addAddress(@Param('customer_id') customerId: string, @Body() body: SapoCreateCustomerAddressDto) {
     return {
       customer_address: {
         id: Date.now(),
@@ -131,8 +133,9 @@ export class SapoCustomerAddressesController {
     summary: '[PUT /admin/customers/:customer_id/addresses/:id.json] Cập nhật địa chỉ khách hàng',
     description: 'Endpoint gốc: PUT https://{store_name}.mysapo.net/admin/customers/{customer_id}/addresses/{id}.json | Sửa thông tin địa chỉ giao nhận',
   })
+  @ApiBody({ type: SapoCreateCustomerAddressDto })
   @Put('admin/customers/:customer_id/addresses/:id.json')
-  async updateAddress(@Param('customer_id') customerId: string, @Param('id') id: string, @Body() body: any) {
+  async updateAddress(@Param('customer_id') customerId: string, @Param('id') id: string, @Body() body: SapoCreateCustomerAddressDto) {
     return {
       customer_address: { id: Number(id), customer_id: Number(customerId), ...body, updated_at: new Date().toISOString() },
     };

@@ -4,7 +4,7 @@ import { ActionsService } from '../../actions.service';
 import { SapoCreateDiscountDto } from '../../dto/pos-sapo.dto';
 
 // ── 1. Price Rule Resource ──
-@ApiTags('[POS-Sapo] 16. Price Rule')
+@ApiTags('[02. POS-Sapo] 16. Price Rule')
 @Controller('api/v1/infra/sapo')
 export class SapoPriceRulesController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -49,7 +49,7 @@ export class SapoPriceRulesController {
 }
 
 // ── 2. DiscountCode Resource ──
-@ApiTags('[POS-Sapo] 17. DiscountCode')
+@ApiTags('[02. POS-Sapo] 17. DiscountCode')
 @Controller('api/v1/infra/sapo')
 export class SapoDiscountCodesController {
   @ApiOperation({

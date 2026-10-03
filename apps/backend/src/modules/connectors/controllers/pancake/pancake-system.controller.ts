@@ -2,7 +2,7 @@ import { Controller, Post, Get, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { PancakeRegisterWebhookDto, PancakePosWebhookConfigDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 11. Shop, Geo, Employees & Webhooks (Cửa hàng, Địa giới, Nhân viên & Webhook)')
+@ApiTags('[02. POS-Pancake] 11. Shop, Geo, Employees & Webhooks (Cửa hàng, Địa giới, Nhân viên & Webhook)')
 @Controller('api/v1/infra/pancake')
 export class PancakeSystemController {
 

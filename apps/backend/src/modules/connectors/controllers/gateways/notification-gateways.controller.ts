@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiHeader } from '@nestjs/swagger';
 import { ActionsService } from '../../actions.service';
 import { TelegramAlertDto, ZaloZnsDto } from '../../dto/finance-logistics.dto';
 
-@ApiTags('[UniFlow-Gateways] 01. Kênh thông báo (Telegram & Zalo ZNS)')
+@ApiTags('[01. UniFlow-Platform] 03. Kênh thông báo (Telegram & Zalo ZNS)')
 @Controller('api/v1/infra/notifications')
 export class NotificationGatewaysController {
   constructor(private readonly actionsService: ActionsService) {}

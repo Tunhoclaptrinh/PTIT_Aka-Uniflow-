@@ -7,9 +7,11 @@ import {
   PancakeUpdateOrderStatusDto,
   PancakeCancelOrderDto,
   PancakePosCreateOrderDto,
+  PancakePosActivePromotionQueryDto,
+  PancakePosCreateOrderReturnDto,
 } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 01. Orders & Shipments (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Pancake] 01. Orders & Shipments (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/pancake')
 export class PancakeOrdersController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -109,8 +111,9 @@ export class PancakeOrdersController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'orderId', example: 'ORD_PC_9912' })
+  @ApiBody({ type: PancakeUpdateOrderDto })
   @Put('shops/:shopId/orders/:orderId')
-  async updateOrderOfficial(@Param('shopId') shopId: string, @Param('orderId') orderId: string, @Body() body: any) {
+  async updateOrderOfficial(@Param('shopId') shopId: string, @Param('orderId') orderId: string, @Body() body: PancakeUpdateOrderDto) {
     return {
       success: true,
       shop_id: shopId,
@@ -210,8 +213,9 @@ export class PancakeOrdersController {
     description: '[Thuộc danh mục: 4. Order > Khuyến mãi đơn] Endpoint gốc: POST https://pos.pages.fm/api/v1/shops/{SHOP_ID}/orders/get_promotion_advance_active | Danh sách các chương trình khuyến mãi tự động áp dụng',
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
+  @ApiBody({ type: PancakePosActivePromotionQueryDto })
   @Post('shops/:shopId/orders/get_promotion_advance_active')
-  async getPromotionAdvanceActiveOfficial(@Param('shopId') shopId: string, @Body() body: any) {
+  async getPromotionAdvanceActiveOfficial(@Param('shopId') shopId: string, @Body() body: PancakePosActivePromotionQueryDto) {
     return {
       success: true,
       shop_id: shopId,
@@ -259,13 +263,15 @@ export class PancakeOrdersController {
     description: '[Thuộc danh mục: 4. Order > Đổi trả] Endpoint gốc: POST https://pos.pages.fm/api/v1/shops/{SHOP_ID}/orders_returned | Khởi tạo đơn nhận lại hàng và hoàn tiền',
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
+  @ApiBody({ type: PancakePosCreateOrderReturnDto })
   @Post('shops/:shopId/orders_returned')
-  async createOrderReturnedOfficial(@Param('shopId') shopId: string, @Body() body: any) {
+  async createOrderReturnedOfficial(@Param('shopId') shopId: string, @Body() body: PancakePosCreateOrderReturnDto) {
     return {
       success: true,
       shop_id: shopId,
       return_id: `RET_${Date.now().toString().slice(-6)}`,
       order_id: body.order_id,
+      itemsCount: body.items?.length || 1,
       status: 'pending_received',
     };
   }

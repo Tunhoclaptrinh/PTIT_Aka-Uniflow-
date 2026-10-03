@@ -7,7 +7,7 @@ import {
   NhanhTransferStockDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 04. Kho bãi & Tồn kho (Inventory)')
+@ApiTags('[02. POS-Nhanh] 04. Kho bãi & Tồn kho (Inventory)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhInventoryController {
   constructor(private readonly actionsService: ActionsService) {}

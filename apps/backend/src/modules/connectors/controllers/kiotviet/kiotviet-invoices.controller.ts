@@ -8,9 +8,10 @@ import {
   KiotVietPaymentDto,
   KiotVietOrderProposalDto,
   KiotVietEInvoiceInfoDto,
+  KiotVietUpdateBookingDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 01. Invoices & Orders (Hóa đơn, Đặt hàng & Đổi trả)')
+@ApiTags('[02. POS-KiotViet] 01. Invoices & Orders (Hóa đơn, Đặt hàng & Đổi trả)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietInvoicesController {
 
@@ -155,9 +156,10 @@ export class KiotVietInvoicesController {
     description: '[Thuộc danh mục: 2.5. Đặt hàng > Order] Endpoint gốc: PUT https://public.kiotapi.com/orders/{id} | Cập nhật thông tin chi tiết đơn đặt hàng',
   })
   @ApiParam({ name: 'id', example: '91' })
+  @ApiBody({ type: KiotVietUpdateBookingDto })
   @Put('orders/:id')
-  async updateBooking(@Param('id') id: string, @Body() body: any) {
-    return { responseStatus: 'success', data: { id: Number(id), updated: true } };
+  async updateBooking(@Param('id') id: string, @Body() body: KiotVietUpdateBookingDto) {
+    return { responseStatus: 'success', data: { id: Number(id), status: body.status, description: body.description, updated: true } };
   }
 
   @ApiOperation({

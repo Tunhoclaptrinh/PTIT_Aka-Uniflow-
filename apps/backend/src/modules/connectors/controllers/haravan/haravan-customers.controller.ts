@@ -5,13 +5,14 @@ import {
   HaravanUpdateCustomerDto,
   HaravanCustomerAddressDto,
   HaravanOrderTagsDto,
+  HaravanBulkSetAddressesDto,
 } from '../../dto/pos-haravan.dto';
 
 // ═══════════════════════════════════════════════════════════════
 // 4. CUSTOMERS CATEGORY (Customer, Customer Address, Tags)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 04. Customers (Khách hàng & Sổ địa chỉ)')
+@ApiTags('[02. POS-Haravan] 04. Customers (Khách hàng & Sổ địa chỉ)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCustomersController {
   @ApiOperation({
@@ -159,7 +160,7 @@ export class HaravanCustomersController {
 // CUSTOMER ADDRESSES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 04. Customers (Khách hàng & Sổ địa chỉ)')
+@ApiTags('[02. POS-Haravan] 04. Customers (Khách hàng & Sổ địa chỉ)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCustomerAddressesController {
   @ApiOperation({
@@ -251,8 +252,9 @@ export class HaravanCustomerAddressesController {
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'customer_id', example: '99120' })
+  @ApiBody({ type: HaravanBulkSetAddressesDto })
   @Put('com/customers/:customer_id/addresses/set.json')
-  async bulkSetAddresses(@Param('customer_id') customerId: string, @Body() body: any, @Headers('x-uniflow-mode') mode?: string) {
-    return { success: true, customer_id: Number(customerId), updated: true, mode: mode || 'SANDBOX' };
+  async bulkSetAddresses(@Param('customer_id') customerId: string, @Body() body: HaravanBulkSetAddressesDto, @Headers('x-uniflow-mode') mode?: string) {
+    return { success: true, customer_id: Number(customerId), updated: true, addressesCount: body.addresses?.length || 0, mode: mode || 'SANDBOX' };
   }
 }

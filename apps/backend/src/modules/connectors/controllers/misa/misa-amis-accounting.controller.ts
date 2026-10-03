@@ -13,12 +13,17 @@ import {
   MisaActOpenGetInventoryBalanceDto,
   MisaActOpenSetOptionDto,
   MisaActOpenCallbackDemoDto,
+  MisaActOpenBaseFilterDto,
+  MisaSaInvoiceVoucherDto,
+  MisaCaReceiptVoucherDto,
+  MisaCaPaymentVoucherDto,
+  MisaInInwardVoucherDto,
 } from '../../dto/misa-amis-accounting.dto';
 
 // ════════════════════════════════════════════════════════════════
 // 1. ACT OPEN API - CORE FUNCTIONS (KẾT NỐI & CHỨNG TỪ)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-Accounting] 01. ACT Open API - Core Functions (Kết nối & Chứng từ)')
+@ApiTags('[04. ERP-MISA-Accounting] 01. ACT Open API - Core Functions (Kết nối & Chứng từ)')
 @Controller('api/v1/infra/misa-amis-accounting')
 export class MisaAmisAccountingVouchersController {
 
@@ -27,7 +32,7 @@ export class MisaAmisAccountingVouchersController {
     description: '[Thuộc danh mục: 2.1. Hàm kết nối > Connect] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/connect | Docs: https://actdocs.misa.vn/g2/graph/ACTOpenAPIHelp/index.html | Xác thực app_id và access_code lấy X-MISA-AccessToken',
   })
   @ApiBody({ type: MisaActOpenConnectDto })
-  @Post('api/oauth/actopen/connect')
+  @Post(['api/oauth/actopen/connect', 'apir/sync/actopen/connect'])
   async actOpenConnect(@Body() dto: MisaActOpenConnectDto) {
     return {
       Success: true,
@@ -45,11 +50,11 @@ export class MisaAmisAccountingVouchersController {
 
   @ApiOperation({
     summary: '[Voucher - Cất đề nghị sinh chứng từ] [POST /api/oauth/actopen/save] Cất đề nghị sinh chứng từ kế toán',
-    description: '[Thuộc danh mục: 2.2. Hàm cất chứng từ > SaveVoucher] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/save | Đẩy đề nghị sinh 46 loại chứng từ (sa_invoice, sa_voucher, pu_voucher, ca_payment, ca_receipt, in_inward, in_outward...)',
+    description: '[Thuộc danh mục: 2.2. Hàm cất chứng từ > SaveVoucher] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/save & https://actapp.misa.vn/apir/sync/actopen/save | Đẩy đề nghị sinh 46 loại chứng từ (sa_invoice, sa_voucher, pu_voucher, ca_payment, ca_receipt, in_inward, in_outward...)',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true, description: 'Token lấy từ hàm connect' })
   @ApiBody({ type: MisaActOpenSaveVoucherDto })
-  @Post('api/oauth/actopen/save')
+  @Post(['api/oauth/actopen/save', 'apir/sync/actopen/save'])
   async actOpenSaveVoucher(@Body() dto: MisaActOpenSaveVoucherDto, @Headers('X-MISA-AccessToken') token?: string) {
     return {
       Success: true,
@@ -66,12 +71,177 @@ export class MisaAmisAccountingVouchersController {
   }
 
   @ApiOperation({
+    summary: '[Voucher - Hóa đơn bán hàng kiêm xuất kho] [POST /vouchers/sales-invoice] Hạch toán HĐ bán hàng (sa_invoice)',
+    description: '[Thuộc danh mục: Chứng từ bán hàng > sa_invoice] Cất chứng từ bán hàng kiêm phiếu xuất kho với định khoản kép TT200: Nợ 1111/1121/131, Có 5111, Có 33311 và Nợ 632, Có 1561',
+  })
+  @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
+  @ApiBody({ type: MisaSaInvoiceVoucherDto })
+  @Post('vouchers/sales-invoice')
+  async createSalesInvoiceVoucher(@Body() dto: MisaSaInvoiceVoucherDto) {
+    return {
+      Success: true,
+      ErrorCode: '0',
+      Data: {
+        ref_id: dto.ref_id,
+        voucher_type: 'sa_invoice',
+        status: 1,
+        status_name: 'Đã ghi sổ thành công',
+        transaction_id: `TXN_SA_${Date.now()}`,
+        master: dto.master_data,
+        detail_count: dto.detail_data?.length || 0,
+      },
+      UserMsg: 'Ghi sổ hóa đơn bán hàng kiêm phiếu xuất kho thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Voucher - Phiếu thu tiền mặt] [POST /vouchers/cash-receipt] Hạch toán phiếu thu quỹ (ca_receipt)',
+    description: '[Thuộc danh mục: Chứng từ tiền mặt > ca_receipt] Cất phiếu thu tiền mặt với định khoản kép TT200: Nợ 1111, Có 131 / Có 5111 / Có 711',
+  })
+  @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
+  @ApiBody({ type: MisaCaReceiptVoucherDto })
+  @Post('vouchers/cash-receipt')
+  async createCashReceiptVoucher(@Body() dto: MisaCaReceiptVoucherDto) {
+    return {
+      Success: true,
+      ErrorCode: '0',
+      Data: {
+        ref_id: dto.ref_id,
+        voucher_type: 'ca_receipt',
+        status: 1,
+        transaction_id: `TXN_CR_${Date.now()}`,
+        total_amount: dto.master_data?.total_amount || 0,
+      },
+      UserMsg: 'Cất phiếu thu tiền mặt vào quỹ thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Voucher - Phiếu chi tiền mặt] [POST /vouchers/cash-payment] Hạch toán phiếu chi quỹ (ca_payment)',
+    description: '[Thuộc danh mục: Chứng từ tiền mặt > ca_payment] Cất phiếu chi tiền mặt với định khoản kép TT200: Nợ 331 / Nợ 642 / Nợ 1561, Có 1111',
+  })
+  @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
+  @ApiBody({ type: MisaCaPaymentVoucherDto })
+  @Post('vouchers/cash-payment')
+  async createCashPaymentVoucher(@Body() dto: MisaCaPaymentVoucherDto) {
+    return {
+      Success: true,
+      ErrorCode: '0',
+      Data: {
+        ref_id: dto.ref_id,
+        voucher_type: 'ca_payment',
+        status: 1,
+        transaction_id: `TXN_CP_${Date.now()}`,
+        total_amount: dto.master_data?.total_amount || 0,
+      },
+      UserMsg: 'Cất phiếu chi tiền mặt thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Voucher - Phiếu nhập kho] [POST /vouchers/inventory-inward] Hạch toán phiếu nhập kho (in_inward)',
+    description: '[Thuộc danh mục: Chứng từ kho > in_inward] Cất phiếu nhập kho mua hàng / nội bộ với định khoản Nợ 1561/152, Có 331/1111/1121',
+  })
+  @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
+  @ApiBody({ type: MisaInInwardVoucherDto })
+  @Post('vouchers/inventory-inward')
+  async createInventoryInwardVoucher(@Body() dto: MisaInInwardVoucherDto) {
+    return {
+      Success: true,
+      ErrorCode: '0',
+      Data: {
+        ref_id: dto.ref_id,
+        voucher_type: 'in_inward',
+        status: 1,
+        transaction_id: `TXN_IN_${Date.now()}`,
+        total_amount: dto.master_data?.total_amount || 0,
+      },
+      UserMsg: 'Cất phiếu nhập kho thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Voucher - Danh mục 46 loại chứng từ] [GET /voucher-types] Tra cứu danh mục mã loại chứng từ MISA hỗ trợ',
+    description: '[Thuộc danh mục: ACT Open API > Voucher Types] Danh mục 46 loại chứng từ kế toán trong hệ thống AMIS (sa_invoice, sa_voucher, pu_voucher, ca_receipt, in_inward...)',
+  })
+  @Get('voucher-types')
+  async getVoucherTypes() {
+    return {
+      success: true,
+      total_types: 46,
+      categories: [
+        {
+          module: 'Bán hàng (Sales)',
+          vouchers: [
+            { code: 'sa_invoice', name: 'Hóa đơn bán hàng kiêm phiếu xuất kho', standard_accounts: 'Nợ 1111/1121/131, Có 5111, Có 33311' },
+            { code: 'sa_voucher', name: 'Chứng từ bán hàng', standard_accounts: 'Nợ 131, Có 5111, Có 33311' },
+            { code: 'sa_order', name: 'Đơn đặt hàng bán', standard_accounts: 'Theo dõi đơn hàng' },
+            { code: 'sa_return', name: 'Hàng bán bị trả lại', standard_accounts: 'Nợ 5212, Nợ 33311, Có 131/1111' },
+            { code: 'sa_discount', name: 'Giảm giá hàng bán', standard_accounts: 'Nợ 5213, Nợ 33311, Có 131' },
+          ],
+        },
+        {
+          module: 'Mua hàng (Purchases)',
+          vouchers: [
+            { code: 'pu_voucher', name: 'Chứng từ mua hàng hóa', standard_accounts: 'Nợ 1561, Nợ 1331, Có 331/1111' },
+            { code: 'pu_service', name: 'Chứng từ mua dịch vụ', standard_accounts: 'Nợ 642/641, Nợ 1331, Có 331' },
+            { code: 'pu_return', name: 'Trả lại hàng mua', standard_accounts: 'Nợ 331, Có 1561, Có 1331' },
+          ],
+        },
+        {
+          module: 'Tiền mặt & Ngân hàng (Cash & Banking)',
+          vouchers: [
+            { code: 'ca_receipt', name: 'Phiếu thu tiền mặt', standard_accounts: 'Nợ 1111, Có 131/5111' },
+            { code: 'ca_payment', name: 'Phiếu chi tiền mặt', standard_accounts: 'Nợ 331/642, Có 1111' },
+            { code: 'ba_deposit', name: 'Thu tiền gửi ngân hàng (Báo Có)', standard_accounts: 'Nợ 1121, Có 131' },
+            { code: 'ba_withdraw', name: 'Chi tiền gửi ngân hàng (Ủy nhiệm chi)', standard_accounts: 'Nợ 331, Có 1121' },
+          ],
+        },
+        {
+          module: 'Kho bãi & Tồn kho (Inventory)',
+          vouchers: [
+            { code: 'in_inward', name: 'Phiếu nhập kho', standard_accounts: 'Nợ 1561/152, Có 331' },
+            { code: 'in_outward', name: 'Phiếu xuất kho', standard_accounts: 'Nợ 632, Có 1561' },
+            { code: 'in_transfer', name: 'Lệnh điều chuyển kho nội bộ', standard_accounts: 'Nợ 1561(Kho nhận), Có 1561(Kho xuất)' },
+          ],
+        },
+        {
+          module: 'Tổng hợp (General Ledger)',
+          vouchers: [
+            { code: 'gl_voucher', name: 'Chứng từ nghiệp vụ khác', standard_accounts: 'Định khoản tổng hợp đa năng' },
+          ],
+        },
+      ],
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Voucher - Kiểm tra trạng thái theo Transaction ID] [GET /vouchers/transaction/:txn_id] Tra cứu trạng thái hạch toán',
+    description: '[Thuộc danh mục: ACT Open API > Transaction Status] Tra cứu tiến trình ghi sổ của đề nghị sinh chứng từ theo transaction_id hoặc ref_id',
+  })
+  @ApiParam({ name: 'txn_id', example: 'TXN_17280001928' })
+  @Get('vouchers/transaction/:txn_id')
+  async getVoucherTransactionStatus(@Param('txn_id') txnId: string) {
+    return {
+      success: true,
+      data: {
+        transaction_id: txnId,
+        status: 'POSTED',
+        status_name: 'Đã ghi sổ kế toán thành công',
+        posted_at: new Date().toISOString(),
+        voucher_id: `AMIS_VCH_${txnId}`,
+        message: 'Chứng từ đã được hạch toán đầy đủ vào Sổ cái AMIS Kế toán',
+      },
+    };
+  }
+
+  @ApiOperation({
     summary: '[Voucher - Xóa đề nghị sinh chứng từ] [POST /api/oauth/actopen/delete] Xóa đề nghị sinh chứng từ đã gửi',
-    description: '[Thuộc danh mục: 2.3. Hàm xóa chứng từ > DeleteVoucher] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/delete | Xóa đề nghị sinh chứng từ kế toán theo ref_id và voucher_type',
+    description: '[Thuộc danh mục: 2.3. Hàm xóa chứng từ > DeleteVoucher] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/delete & apir/sync/actopen/delete | Xóa đề nghị sinh chứng từ kế toán theo ref_id và voucher_type',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenDeleteVoucherDto })
-  @Post('api/oauth/actopen/delete')
+  @Post(['api/oauth/actopen/delete', 'apir/sync/actopen/delete'])
   async actOpenDeleteVoucher(@Body() dto: MisaActOpenDeleteVoucherDto) {
     return {
       Success: true,
@@ -189,17 +359,17 @@ export class MisaAmisAccountingVouchersController {
 // ════════════════════════════════════════════════════════════════
 // 2. ACT OPEN API - MASTER DATA (DANH MỤC, CÔNG NỢ & TỒN KHO)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-Accounting] 02. ACT Open API - Master Data (Danh mục, Công nợ & Tồn kho)')
+@ApiTags('[04. ERP-MISA-Accounting] 02. ACT Open API - Master Data (Danh mục, Công nợ & Tồn kho)')
 @Controller('api/v1/infra/misa-amis-accounting')
 export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[Dictionary - Lấy danh mục] [POST /api/oauth/actopen/get_dictionary] Lấy danh mục từ AMIS Kế toán',
-    description: '[Thuộc danh mục: 2.4. Hàm lấy danh mục > Dictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_dictionary | Lấy danh sách 15 loại danh mục: account_object, bank, stock, inventory_item, unit...',
+    description: '[Thuộc danh mục: 2.4. Hàm lấy danh mục > Dictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_dictionary & apir/sync/actopen/get_dictionary | Lấy danh sách 15 loại danh mục: account_object, bank, stock, inventory_item, unit...',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenGetDictionaryDto })
-  @Post('api/oauth/actopen/get_dictionary')
+  @Post(['api/oauth/actopen/get_dictionary', 'apir/sync/actopen/get_dictionary'])
   async actOpenGetDictionary(@Body() dto: MisaActOpenGetDictionaryDto) {
     return {
       Success: true,
@@ -217,11 +387,11 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[Dictionary - Sinh danh mục] [POST /api/oauth/actopen/save_dictionary] Thêm mới danh mục sang AMIS Kế toán',
-    description: '[Thuộc danh mục: 2.14. Hàm sinh danh mục > SaveDictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/save_dictionary | Thêm mới vật tư hàng hóa, đối tượng, kho sang AMIS',
+    description: '[Thuộc danh mục: 2.14. Hàm sinh danh mục > SaveDictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/save_dictionary & apir/sync/actopen/save_dictionary | Thêm mới vật tư hàng hóa, đối tượng, kho sang AMIS',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenSaveDictionaryDto })
-  @Post('api/oauth/actopen/save_dictionary')
+  @Post(['api/oauth/actopen/save_dictionary', 'apir/sync/actopen/save_dictionary'])
   async actOpenSaveDictionary(@Body() dto: MisaActOpenSaveDictionaryDto) {
     return {
       Success: true,
@@ -233,21 +403,22 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[Dictionary - Danh mục đã xóa] [POST /api/oauth/actopen/get_dictionary_delete] Lấy danh mục đã xóa',
-    description: '[Thuộc danh mục: 2.9. Danh mục đã xóa > DeletedDictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_dictionary_delete | Đồng bộ các bản ghi danh mục đã bị xóa khỏi AMIS',
+    description: '[Thuộc danh mục: 2.9. Danh mục đã xóa > DeletedDictionary] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_dictionary_delete & apir/sync/actopen/get_dictionary_delete | Đồng bộ các bản ghi danh mục đã bị xóa khỏi AMIS',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_dictionary_delete')
-  async actOpenGetDeletedDictionary(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_dictionary_delete', 'apir/sync/actopen/get_dictionary_delete'])
+  async actOpenGetDeletedDictionary(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, ErrorCode: '0', Data: { DeletedList: [] } };
   }
 
   @ApiOperation({
     summary: '[Debt - Công nợ đối tượng] [POST /api/oauth/actopen/get_list_acc_obj_debt] Lấy công nợ phải thu, phải trả',
-    description: '[Thuộc danh mục: 2.6. Hàm lấy công nợ > Debt] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_acc_obj_debt | Lấy số dư công nợ phải thu (TK 131) hoặc phải trả (TK 331) theo đối tượng',
+    description: '[Thuộc danh mục: 2.6. Hàm lấy công nợ > Debt] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_acc_obj_debt & apir/sync/actopen/get_debt | Lấy số dư công nợ phải thu (TK 131) hoặc phải trả (TK 331) theo đối tượng',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenGetDebtDto })
-  @Post('api/oauth/actopen/get_list_acc_obj_debt')
+  @Post(['api/oauth/actopen/get_list_acc_obj_debt', 'apir/sync/actopen/get_list_acc_obj_debt', 'apir/sync/actopen/get_debt'])
   async actOpenGetDebt(@Body() dto: MisaActOpenGetDebtDto) {
     return {
       Success: true,
@@ -263,21 +434,22 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[Debt - Công nợ đã xóa] [POST /api/oauth/actopen/get_list_acc_obj_debt_delete] Lấy công nợ đã xóa',
-    description: '[Thuộc danh mục: 2.10. Công nợ đã xóa > DebtDelete] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_acc_obj_debt_delete',
+    description: '[Thuộc danh mục: 2.10. Công nợ đã xóa > DebtDelete] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_acc_obj_debt_delete & apir/sync/actopen/get_list_acc_obj_debt_delete',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_list_acc_obj_debt_delete')
-  async actOpenGetDeletedDebt(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_list_acc_obj_debt_delete', 'apir/sync/actopen/get_list_acc_obj_debt_delete'])
+  async actOpenGetDeletedDebt(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, ErrorCode: '0', Data: { DeletedDebtList: [] } };
   }
 
   @ApiOperation({
     summary: '[Stock - Tồn kho theo kho] [POST /api/oauth/actopen/get_list_inventory_balance] Số lượng tồn kho VTHH',
-    description: '[Thuộc danh mục: 2.7. Tồn kho VTHH > InventoryBalance] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_inventory_balance | Lấy số lượng tồn kho của vật tư hàng hóa theo kho',
+    description: '[Thuộc danh mục: 2.7. Tồn kho VTHH > InventoryBalance] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_inventory_balance & apir/sync/actopen/get_inventory_balance | Lấy số lượng tồn kho của vật tư hàng hóa theo kho',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenGetInventoryBalanceDto })
-  @Post('api/oauth/actopen/get_list_inventory_balance')
+  @Post(['api/oauth/actopen/get_list_inventory_balance', 'apir/sync/actopen/get_list_inventory_balance', 'apir/sync/actopen/get_inventory_balance'])
   async actOpenGetInventoryBalance(@Body() dto: MisaActOpenGetInventoryBalanceDto) {
     return {
       Success: true,
@@ -290,21 +462,23 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[Stock - Tồn kho đã xóa] [POST /api/oauth/actopen/get_list_inventory_balance_delete] Tồn kho đã xóa',
-    description: '[Thuộc danh mục: 2.11. Tồn kho đã xóa > StockDelete] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_inventory_balance_delete',
+    description: '[Thuộc danh mục: 2.11. Tồn kho đã xóa > StockDelete] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_list_inventory_balance_delete & apir/sync/actopen/get_list_inventory_balance_delete',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_list_inventory_balance_delete')
-  async actOpenGetDeletedInventoryBalance(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_list_inventory_balance_delete', 'apir/sync/actopen/get_list_inventory_balance_delete'])
+  async actOpenGetDeletedInventoryBalance(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, ErrorCode: '0', Data: { DeletedInventoryList: [] } };
   }
 
   @ApiOperation({
     summary: '[Company - Thông tin công ty] [POST /api/oauth/actopen/get_company_info] Lấy thông tin công ty & Chi nhánh',
-    description: '[Thuộc danh mục: 2.12. Thông tin công ty > CompanyInfo] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_company_info | Lấy cơ cấu tổ chức, chi nhánh công ty',
+    description: '[Thuộc danh mục: 2.12. Thông tin công ty > CompanyInfo] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_company_info & apir/sync/actopen/get_company_info | Lấy cơ cấu tổ chức, chi nhánh công ty',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_company_info')
-  async actOpenGetCompanyInfo(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_company_info', 'apir/sync/actopen/get_company_info'])
+  async actOpenGetCompanyInfo(@Body() filter?: MisaActOpenBaseFilterDto) {
     return {
       Success: true,
       ErrorCode: '0',
@@ -320,11 +494,12 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[System Option - Tùy chọn hệ thống] [POST /api/oauth/actopen/get_option] Lấy tùy chọn hệ thống kế toán',
-    description: '[Thuộc danh mục: 2.5. Tùy chọn hệ thống > SystemOption] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_option | Tra cứu phương pháp tính giá xuất kho, hạch toán đa tiền tệ',
+    description: '[Thuộc danh mục: 2.5. Tùy chọn hệ thống > SystemOption] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_option & apir/sync/actopen/get_option | Tra cứu phương pháp tính giá xuất kho, hạch toán đa tiền tệ',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_option')
-  async actOpenGetOption(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_option', 'apir/sync/actopen/get_option'])
+  async actOpenGetOption(@Body() filter?: MisaActOpenBaseFilterDto) {
     return {
       Success: true,
       ErrorCode: '0',
@@ -334,22 +509,23 @@ export class MisaAmisAccountingProductsController {
 
   @ApiOperation({
     summary: '[System Option - Thiết lập kết nối] [POST /api/oauth/actopen/set_option] Thiết lập dữ liệu kết nối',
-    description: '[Thuộc danh mục: 2.13. Thiết lập kết nối > SetDwOption] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/set_option | Cấu hình quy tắc đồng bộ chứng từ tự động',
+    description: '[Thuộc danh mục: 2.13. Thiết lập kết nối > SetDwOption] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/set_option & apir/sync/actopen/set_option | Cấu hình quy tắc đồng bộ chứng từ tự động',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
   @ApiBody({ type: MisaActOpenSetOptionDto })
-  @Post('api/oauth/actopen/set_option')
+  @Post(['api/oauth/actopen/set_option', 'apir/sync/actopen/set_option'])
   async actOpenSetOption(@Body() dto: MisaActOpenSetOptionDto) {
     return { Success: true, ErrorCode: '0', Data: { OptionId: dto.option_id, Status: 'OK' } };
   }
 
   @ApiOperation({
     summary: '[Expense - Phát sinh theo KMCP] [POST /api/oauth/actopen/get_detail_account_by_expense] Báo cáo chi phí KMCP',
-    description: '[Thuộc danh mục: 2.15. Phát sinh theo KMCP > ExpenseItem] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_detail_account_by_expense | Báo cáo chi tiết phát sinh tài khoản theo khoản mục chi phí',
+    description: '[Thuộc danh mục: 2.15. Phát sinh theo KMCP > ExpenseItem] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/get_detail_account_by_expense & apir/sync/actopen/get_detail_account_by_expense | Báo cáo chi tiết phát sinh tài khoản theo khoản mục chi phí',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/get_detail_account_by_expense')
-  async actOpenGetDetailAccountByExpense(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/get_detail_account_by_expense', 'apir/sync/actopen/get_detail_account_by_expense'])
+  async actOpenGetDetailAccountByExpense(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, ErrorCode: '0', Data: { Details: [] } };
   }
 
@@ -404,17 +580,18 @@ export class MisaAmisAccountingProductsController {
 // ════════════════════════════════════════════════════════════════
 // 3. ACT OPEN API - CALLBACK & DEMO SUPPORT (BẤT ĐỒNG BỘ & KÝ SỐ)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-Accounting] 03. ACT Open API - Callback & Webhooks (Bất đồng bộ & Ký số)')
+@ApiTags('[04. ERP-MISA-Accounting] 03. ACT Open API - Callback & Webhooks (Bất đồng bộ & Ký số)')
 @Controller('api/v1/infra/misa-amis-accounting')
 export class MisaAmisAccountingCallbackController {
 
   @ApiOperation({
     summary: '[Callback - Kết quả xử lý] [POST /api/oauth/actopen/callback] Lấy danh sách kết quả xử lý bất đồng bộ',
-    description: '[Thuộc danh mục: 2.16. Hàm lấy kết quả > Callback] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/callback | Tra cứu kết quả sinh chứng từ bất đồng bộ',
+    description: '[Thuộc danh mục: 2.16. Hàm lấy kết quả > Callback] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopen/callback & apir/sync/actopen/callback | Tra cứu kết quả sinh chứng từ bất đồng bộ',
   })
   @ApiHeader({ name: 'X-MISA-AccessToken', required: true })
-  @Post('api/oauth/actopen/callback')
-  async actOpenCallback(@Body() body: any) {
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
+  @Post(['api/oauth/actopen/callback', 'apir/sync/actopen/callback'])
+  async actOpenCallback(@Body() filter?: MisaActOpenBaseFilterDto) {
     return {
       Success: true,
       ErrorCode: '0',
@@ -426,8 +603,9 @@ export class MisaAmisAccountingCallbackController {
     summary: '[Callback Demo - Test gọi callback] [POST /api/oauth/actopensupport/call_back_data_demo] Demo gọi callback',
     description: '[Thuộc danh mục: 6.1. Demo callback > CallbackDemo] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopensupport/call_back_data_demo',
   })
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
   @Post('api/oauth/actopensupport/call_back_data_demo')
-  async callbackDataDemo(@Body() body: any) {
+  async callbackDataDemo(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, Message: 'Callback demo executed successfully' };
   }
 
@@ -435,8 +613,9 @@ export class MisaAmisAccountingCallbackController {
     summary: '[Signature - Tạo chữ ký SHA256] [POST /api/oauth/actopensupport/get_signature] Tạo chữ ký HMAC-SHA256',
     description: '[Thuộc danh mục: 6.2. Demo ký số > Signature] Endpoint gốc: POST https://actapp.misa.vn/api/oauth/actopensupport/get_signature | Ký số payload callback',
   })
+  @ApiBody({ type: MisaActOpenBaseFilterDto, required: false })
   @Post('api/oauth/actopensupport/get_signature')
-  async getSignature(@Body() body: any) {
+  async getSignature(@Body() filter?: MisaActOpenBaseFilterDto) {
     return { Success: true, Signature: `sha256_${Date.now()}_99a8b7c6d5e4f3` };
   }
 
@@ -472,7 +651,7 @@ export class MisaAmisAccountingCallbackController {
 // ════════════════════════════════════════════════════════════════
 // 4. FINANCIAL REPORTS & CHART OF ACCOUNTS (BÁO CÁO & TÀI KHOẢN)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-Accounting] 04. Financial Reports & Chart of Accounts (Báo cáo & Tài khoản)')
+@ApiTags('[04. ERP-MISA-Accounting] 04. Financial Reports & Chart of Accounts (Báo cáo & Tài khoản)')
 @Controller('api/v1/infra/misa-amis-accounting')
 export class MisaAmisAccountingReportsController {
 

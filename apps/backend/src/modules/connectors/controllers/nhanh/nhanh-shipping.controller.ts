@@ -7,7 +7,7 @@ import {
   NhanhShippingHandoverDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 02. Vận chuyển (Shipping)')
+@ApiTags('[02. POS-Nhanh] 02. Vận chuyển (Shipping)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhShippingController {
   constructor(private readonly actionsService: ActionsService) {}

@@ -62,6 +62,8 @@ async function bootstrap() {
       displayRequestDuration: true,
       filter: true,
       docExpansion: 'none',
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
     },
   });
 

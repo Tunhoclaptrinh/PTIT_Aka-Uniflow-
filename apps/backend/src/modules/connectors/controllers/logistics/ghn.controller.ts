@@ -11,9 +11,10 @@ import {
   GhnUpdateOrderDto,
   GhnUpdateCodDto,
   GhnCreateTicketDto,
+  GhnWebhookDto,
 } from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 02. Giao Hàng Nhanh (GHN)')
+@ApiTags('[05. Logistics-VN] 02. Giao Hàng Nhanh (GHN)')
 @Controller('api/v1/infra/logistics')
 export class LogisticsGhnController {
 
@@ -471,8 +472,9 @@ export class LogisticsGhnController {
     summary: '[Webhook - Cập nhật trạng thái] [POST /ghn/.../order-callback] Webhook nhận sự kiện đơn realtime',
     description: '[Thuộc danh mục: 07. Webhook > Trạng thái đơn GHN] Endpoint gốc: POST Webhook Listener | GHN đẩy sự kiện: picking, picked, delivering, delivered, return...',
   })
+  @ApiBody({ type: GhnWebhookDto })
   @Post('ghn/shiip/public-api/v2/webhook/order-callback')
-  async ghnWebhookCallback(@Body() body: any) {
+  async ghnWebhookCallback(@Body() body: GhnWebhookDto) {
     return {
       code: 200,
       message: 'Success',

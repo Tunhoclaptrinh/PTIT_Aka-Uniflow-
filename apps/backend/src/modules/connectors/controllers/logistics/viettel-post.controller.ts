@@ -7,9 +7,10 @@ import {
   ViettelPostCancelOrderDto,
   ViettelPostLoginDto,
   ViettelPostRegisterInventoryDto,
+  ViettelPostWebhookDto,
 } from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 03. Viettel Post')
+@ApiTags('[05. Logistics-VN] 03. Viettel Post')
 @Controller('api/v1/infra/logistics')
 export class LogisticsViettelPostController {
 
@@ -408,13 +409,14 @@ export class LogisticsViettelPostController {
     summary: '[Webhook - Cập nhật trạng thái] [POST /viettel-post/v2/webhook/callback] Webhook nhận trạng thái giao hàng realtime',
     description: '[Thuộc danh mục: 04. Kho bãi & Webhook > Webhook realtime] Endpoint gốc: POST Webhook Listener Viettel Post | Cập nhật các trạng thái: Đã lấy hàng, Đang vận chuyển, Giao thành công, Chờ giao lại',
   })
+  @ApiBody({ type: ViettelPostWebhookDto })
   @Post('viettel-post/v2/webhook/callback')
-  async viettelPostWebhookCallback(@Body() body: any) {
+  async viettelPostWebhookCallback(@Body() body: ViettelPostWebhookDto) {
     return {
       status: 200,
       error: false,
       message: 'Đã nhận sự kiện webhook Viettel Post',
-      data: { ORDER_NUMBER: body.ORDER_NUMBER || 'VTP29810291', STATUS: body.STATUS || 501, RECEIVED_AT: new Date().toISOString() },
+      data: { ORDER_NUMBER: body.ORDER_NUMBER || 'VTP29810291', STATUS: body.STATUS_NAME || 'Delivered', RECEIVED_AT: new Date().toISOString() },
     };
   }
 }

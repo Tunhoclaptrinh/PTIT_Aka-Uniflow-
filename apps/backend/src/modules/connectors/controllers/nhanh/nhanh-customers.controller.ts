@@ -7,7 +7,7 @@ import {
   NhanhCustomerPointsDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 05. Khách hàng & Loyalty (Customer)')
+@ApiTags('[02. POS-Nhanh] 05. Khách hàng & Loyalty (Customer)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhCustomersController {
 

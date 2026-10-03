@@ -5,7 +5,7 @@ import {
   NhanhUpdateProductDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 03. Sản phẩm (Products)')
+@ApiTags('[02. POS-Nhanh] 03. Sản phẩm (Products)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhProductsController {
 

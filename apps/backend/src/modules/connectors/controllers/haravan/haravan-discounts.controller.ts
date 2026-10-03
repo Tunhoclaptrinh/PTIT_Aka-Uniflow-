@@ -10,7 +10,7 @@ import {
 // 5. DISCOUNTS CATEGORY (Price Rules, Discount Codes, Promotions)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
+@ApiTags('[02. POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
 @Controller('api/v1/infra/haravan')
 export class HaravanPriceRulesController {
   @ApiOperation({
@@ -93,7 +93,7 @@ export class HaravanPriceRulesController {
 // DISCOUNT CODES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
+@ApiTags('[02. POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
 @Controller('api/v1/infra/haravan')
 export class HaravanDiscountCodesController {
   @ApiOperation({
@@ -166,7 +166,7 @@ export class HaravanDiscountCodesController {
 // PROMOTIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
+@ApiTags('[02. POS-Haravan] 05. Discounts (Khuyến mãi & Mã giảm giá)')
 @Controller('api/v1/infra/haravan')
 export class HaravanPromotionsController {
   @ApiOperation({

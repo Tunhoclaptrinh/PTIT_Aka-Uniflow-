@@ -15,7 +15,7 @@ import {
 // 2. PRODUCTS CATEGORY (Product, Variant, Image, Collections, Collect)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanProductsController {
   @ApiOperation({
@@ -145,7 +145,7 @@ export class HaravanProductsController {
 // PRODUCT VARIANTS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanProductVariantsController {
   @ApiOperation({
@@ -246,7 +246,7 @@ export class HaravanProductVariantsController {
 // PRODUCT IMAGES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanProductImagesController {
   @ApiOperation({
@@ -296,7 +296,7 @@ export class HaravanProductImagesController {
 // CUSTOM COLLECTIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCustomCollectionsController {
   @ApiOperation({
@@ -370,7 +370,7 @@ export class HaravanCustomCollectionsController {
 // SMART COLLECTIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanSmartCollectionsController {
   @ApiOperation({
@@ -444,7 +444,7 @@ export class HaravanSmartCollectionsController {
 // COLLECTS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
+@ApiTags('[02. POS-Haravan] 02. Products (Sản phẩm & Bộ sưu tập)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCollectsController {
   @ApiOperation({

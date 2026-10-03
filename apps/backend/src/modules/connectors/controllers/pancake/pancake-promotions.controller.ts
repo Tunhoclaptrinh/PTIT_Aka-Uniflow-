@@ -1,8 +1,8 @@
 import { Controller, Post, Get, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
-import { PancakePosCreatePromotionDto, PancakePosCreateVoucherDto } from '../../dto/pos-pancake.dto';
+import { PancakePosCreatePromotionDto, PancakePosCreateVoucherDto, PancakePosUpdatePromotionDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 07. Promotions & Vouchers (Khuyến mại & Mã giảm giá)')
+@ApiTags('[02. POS-Pancake] 07. Promotions & Vouchers (Khuyến mại & Mã giảm giá)')
 @Controller('api/v1/infra/pancake')
 export class PancakePromotionsController {
 
@@ -43,8 +43,9 @@ export class PancakePromotionsController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'promotionId', example: '1' })
+  @ApiBody({ type: PancakePosUpdatePromotionDto })
   @Put('shops/:shopId/promotion_advance/:promotionId')
-  async updatePromotionOfficial(@Param('shopId') shopId: string, @Param('promotionId') promotionId: string, @Body() body: any) {
+  async updatePromotionOfficial(@Param('shopId') shopId: string, @Param('promotionId') promotionId: string, @Body() body: PancakePosUpdatePromotionDto) {
     return {
       success: true,
       promotion_id: Number(promotionId),

@@ -344,3 +344,144 @@ export class PancakePosCallLaterDto {
   note: string;
 }
 
+export class PancakePosUpdateProductDto {
+  @ApiProperty({ example: 'Váy Hoa Nhí Vintage Cao Cấp', required: false, description: 'Tên sản phẩm' })
+  name?: string;
+
+  @ApiProperty({ example: 350000, required: false, description: 'Giá bán lẻ' })
+  price?: number;
+
+  @ApiProperty({ example: 190000, required: false, description: 'Giá vốn' })
+  cost_price?: number;
+}
+
+export class PancakePosMultiVariationQuantityDto {
+  @ApiProperty({
+    example: [
+      { variation_id: 'VAR_1001', warehouse_id: 'KHO_CG_01', quantity: 120 },
+      { variation_id: 'VAR_1002', warehouse_id: 'KHO_CG_01', quantity: 85 },
+    ],
+    description: 'Danh sách biến thể và số lượng tồn kho cập nhật',
+  })
+  variations: any[];
+}
+
+export class PancakePosUpdateCompositeProductDto {
+  @ApiProperty({
+    example: [
+      { variation_id: 'VAR_1001', quantity: 2 },
+      { variation_id: 'VAR_1002', quantity: 1 },
+    ],
+    description: 'Danh sách sản phẩm thành phần của sản phẩm combo/composite',
+  })
+  items: any[];
+}
+
+export class PancakePosUpdateOrderTagDto {
+  @ApiProperty({ example: 'VIP_KHACH_QUEN', description: 'Tên thẻ tag' })
+  name: string;
+
+  @ApiProperty({ example: '#FF5733', required: false, description: 'Mã màu hiển thị thẻ' })
+  color?: string;
+}
+
+export class PancakePosUpdateWarehouseDto {
+  @ApiProperty({ example: 'Kho Tổng Hà Nội Mở Rộng', required: false, description: 'Tên kho hàng' })
+  name?: string;
+
+  @ApiProperty({ example: 'Số 12 Duy Tân, Cầu Giấy, Hà Nội', required: false, description: 'Địa chỉ kho' })
+  address?: string;
+
+  @ApiProperty({ example: '02438889999', required: false, description: 'Số điện thoại' })
+  phone?: string;
+}
+
+export class PancakePosUpdateTransferDto {
+  @ApiProperty({ example: 'completed', enum: ['pending', 'delivering', 'completed', 'canceled'], description: 'Trạng thái chuyển kho' })
+  status: string;
+
+  @ApiProperty({ example: 'Đã nhận đủ hàng tại kho đích', required: false, description: 'Ghi chú' })
+  note?: string;
+}
+
+export class PancakePosUpdateStocktakingDto {
+  @ApiProperty({ example: 'balanced', enum: ['draft', 'counting', 'balanced'], description: 'Trạng thái kiểm kê' })
+  status: string;
+
+  @ApiProperty({ example: 'Đã hoàn tất cân bằng chênh lệch sổ sách', required: false, description: 'Ghi chú' })
+  note?: string;
+}
+
+export class PancakePosUpdateExportDto {
+  @ApiProperty({ example: 'completed', description: 'Trạng thái phiếu xuất kho' })
+  status: string;
+
+  @ApiProperty({ example: 'Đã xuất kho và bàn giao hàng mẫu', required: false, description: 'Ghi chú' })
+  note?: string;
+}
+
+export class PancakePosUpdatePurchaseDto {
+  @ApiProperty({ example: 'received', enum: ['draft', 'ordered', 'received', 'canceled'], description: 'Trạng thái đơn nhập' })
+  status: string;
+
+  @ApiProperty({ example: 'Đã nhận đủ hàng nhập từ nhà cung cấp', required: false, description: 'Ghi chú' })
+  note?: string;
+}
+
+export class PancakePosUpdatePromotionDto {
+  @ApiProperty({ example: 'KHUYEN MAI TET GIA HAN', required: false, description: 'Tên chương trình' })
+  name?: string;
+
+  @ApiProperty({ example: 15, required: false, description: 'Phần trăm giảm giá' })
+  discount_percent?: number;
+
+  @ApiProperty({ example: '2026-12-31T23:59:59Z', required: false, description: 'Hạn chót mới' })
+  end_time?: string;
+}
+
+export class PancakePosCreateOrderReturnDto {
+  @ApiProperty({ example: 'ORD_PC_9921', description: 'Mã đơn hàng gốc' })
+  order_id: string;
+
+  @ApiProperty({ example: 'Khách đổi size do mặc chật', description: 'Lý do hoàn trả' })
+  reason: string;
+
+  @ApiProperty({
+    example: [{ variation_id: 'VAR_1001', quantity: 1, return_amount: 320000 }],
+    description: 'Danh sách mặt hàng trả lại',
+  })
+  items: any[];
+}
+
+export class PancakePosActivePromotionQueryDto {
+  @ApiProperty({ example: 'CUST_88291', required: false, description: 'Mã khách hàng' })
+  customer_id?: string;
+
+  @ApiProperty({ example: 500000, required: false, description: 'Tổng giá trị giỏ hàng ước tính' })
+  cart_amount?: number;
+}
+
+export class PancakePosUpdateCustomerDto {
+  @ApiProperty({ example: 'Phạm Hoàng Linh', required: false, description: 'Họ và tên khách hàng' })
+  name?: string;
+
+  @ApiProperty({ example: '0987654321', required: false, description: 'Số điện thoại' })
+  phone?: string;
+
+  @ApiProperty({ example: 'linh.pham@aihub-solutions.vn', required: false, description: 'Email' })
+  email?: string;
+
+  @ApiProperty({ example: 'Số 10 Phạm Văn Bạch, Cầu Giấy, Hà Nội', required: false, description: 'Địa chỉ' })
+  address?: string;
+}
+
+export class PancakePosCreateCustomerPromotionsDto {
+  @ApiProperty({ example: ['CUST_1001', 'CUST_1002'], description: 'Danh sách ID khách hàng áp dụng ưu đãi' })
+  customer_ids: string[];
+
+  @ApiProperty({ example: 101, description: 'ID chương trình khuyến mãi' })
+  promotion_id: number;
+}
+
+
+

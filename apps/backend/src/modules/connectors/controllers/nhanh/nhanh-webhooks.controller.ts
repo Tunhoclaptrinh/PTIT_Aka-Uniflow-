@@ -5,7 +5,7 @@ import {
   NhanhWebhookDeleteDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 11. Webhooks sự kiện (Webhooks)')
+@ApiTags('[02. POS-Nhanh] 11. Webhooks sự kiện (Webhooks)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhWebhooksController {
 

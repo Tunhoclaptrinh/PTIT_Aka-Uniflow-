@@ -9,9 +9,10 @@ import {
   GhtkUpdateCodDto,
   GhtkB2cAccountDto,
   GhtkAddProductDto,
+  GhtkWebhookDto,
 } from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 01. Giao Hàng Tiết Kiệm (GHTK)')
+@ApiTags('[05. Logistics-VN] 01. Giao Hàng Tiết Kiệm (GHTK)')
 @Controller('api/v1/infra/logistics')
 export class LogisticsGhtkController {
 
@@ -375,8 +376,9 @@ export class LogisticsGhtkController {
     summary: '[Webhook - Cập nhật trạng thái] [POST /ghtk/services/webhook/callback] Webhook nhận thông báo trạng thái đơn realtime',
     description: '[Thuộc danh mục: 04. Webhook > Trạng thái đơn realtime] Endpoint gốc: POST Webhook Listener | GHTK đẩy sự kiện: Lấy hàng, Đang giao, Đã giao, Chờ giao lại, Chuyển hoàn',
   })
+  @ApiBody({ type: GhtkWebhookDto })
   @Post('ghtk/services/webhook/callback')
-  async ghtkWebhookCallback(@Body() body: any) {
+  async ghtkWebhookCallback(@Body() body: GhtkWebhookDto) {
     return {
       success: true,
       received: true,

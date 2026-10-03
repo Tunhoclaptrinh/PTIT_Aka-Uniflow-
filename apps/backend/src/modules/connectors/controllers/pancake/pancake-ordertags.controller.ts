@@ -1,8 +1,8 @@
 import { Controller, Post, Get, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
-import { PancakePosCallLaterDto } from '../../dto/pos-pancake.dto';
+import { PancakePosCallLaterDto, PancakePosUpdateOrderTagDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 02. Order Tags & Auto Voice (Nhãn đơn & Gọi tự động)')
+@ApiTags('[02. POS-Pancake] 02. Order Tags & Auto Voice (Nhãn đơn & Gọi tự động)')
 @Controller('api/v1/infra/pancake')
 export class PancakeOrderTagsController {
 
@@ -49,8 +49,9 @@ export class PancakeOrderTagsController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'tagId', example: '1' })
+  @ApiBody({ type: PancakePosUpdateOrderTagDto })
   @Put('shops/:shopId/orders/tags/:tagId')
-  async updateOrderTag(@Param('shopId') shopId: string, @Param('tagId') tagId: string, @Body() body: any) {
+  async updateOrderTag(@Param('shopId') shopId: string, @Param('tagId') tagId: string, @Body() body: PancakePosUpdateOrderTagDto) {
     return {
       success: true,
       tag_id: Number(tagId),

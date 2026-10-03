@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiParam } from '@nestjs/swagger';
 import { SapoWebhookSubscribeDto } from '../../dto/pos-sapo.dto';
 
 // ── 1. Webhook Resource ──
-@ApiTags('[POS-Sapo] 28. Webhook')
+@ApiTags('[02. POS-Sapo] 28. Webhook')
 @Controller('api/v1/infra/sapo')
 export class SapoWebhooksController {
   @ApiOperation({
@@ -55,7 +55,7 @@ export class SapoWebhooksController {
 }
 
 // ── 2. Event Resource ──
-@ApiTags('[POS-Sapo] 29. Event')
+@ApiTags('[02. POS-Sapo] 29. Event')
 @Controller('api/v1/infra/sapo')
 export class SapoEventsController {
   @ApiOperation({

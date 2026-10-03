@@ -1,8 +1,14 @@
 import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
-import { AhamoveCreateOrderDto, GrabExpressDeliveryDto } from '../../dto/finance-logistics.dto';
+import {
+  AhamoveCreateOrderDto,
+  GrabExpressDeliveryDto,
+  AhamoveEstimatedFeeDto,
+  AhamoveCancelOrderDto,
+  GrabQuotesDto,
+} from '../../dto/finance-logistics.dto';
 
-@ApiTags('[Logistics-VN] 06. Instant & On-Demand Delivery (Ahamove & GrabExpress)')
+@ApiTags('[05. Logistics-VN] 06. Instant & On-Demand Delivery (Ahamove & GrabExpress)')
 @Controller('api/v1/infra/logistics')
 export class LogisticsOnDemandController {
 
@@ -14,9 +20,9 @@ export class LogisticsOnDemandController {
     summary: '[Ahamove - Tính cước tức thì] [POST /ahamove/v1/order/estimated-fee] Dự toán cước phí xe máy / xe tải Ahamove',
     description: '[Thuộc danh mục: 01. Ahamove > Tính cước] Endpoint gốc: POST https://apistg.ahamove.com/v1/order/estimated_fee | Docs: https://developers.ahamove.com/ | Tính cước siêu tốc, 2H, giao xe van/tải',
   })
-  @ApiBody({ schema: { example: { service_id: 'SGM-BIKE', pickup_address: '18 Duy Tân, Cầu Giấy', dropoff_address: '88 Phố Huế, Hai Bà Trưng' } } })
+  @ApiBody({ type: AhamoveEstimatedFeeDto })
   @Post('ahamove/v1/order/estimated-fee')
-  async ahamoveEstimatedFee(@Body() body: any) {
+  async ahamoveEstimatedFee(@Body() body: AhamoveEstimatedFeeDto) {
     return {
       success: true,
       service_id: body.service_id || 'SGM-BIKE',
@@ -69,9 +75,9 @@ export class LogisticsOnDemandController {
     summary: '[Ahamove - Hủy chuyến] [POST /ahamove/v1/order/cancel] Hủy chuyến giao hàng Ahamove',
     description: '[Thuộc danh mục: 01. Ahamove > Hủy chuyến] Endpoint gốc: POST https://apistg.ahamove.com/v1/order/cancel',
   })
-  @ApiBody({ schema: { example: { order_id: 'AHA_88192019', comment: 'Khách hàng đổi địa chỉ' } } })
+  @ApiBody({ type: AhamoveCancelOrderDto })
   @Post('ahamove/v1/order/cancel')
-  async ahamoveCancelOrder(@Body() body: any) {
+  async ahamoveCancelOrder(@Body() body: AhamoveCancelOrderDto) {
     return {
       success: true,
       order_id: body.order_id,
@@ -101,12 +107,12 @@ export class LogisticsOnDemandController {
     summary: '[GrabExpress - Báo giá tức thì] [POST /instant/grabexpress/quotes] Báo giá chuyến giao GrabExpress',
     description: '[Thuộc danh mục: 02. GrabExpress > Báo giá] Endpoint gốc: POST https://partner-api.grab.com/grabexpress/v1/deliveries/quotes',
   })
-  @ApiBody({ schema: { example: { service_type: 'Instant', sender_lat: 21.028, sender_lng: 105.782, receiver_lat: 21.015, receiver_lng: 105.850 } } })
+  @ApiBody({ type: GrabQuotesDto })
   @Post('instant/grabexpress/quotes')
-  async grabQuotes(@Body() body: any) {
+  async grabQuotes(@Body() body: GrabQuotesDto) {
     return {
       quotes: [
-        { service_type: 'Instant', amount: 39000, currency: 'VND', estimated_timeline: '30 mins' },
+        { service_type: body.service_type || 'Instant', amount: 39000, currency: 'VND', estimated_timeline: '30 mins' },
         { service_type: 'SameDay', amount: 25000, currency: 'VND', estimated_timeline: '4 hours' },
       ],
     };

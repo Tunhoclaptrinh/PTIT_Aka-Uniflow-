@@ -9,7 +9,7 @@ import {
   NhanhReturnOrderDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 07. Hóa đơn bán lẻ & Hóa đơn VAT (Bills & Invoices)')
+@ApiTags('[02. POS-Nhanh] 07. Hóa đơn bán lẻ & Hóa đơn VAT (Bills & Invoices)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhBillingController {
   constructor(private readonly actionsService: ActionsService) {}

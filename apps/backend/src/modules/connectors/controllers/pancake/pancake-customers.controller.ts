@@ -1,8 +1,13 @@
 import { Controller, Post, Get, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
-import { PancakePosCreateCustomerDto, PancakeTagCustomerDto } from '../../dto/pos-pancake.dto';
+import {
+  PancakePosCreateCustomerDto,
+  PancakeTagCustomerDto,
+  PancakePosUpdateCustomerDto,
+  PancakePosCreateCustomerPromotionsDto,
+} from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 03. Customers & Loyalty (Khách hàng & Tích điểm)')
+@ApiTags('[02. POS-Pancake] 03. Customers & Loyalty (Khách hàng & Tích điểm)')
 @Controller('api/v1/infra/pancake')
 export class PancakeCustomersController {
 
@@ -86,8 +91,9 @@ export class PancakeCustomersController {
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
   @ApiParam({ name: 'customerId', example: 'CUST_1001' })
+  @ApiBody({ type: PancakePosUpdateCustomerDto })
   @Put('shops/:shopId/customers/:customerId')
-  async updateCustomer(@Param('shopId') shopId: string, @Param('customerId') customerId: string, @Body() body: any) {
+  async updateCustomer(@Param('shopId') shopId: string, @Param('customerId') customerId: string, @Body() body: PancakePosUpdateCustomerDto) {
     return {
       success: true,
       customer_id: customerId,
@@ -117,12 +123,14 @@ export class PancakeCustomersController {
     description: '[Thuộc danh mục: 11. Customer > Khuyến mãi riêng] Endpoint gốc: POST https://pos.pages.fm/api/v1/shops/{SHOP_ID}/promotion_advance/create_multi | Gán ưu đãi độc quyền cho từng tệp khách',
   })
   @ApiParam({ name: 'shopId', example: '1092841' })
+  @ApiBody({ type: PancakePosCreateCustomerPromotionsDto })
   @Post('shops/:shopId/promotion_advance/create_multi')
-  async createPromotionsByCustomer(@Param('shopId') shopId: string, @Body() body: any) {
+  async createPromotionsByCustomer(@Param('shopId') shopId: string, @Body() body: PancakePosCreateCustomerPromotionsDto) {
     return {
       success: true,
       shop_id: shopId,
       created_count: (body.customer_ids || []).length || 1,
+      promotion_id: body.promotion_id,
       message: 'Tạo khuyến mãi theo khách hàng thành công',
     };
   }

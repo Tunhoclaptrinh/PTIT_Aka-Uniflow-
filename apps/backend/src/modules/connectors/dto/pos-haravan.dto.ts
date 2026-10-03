@@ -540,3 +540,39 @@ export class HaravanOAuthTokenDto {
   redirect_uri?: string;
 }
 
+export class HaravanCreateDeliveryDto {
+  @ApiProperty({ example: 1001, description: 'ID đơn hàng cần tạo phiếu giao hàng' })
+  order_id: number;
+  @ApiProperty({ example: 'GHTK', description: 'Hãng vận chuyển (GHTK, GHN, VNPOST, VTP)' })
+  carrier_code: string;
+  @ApiProperty({ example: 35000, description: 'Phí vận chuyển' })
+  shipping_fee: number;
+  @ApiProperty({ example: 350000, description: 'Tiền thu hộ COD' })
+  cod_amount: number;
+  @ApiProperty({ example: 'Giao giờ hành chính', required: false, description: 'Ghi chú cho bưu tá' })
+  note?: string;
+}
+
+export class HaravanUpdateDraftOrderDto {
+  @ApiProperty({
+    example: {
+      note: 'Cập nhật thêm 10 áo polo và tăng chiết khấu 15%',
+      line_items: [{ variant_id: 881294, quantity: 60, price: 240000 }],
+    },
+    description: 'Nội dung cập nhật đơn draft order',
+  })
+  draft_order: any;
+}
+
+export class HaravanBulkSetAddressesDto {
+  @ApiProperty({
+    example: [
+      { address1: 'Tòa nhà FPT Tower, Cầu Giấy', city: 'Hà Nội', default: true },
+      { address1: 'Số 10 Lê Duẩn, Quận 1', city: 'Hồ Chí Minh', default: false },
+    ],
+    description: 'Danh sách địa chỉ giao hàng cần cập nhật',
+  })
+  addresses: any[];
+}
+
+

@@ -14,7 +14,7 @@ import {
 // 3. INVENTORY CATEGORY (InventoryLevel, Location, Adjustment, Transfer, PO, Receive)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
+@ApiTags('[02. POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
 @Controller('api/v1/infra/haravan')
 export class HaravanInventoryLevelsController {
   @ApiOperation({
@@ -92,7 +92,7 @@ export class HaravanInventoryLevelsController {
 // LOCATIONS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
+@ApiTags('[02. POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
 @Controller('api/v1/infra/haravan')
 export class HaravanLocationsController {
   @ApiOperation({
@@ -148,7 +148,7 @@ export class HaravanLocationsController {
 // INVENTORY ADJUSTMENT, TRANSFERS & PURCHASES
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
+@ApiTags('[02. POS-Haravan] 03. Inventory (Tồn kho, Địa điểm, Điều chuyển & Nhập mua)')
 @Controller('api/v1/infra/haravan')
 export class HaravanInventoryAdjustmentsController {
   @ApiOperation({

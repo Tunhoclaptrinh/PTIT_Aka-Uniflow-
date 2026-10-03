@@ -208,6 +208,11 @@ export class MisaCrmLoginRequestDto {
 
 // ── 7. AMIS CRM V2 - CUSTOMER (ACCOUNT) DTO ──
 export class MisaCrmV2CustomerDto {
+  @ApiProperty({ example: 'CRM_ACC_001', description: 'ID khách hàng CRM', required: false })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'KH000001', description: 'Mã khách hàng trên CRM', required: false })
   @IsOptional()
   @IsString()
@@ -260,6 +265,11 @@ export class MisaCrmV2CustomerDto {
 
 // ── 8. AMIS CRM V2 - CONTACT DTO ──
 export class MisaCrmV2ContactDto {
+  @ApiProperty({ example: 'CRM_CONT_001', description: 'ID người liên hệ CRM', required: false })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'LH00001', description: 'Mã người liên hệ', required: false })
   @IsOptional()
   @IsString()
@@ -292,6 +302,11 @@ export class MisaCrmV2ContactDto {
 
 // ── 9. AMIS CRM V2 - PRODUCT DTO ──
 export class MisaCrmV2ProductDto {
+  @ApiProperty({ example: 'CRM_PROD_001', description: 'ID hàng hóa CRM', required: false })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'HH00001', description: 'Mã hàng hóa/dịch vụ' })
   @IsString()
   product_code: string;
@@ -323,6 +338,11 @@ export class MisaCrmV2ProductDto {
 
 // ── 10. AMIS CRM V2 - SALE ORDER DTO ──
 export class MisaCrmV2SaleOrderDto {
+  @ApiProperty({ example: 'CRM_SO_001', description: 'ID đơn đặt hàng CRM', required: false })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'DH000001', description: 'Số đơn đặt hàng' })
   @IsString()
   sale_order_no: string;
@@ -429,4 +449,86 @@ export class MisaCrmProductLedgerUpdateDto {
   @IsNumber()
   quantity: number;
 }
+
+// ── 13. AMIS CRM V2 - CAMPAIGN (CHIẾN DỊCH TIẾP THỊ) DTO ──
+export class MisaCrmCampaignDto {
+  @ApiProperty({ example: 'Chiến dịch Khuyến mãi Black Friday 2026', description: 'Tên chiến dịch tiếp thị' })
+  @IsString()
+  campaign_name: string;
+
+  @ApiProperty({ example: 'EMAIL_MARKETING', enum: ['EMAIL_MARKETING', 'EVENT', 'WEBINAR', 'FACEBOOK_ADS', 'GOOGLE_ADS'], description: 'Loại chiến dịch' })
+  @IsString()
+  campaign_type: string;
+
+  @ApiProperty({ example: 'PLANNING', enum: ['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED'], description: 'Trạng thái chiến dịch' })
+  @IsString()
+  status: string;
+
+  @ApiProperty({ example: '2026-11-01', description: 'Ngày bắt đầu chiến dịch (YYYY-MM-DD)' })
+  @IsString()
+  start_date: string;
+
+  @ApiProperty({ example: '2026-11-30', description: 'Ngày kết thúc chiến dịch (YYYY-MM-DD)' })
+  @IsString()
+  end_date: string;
+
+  @ApiProperty({ example: 50000000, description: 'Ngân sách dự toán (VND)' })
+  @IsNumber()
+  budget: number;
+
+  @ApiProperty({ example: 250000000, description: 'Doanh thu mục tiêu (VND)', required: false })
+  @IsOptional()
+  @IsNumber()
+  expected_revenue?: number;
+}
+
+// ── 14. AMIS CRM V2 - ACTIVITY / TASK (LỊCH HẸN & HOẠT ĐỘNG CHĂM SÓC) DTO ──
+export class MisaCrmActivityDto {
+  @ApiProperty({ example: 'CALL', enum: ['CALL', 'MEETING', 'TASK', 'EMAIL'], description: 'Loại hoạt động' })
+  @IsString()
+  activity_type: string;
+
+  @ApiProperty({ example: 'Gọi điện demo tính năng UniFlow Enterprise', description: 'Tiêu đề công việc' })
+  @IsString()
+  subject: string;
+
+  @ApiProperty({ example: 'CRM_ACC_202610_001', description: 'ID khách hàng liên quan', required: false })
+  @IsOptional()
+  @IsString()
+  customer_id?: string;
+
+  @ApiProperty({ example: 'CRM_CONT_202610_001', description: 'ID người liên hệ liên quan', required: false })
+  @IsOptional()
+  @IsString()
+  contact_id?: string;
+
+  @ApiProperty({ example: '2026-10-05T09:00:00Z', description: 'Thời gian bắt đầu hẹn / thực hiện' })
+  @IsString()
+  start_time: string;
+
+  @ApiProperty({ example: 'HIGH', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'], description: 'Độ ưu tiên' })
+  @IsString()
+  priority: string;
+
+  @ApiProperty({ example: 'PENDING', enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'], description: 'Trạng thái công việc' })
+  @IsString()
+  status: string;
+}
+
+// ── 15. AMIS CRM V2 - DEPARTMENT (PHÒNG BAN) DTO ──
+export class MisaCrmDepartmentDto {
+  @ApiProperty({ example: 'PB_KINH_DOANH', description: 'Mã phòng ban' })
+  @IsString()
+  department_code: string;
+
+  @ApiProperty({ example: 'Khối Kinh Doanh & Phát Triển Doanh Nghiệp', description: 'Tên phòng ban' })
+  @IsString()
+  department_name: string;
+
+  @ApiProperty({ example: 'PB_BOD', description: 'Mã phòng ban cha', required: false })
+  @IsOptional()
+  @IsString()
+  parent_code?: string;
+}
+
 

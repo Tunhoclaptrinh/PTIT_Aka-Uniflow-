@@ -5,10 +5,11 @@ import {
   SapoCreateProductDto,
   SapoUpdateProductDto,
   SapoCreateCollectionDto,
+  SapoCreateVariantDto,
 } from '../../dto/pos-sapo.dto';
 
 // ── 1. Product Resource ──
-@ApiTags('[POS-Sapo] 05. Product')
+@ApiTags('[02. POS-Sapo] 05. Product')
 @Controller('api/v1/infra/sapo')
 export class SapoProductsController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -83,7 +84,7 @@ export class SapoProductsController {
 }
 
 // ── 2. Product Variant Resource ──
-@ApiTags('[POS-Sapo] 06. Product Variant')
+@ApiTags('[02. POS-Sapo] 06. Product Variant')
 @Controller('api/v1/infra/sapo')
 export class SapoVariantsController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -120,8 +121,9 @@ export class SapoVariantsController {
     summary: '[POST /admin/products/:id/variants.json] Thêm biến thể cho sản phẩm',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/products/{id}/variants.json | Tạo biến thể quy cách mới cho sản phẩm',
   })
+  @ApiBody({ type: SapoCreateVariantDto })
   @Post('admin/products/:id/variants.json')
-  async createVariant(@Param('id') id: string, @Body() body: any) {
+  async createVariant(@Param('id') id: string, @Body() body: SapoCreateVariantDto) {
     return {
       variant: { id: Date.now(), product_id: Number(id), title: body.title || 'Biến thể mới', price: body.price || 100000, sku: body.sku || `SKU-${Date.now()}` },
     };
@@ -129,7 +131,7 @@ export class SapoVariantsController {
 }
 
 // ── 3. Product Image Resource ──
-@ApiTags('[POS-Sapo] 07. Product Image')
+@ApiTags('[02. POS-Sapo] 07. Product Image')
 @Controller('api/v1/infra/sapo')
 export class SapoProductImagesController {
   @ApiOperation({
@@ -168,7 +170,7 @@ export class SapoProductImagesController {
 }
 
 // ── 4. CustomCollection Resource ──
-@ApiTags('[POS-Sapo] 08. CustomCollection')
+@ApiTags('[02. POS-Sapo] 08. CustomCollection')
 @Controller('api/v1/infra/sapo')
 export class SapoCustomCollectionsController {
   @ApiOperation({
@@ -205,7 +207,7 @@ export class SapoCustomCollectionsController {
 }
 
 // ── 5. SmartCollection Resource ──
-@ApiTags('[POS-Sapo] 09. SmartCollection')
+@ApiTags('[02. POS-Sapo] 09. SmartCollection')
 @Controller('api/v1/infra/sapo')
 export class SapoSmartCollectionsController {
   @ApiOperation({
@@ -225,8 +227,9 @@ export class SapoSmartCollectionsController {
     summary: '[POST /admin/smart_collections.json] Tạo nhóm sản phẩm thông minh theo quy tắc',
     description: 'Endpoint gốc: POST https://{store_name}.mysapo.net/admin/smart_collections.json | Tạo bộ sưu tập tự động phân loại theo tag, giá hoặc nhà sản xuất',
   })
+  @ApiBody({ type: SapoCreateCollectionDto })
   @Post('admin/smart_collections.json')
-  async createSmartCollection(@Body() body: any) {
+  async createSmartCollection(@Body() body: SapoCreateCollectionDto) {
     return {
       smart_collection: { id: Date.now(), title: body.title || 'Bộ sưu tập tự động', rules: body.rules || [], created_at: new Date().toISOString() },
     };
@@ -234,7 +237,7 @@ export class SapoSmartCollectionsController {
 }
 
 // ── 6. Collect Resource ──
-@ApiTags('[POS-Sapo] 10. Collect')
+@ApiTags('[02. POS-Sapo] 10. Collect')
 @Controller('api/v1/infra/sapo')
 export class SapoCollectsController {
   @ApiOperation({

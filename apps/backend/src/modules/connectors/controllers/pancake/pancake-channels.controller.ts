@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ActionsService } from '../../actions.service';
 import { PancakeSendChatDto } from '../../dto/pos-pancake.dto';
 
-@ApiTags('[POS-Pancake] 10. Multi-channel, Ads & Livestream (Sàn TMĐT, Quảng cáo & Livestream)')
+@ApiTags('[02. POS-Pancake] 10. Multi-channel, Ads & Livestream (Sàn TMĐT, Quảng cáo & Livestream)')
 @Controller('api/v1/infra/pancake')
 export class PancakeChannelsController {
   constructor(private readonly actionsService: ActionsService) {}

@@ -12,7 +12,7 @@ import {
 // Hỗ trợ cả 2 tiền tố /com/ (Commerce) và /web/ (Haraweb) theo AccessScopes
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanArticlesController {
   @ApiOperation({
@@ -146,7 +146,7 @@ export class HaravanArticlesController {
 // BLOGS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanBlogsController {
   @ApiOperation({
@@ -207,7 +207,7 @@ export class HaravanBlogsController {
 // COMMENTS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanCommentsController {
   @ApiOperation({
@@ -254,7 +254,7 @@ export class HaravanCommentsController {
 // PAGES SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
+@ApiTags('[02. POS-Haravan] 07. Online store — Haraweb (Website & Nội dung)')
 @Controller('api/v1/infra/haravan')
 export class HaravanPagesController {
   @ApiOperation({

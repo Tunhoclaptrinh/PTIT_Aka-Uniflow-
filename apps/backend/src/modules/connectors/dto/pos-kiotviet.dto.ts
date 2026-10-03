@@ -322,5 +322,49 @@ export class KiotVietTokenRequestDto {
   scope?: string;
 }
 
+export class KiotVietBatchProductsDto {
+  @ApiProperty({ type: [KiotVietCreateProductDto], description: 'Danh sách sản phẩm xử lý hàng loạt' })
+  products: KiotVietCreateProductDto[];
+}
+
+export class KiotVietBatchCustomersDto {
+  @ApiProperty({
+    type: [KiotVietCreateCustomerDto],
+    description: 'Danh sách khách hàng xử lý hàng loạt',
+  })
+  customers: KiotVietCreateCustomerDto[];
+}
+
+export class KiotVietPriceBookDetailDto {
+  @ApiProperty({ example: 101, description: 'ID bảng giá' })
+  priceBookId: number;
+  @ApiProperty({ example: 'KV-SP-01', description: 'Mã hàng hóa' })
+  productCode: string;
+  @ApiProperty({ example: 125000, description: 'Đơn giá mới theo bảng giá' })
+  price: number;
+}
+
+export class KiotVietUpdateBookingDto {
+  @ApiProperty({ example: 2, enum: [1, 2, 3, 4], description: 'Trạng thái đơn đặt (1: Phiếu tạm, 2: Đang giao dịch, 3: Hoàn thành, 4: Đã hủy)' })
+  status: number;
+  @ApiProperty({ example: 'Đã chuẩn bị xong hàng, chờ khách tới lấy', description: 'Ghi chú cập nhật', required: false })
+  description?: string;
+}
+
+export class KiotVietUpdateTransferDto {
+  @ApiProperty({ example: 2, enum: [1, 2, 3], description: 'Trạng thái chuyển kho (1: Phiếu tạm, 2: Đang chuyển, 3: Đã nhận)' })
+  status: number;
+  @ApiProperty({ example: 'Đã nhận đủ số lượng tại chi nhánh tiếp nhận', description: 'Ghi chú', required: false })
+  note?: string;
+}
+
+export class KiotVietUpdatePurchaseOrderDto {
+  @ApiProperty({ example: 3, enum: [1, 2, 3], description: 'Trạng thái đơn đặt hàng nhập (1: Phiếu tạm, 2: Đã gửi NCC, 3: Đã nhập kho)' })
+  status: number;
+  @ApiProperty({ example: 'NCC đã giao đủ hàng theo hợp đồng', description: 'Ghi chú', required: false })
+  note?: string;
+}
+
+
 
 

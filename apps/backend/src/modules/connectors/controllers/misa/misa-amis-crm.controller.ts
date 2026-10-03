@@ -14,12 +14,15 @@ import {
   MisaCrmV2SaleOrderDto,
   MisaCrmStockDto,
   MisaCrmProductLedgerUpdateDto,
+  MisaCrmCampaignDto,
+  MisaCrmActivityDto,
+  MisaCrmDepartmentDto,
 } from '../../dto/misa-amis-crm.dto';
 
 // ════════════════════════════════════════════════════════════════
 // 1. MISA AMIS CRM - ACCOUNT (XÁC THỰC & TOKEN)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 01. Account (Xác thực & Token)')
+@ApiTags('[04. ERP-MISA-CRM] 01. Account (Xác thực & Token)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmAccountController {
   @ApiOperation({
@@ -47,7 +50,7 @@ export class MisaAmisCrmAccountController {
 // ════════════════════════════════════════════════════════════════
 // 2. MISA AMIS CRM - CUSTOMERS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 02. Customers (Khách hàng CRM)')
+@ApiTags('[04. ERP-MISA-CRM] 02. Customers (Khách hàng CRM)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmCustomersController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -64,7 +67,7 @@ export class MisaAmisCrmCustomersController {
   @ApiHeader({ name: 'Clientid', required: false, description: 'Client ID đăng ký kết nối' })
   @ApiBody({ type: [MisaCrmV2CustomerDto] })
   @Post('api/v2/Customers')
-  async createCustomersV2(@Body() body: any) {
+  async createCustomersV2(@Body() body: MisaCrmV2CustomerDto[] | MisaCrmV2CustomerDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -86,7 +89,7 @@ export class MisaAmisCrmCustomersController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2CustomerDto] })
   @Put('api/v2/Customers')
-  async updateCustomersV2(@Body() body: any) {
+  async updateCustomersV2(@Body() body: MisaCrmV2CustomerDto[] | MisaCrmV2CustomerDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -304,7 +307,7 @@ export class MisaAmisCrmCustomersController {
 // ════════════════════════════════════════════════════════════════
 // 3. MISA AMIS CRM - CONTACTS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 03. Contacts (Người liên hệ)')
+@ApiTags('[04. ERP-MISA-CRM] 03. Contacts (Người liên hệ)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmContactsController {
   // ── CRM v2 Official Specification ──
@@ -315,7 +318,7 @@ export class MisaAmisCrmContactsController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2ContactDto] })
   @Post('api/v2/Contacts')
-  async createContactsV2(@Body() body: any) {
+  async createContactsV2(@Body() body: MisaCrmV2ContactDto[] | MisaCrmV2ContactDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -337,7 +340,7 @@ export class MisaAmisCrmContactsController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2ContactDto] })
   @Put('api/v2/Contacts')
-  async updateContactsV2(@Body() body: any) {
+  async updateContactsV2(@Body() body: MisaCrmV2ContactDto[] | MisaCrmV2ContactDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -516,7 +519,7 @@ export class MisaAmisCrmContactsController {
 // ════════════════════════════════════════════════════════════════
 // 4. MISA AMIS CRM - PRODUCTS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 04. Products (Hàng hóa & Dịch vụ CRM)')
+@ApiTags('[04. ERP-MISA-CRM] 04. Products (Hàng hóa & Dịch vụ CRM)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmProductsController {
   @ApiOperation({
@@ -526,7 +529,7 @@ export class MisaAmisCrmProductsController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2ProductDto] })
   @Post('api/v2/Products')
-  async createProductsV2(@Body() body: any) {
+  async createProductsV2(@Body() body: MisaCrmV2ProductDto[] | MisaCrmV2ProductDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -548,7 +551,7 @@ export class MisaAmisCrmProductsController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2ProductDto] })
   @Put('api/v2/Products')
-  async updateProductsV2(@Body() body: any) {
+  async updateProductsV2(@Body() body: MisaCrmV2ProductDto[] | MisaCrmV2ProductDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -671,7 +674,7 @@ export class MisaAmisCrmProductsController {
 // ════════════════════════════════════════════════════════════════
 // 5. MISA AMIS CRM - SALE ORDERS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 05. SaleOrders (Đơn đặt hàng CRM)')
+@ApiTags('[04. ERP-MISA-CRM] 05. SaleOrders (Đơn đặt hàng CRM)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmSaleOrdersController {
   @ApiOperation({
@@ -681,7 +684,7 @@ export class MisaAmisCrmSaleOrdersController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2SaleOrderDto] })
   @Post('api/v2/SaleOrders')
-  async createSaleOrdersV2(@Body() body: any) {
+  async createSaleOrdersV2(@Body() body: MisaCrmV2SaleOrderDto[] | MisaCrmV2SaleOrderDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -703,7 +706,7 @@ export class MisaAmisCrmSaleOrdersController {
   @ApiHeader({ name: 'Clientid', required: false })
   @ApiBody({ type: [MisaCrmV2SaleOrderDto] })
   @Put('api/v2/SaleOrders')
-  async updateSaleOrdersV2(@Body() body: any) {
+  async updateSaleOrdersV2(@Body() body: MisaCrmV2SaleOrderDto[] | MisaCrmV2SaleOrderDto) {
     const list = Array.isArray(body) ? body : [body];
     return {
       success: true,
@@ -822,7 +825,7 @@ export class MisaAmisCrmSaleOrdersController {
 // ════════════════════════════════════════════════════════════════
 // 6. MISA AMIS CRM - STOCKS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 06. Stocks (Kho & Tồn kho CRM)')
+@ApiTags('[04. ERP-MISA-CRM] 06. Stocks (Kho & Tồn kho CRM)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmStocksController {
   @ApiOperation({
@@ -1034,7 +1037,7 @@ export class MisaAmisCrmStocksController {
 // ════════════════════════════════════════════════════════════════
 // 7. MISA AMIS CRM - LEADS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 07. Leads (Đầu mối tiềm năng)')
+@ApiTags('[04. ERP-MISA-CRM] 07. Leads (Đầu mối tiềm năng)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmLeadsController {
   @ApiOperation({
@@ -1109,7 +1112,7 @@ export class MisaAmisCrmLeadsController {
 // ════════════════════════════════════════════════════════════════
 // 8. MISA AMIS CRM - OPPORTUNITIES RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 08. Opportunities (Cơ hội bán hàng)')
+@ApiTags('[04. ERP-MISA-CRM] 08. Opportunities (Cơ hội bán hàng)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmOpportunitiesController {
   @ApiOperation({
@@ -1178,7 +1181,7 @@ export class MisaAmisCrmOpportunitiesController {
 // ════════════════════════════════════════════════════════════════
 // 9. MISA AMIS CRM - QUOTATIONS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-AMIS-CRM] 09. Quotations (Báo giá bán hàng)')
+@ApiTags('[04. ERP-MISA-CRM] 09. Quotations (Báo giá bán hàng)')
 @Controller('api/v1/infra/misa/crm')
 export class MisaAmisCrmQuotationsController {
   @ApiOperation({
@@ -1250,3 +1253,132 @@ export class MisaAmisCrmQuotationsController {
     };
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// 10. MISA AMIS CRM - CAMPAIGNS (CHIẾN DỊCH TIẾP THỊ)
+// ════════════════════════════════════════════════════════════════
+@ApiTags('[04. ERP-MISA-CRM] 10. Campaigns (Chiến dịch tiếp thị)')
+@Controller('api/v1/infra/misa/crm')
+export class MisaAmisCrmCampaignsController {
+  @ApiOperation({
+    summary: '[Campaign - Tạo mới] [POST /api/v2/Campaigns] Khởi tạo chiến dịch tiếp thị mới',
+    description: '[Thuộc danh mục: 10. Campaigns > Tạo mới] Endpoint gốc: POST https://crmconnect.misa.vn/api/v2/Campaigns | Tạo chiến dịch marketing, phân bổ ngân sách và kỳ hạn',
+  })
+  @ApiHeader({ name: 'Clientid', required: false })
+  @ApiBody({ type: MisaCrmCampaignDto })
+  @Post('api/v2/Campaigns')
+  async createCampaign(@Body() dto: MisaCrmCampaignDto) {
+    return {
+      success: true,
+      code: 200,
+      data: {
+        id: `CRM_CMP_${Date.now()}`,
+        ...dto,
+        created_at: new Date().toISOString(),
+      },
+      message: 'Khởi tạo chiến dịch tiếp thị thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Campaign - Danh sách] [GET /api/v2/Campaigns] Danh sách các chiến dịch tiếp thị CRM',
+    description: '[Thuộc danh mục: 10. Campaigns > Danh sách] Endpoint gốc: GET https://crmconnect.misa.vn/api/v2/Campaigns | Tra cứu danh sách chiến dịch theo trạng thái',
+  })
+  @ApiHeader({ name: 'Clientid', required: false })
+  @ApiQuery({ name: 'status', required: false, example: 'ACTIVE' })
+  @Get('api/v2/Campaigns')
+  async listCampaigns(@Query('status') status?: string) {
+    return {
+      success: true,
+      total: 2,
+      data: [
+        {
+          id: 'CRM_CMP_001',
+          campaign_name: 'Chiến dịch Khuyến mãi Black Friday 2026',
+          campaign_type: 'EMAIL_MARKETING',
+          status: status || 'ACTIVE',
+          budget: 50000000,
+          expected_revenue: 250000000,
+        },
+      ],
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 11. MISA AMIS CRM - ACTIVITIES (LỊCH HẸN & HOẠT ĐỘNG CHĂM SÓC)
+// ════════════════════════════════════════════════════════════════
+@ApiTags('[04. ERP-MISA-CRM] 11. Activities (Lịch hẹn & Chăm sóc)')
+@Controller('api/v1/infra/misa/crm')
+export class MisaAmisCrmActivitiesController {
+  @ApiOperation({
+    summary: '[Activity - Tạo mới] [POST /api/v2/Activities] Ghi nhận hoạt động / cuộc gọi / lịch hẹn khách hàng',
+    description: '[Thuộc danh mục: 11. Activities > Tạo mới] Endpoint gốc: POST https://crmconnect.misa.vn/api/v2/Activities | Ghi nhận nhật ký chăm sóc khách hàng, lịch hẹn demo',
+  })
+  @ApiHeader({ name: 'Clientid', required: false })
+  @ApiBody({ type: MisaCrmActivityDto })
+  @Post('api/v2/Activities')
+  async createActivity(@Body() dto: MisaCrmActivityDto) {
+    return {
+      success: true,
+      code: 200,
+      data: {
+        id: `CRM_ACT_${Date.now()}`,
+        ...dto,
+        created_at: new Date().toISOString(),
+      },
+      message: 'Ghi nhận hoạt động chăm sóc khách hàng thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Activity - Danh sách] [GET /api/v2/Activities] Lịch sử hoạt động chăm sóc khách hàng',
+    description: '[Thuộc danh mục: 11. Activities > Danh sách] Endpoint gốc: GET https://crmconnect.misa.vn/api/v2/Activities | Tra cứu lịch hẹn, cuộc gọi theo khách hàng hoặc người phụ trách',
+  })
+  @ApiHeader({ name: 'Clientid', required: false })
+  @ApiQuery({ name: 'customer_id', required: false, example: 'CRM_ACC_202610_001' })
+  @Get('api/v2/Activities')
+  async listActivities(@Query('customer_id') customerId?: string) {
+    return {
+      success: true,
+      total: 1,
+      data: [
+        {
+          id: 'CRM_ACT_001',
+          activity_type: 'CALL',
+          subject: 'Gọi điện demo tính năng UniFlow Enterprise',
+          customer_id: customerId || 'CRM_ACC_202610_001',
+          priority: 'HIGH',
+          status: 'COMPLETED',
+          start_time: '2026-10-04T09:00:00Z',
+        },
+      ],
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 12. MISA AMIS CRM - DEPARTMENTS (CƠ CẤU TỔ CHỨC & PHÒNG BAN)
+// ════════════════════════════════════════════════════════════════
+@ApiTags('[04. ERP-MISA-CRM] 12. Departments (Cơ cấu tổ chức)')
+@Controller('api/v1/infra/misa/crm')
+export class MisaAmisCrmDepartmentsController {
+  @ApiOperation({
+    summary: '[Department - Danh sách phòng ban] [GET /api/v2/Departments] Danh mục phòng ban cơ cấu tổ chức',
+    description: '[Thuộc danh mục: 12. Departments > Danh sách] Endpoint gốc: GET https://crmconnect.misa.vn/api/v2/Departments | Danh sách các phòng ban phân quyền nhân viên bán hàng trên CRM',
+  })
+  @ApiHeader({ name: 'Clientid', required: false })
+  @Get('api/v2/Departments')
+  async listDepartments() {
+    return {
+      success: true,
+      total: 3,
+      data: [
+        { department_code: 'PB_KINH_DOANH', department_name: 'Khối Kinh Doanh & Bán Hàng', parent_code: 'PB_BOD' },
+        { department_code: 'PB_CSKH', department_name: 'Phòng Chăm Sóc Khách Hàng (Customer Success)', parent_code: 'PB_KINH_DOANH' },
+        { department_code: 'PB_MARKETING', department_name: 'Phòng Tiếp Thị & Truyền Thông', parent_code: 'PB_BOD' },
+      ],
+    };
+  }
+}
+

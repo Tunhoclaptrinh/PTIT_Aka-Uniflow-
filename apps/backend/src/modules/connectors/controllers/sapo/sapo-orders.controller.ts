@@ -11,7 +11,7 @@ import {
 } from '../../dto/pos-sapo.dto';
 
 // ── 1. Order Resource ──
-@ApiTags('[POS-Sapo] 01. Order')
+@ApiTags('[02. POS-Sapo] 01. Order')
 @Controller('api/v1/infra/sapo')
 export class SapoOrdersController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -102,7 +102,7 @@ export class SapoOrdersController {
 }
 
 // ── 2. Fulfillment Resource ──
-@ApiTags('[POS-Sapo] 02. Fulfillment')
+@ApiTags('[02. POS-Sapo] 02. Fulfillment')
 @Controller('api/v1/infra/sapo')
 export class SapoFulfillmentsController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -137,7 +137,7 @@ export class SapoFulfillmentsController {
 }
 
 // ── 3. Transaction Resource ──
-@ApiTags('[POS-Sapo] 03. Transaction')
+@ApiTags('[02. POS-Sapo] 03. Transaction')
 @Controller('api/v1/infra/sapo')
 export class SapoTransactionsController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -172,7 +172,7 @@ export class SapoTransactionsController {
 }
 
 // ── 4. Refund Resource ──
-@ApiTags('[POS-Sapo] 04. Refund')
+@ApiTags('[02. POS-Sapo] 04. Refund')
 @Controller('api/v1/infra/sapo')
 export class SapoRefundsController {
   constructor(private readonly actionsService: ActionsService) {}

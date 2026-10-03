@@ -4,9 +4,11 @@ import {
   KiotVietCreateProductDto,
   KiotVietUpdateProductDto,
   KiotVietPriceBookDto,
+  KiotVietBatchProductsDto,
+  KiotVietPriceBookDetailDto,
 } from '../../dto/pos-kiotviet.dto';
 
-@ApiTags('[POS-KiotViet] 02. Products & Pricebooks (Hàng hóa & Bảng giá)')
+@ApiTags('[02. POS-KiotViet] 02. Products & Pricebooks (Hàng hóa & Bảng giá)')
 @Controller('api/v1/infra/kiotviet')
 export class KiotVietProductsController {
 
@@ -128,20 +130,20 @@ export class KiotVietProductsController {
     summary: '[Product Batch - Thêm hàng loạt] [POST /products/batch] Thêm mới danh sách hàng hóa hàng loạt',
     description: '[Thuộc danh mục: 2.4. Hàng hóa > Product Batch] Endpoint gốc: POST https://public.kiotapi.com/products/batch | Tạo mới hàng loạt sản phẩm đồng thời để tối ưu hiệu năng',
   })
-  @ApiBody({ description: 'Mảng danh sách các sản phẩm cần tạo' })
+  @ApiBody({ type: KiotVietBatchProductsDto, description: 'Danh sách các sản phẩm cần tạo' })
   @Post('products/batch')
-  async batchCreateProducts(@Body() body: any) {
-    return { responseStatus: 'success', message: 'Tạo danh sách hàng hóa hàng loạt thành công' };
+  async batchCreateProducts(@Body() body: KiotVietBatchProductsDto) {
+    return { responseStatus: 'success', count: body.products?.length || 0, message: 'Tạo danh sách hàng hóa hàng loạt thành công' };
   }
 
   @ApiOperation({
     summary: '[Product Batch - Sửa hàng loạt] [PUT /products/batch] Cập nhật danh sách hàng hóa hàng loạt',
     description: '[Thuộc danh mục: 2.4. Hàng hóa > Product Batch] Endpoint gốc: PUT https://public.kiotapi.com/products/batch | Cập nhật giá bán, mô tả cho nhiều sản phẩm trong một request',
   })
-  @ApiBody({ description: 'Mảng danh sách các sản phẩm cần cập nhật' })
+  @ApiBody({ type: KiotVietBatchProductsDto, description: 'Danh sách các sản phẩm cần cập nhật' })
   @Put('products/batch')
-  async batchUpdateProducts(@Body() body: any) {
-    return { responseStatus: 'success', message: 'Cập nhật danh sách hàng hóa hàng loạt thành công' };
+  async batchUpdateProducts(@Body() body: KiotVietBatchProductsDto) {
+    return { responseStatus: 'success', count: body.products?.length || 0, message: 'Cập nhật danh sách hàng hóa hàng loạt thành công' };
   }
 
   @ApiOperation({
@@ -214,11 +216,12 @@ export class KiotVietProductsController {
     description: '[Thuộc danh mục: 2.17. Bảng giá > Pricebook] Endpoint gốc: PUT https://public.kiotapi.com/pricebooks/{id} | Cập nhật đơn giá cho danh sách hàng hóa trong bảng giá',
   })
   @ApiParam({ name: 'id', example: '1' })
+  @ApiBody({ type: KiotVietPriceBookDetailDto })
   @Put('pricebooks/:id')
-  async updatePriceBookDetail(@Param('id') id: string, @Body() body: any) {
+  async updatePriceBookDetail(@Param('id') id: string, @Body() body: KiotVietPriceBookDetailDto) {
     return {
       responseStatus: 'success',
-      data: { id: Number(id), updated: true, updatedDate: new Date().toISOString() },
+      data: { id: Number(id), productCode: body.productCode, newPrice: body.price, updated: true, updatedDate: new Date().toISOString() },
     };
   }
 }

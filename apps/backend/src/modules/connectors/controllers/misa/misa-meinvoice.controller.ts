@@ -13,7 +13,7 @@ import {
 // ════════════════════════════════════════════════════════════════
 // 1. MISA meInvoice - INVOICES RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-meInvoice] 01. Invoices')
+@ApiTags('[04. ERP-MISA-meInvoice] 01. Invoices')
 @Controller('api/v1/infra/misa')
 export class MisaMeinvoiceInvoicesController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -90,7 +90,7 @@ export class MisaMeinvoiceInvoicesController {
 // ════════════════════════════════════════════════════════════════
 // 2. MISA meInvoice - HSM SIGNING RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-meInvoice] 02. HSM Signing')
+@ApiTags('[04. ERP-MISA-meInvoice] 02. HSM Signing')
 @Controller('api/v1/infra/misa')
 export class MisaMeinvoiceHsmController {
   constructor(private readonly actionsService: ActionsService) {}
@@ -156,7 +156,7 @@ export class MisaMeinvoiceHsmController {
 // ════════════════════════════════════════════════════════════════
 // 3. MISA meInvoice - LIFECYCLE (CANCEL, REPLACE, ADJUST)
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-meInvoice] 03. Lifecycle')
+@ApiTags('[04. ERP-MISA-meInvoice] 03. Lifecycle')
 @Controller('api/v1/infra/misa')
 export class MisaMeinvoiceLifecycleController {
   @ApiOperation({
@@ -223,7 +223,7 @@ export class MisaMeinvoiceLifecycleController {
 // ════════════════════════════════════════════════════════════════
 // 4. MISA meInvoice - TAX & PREVIEW RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-meInvoice] 04. Tax & Preview')
+@ApiTags('[04. ERP-MISA-meInvoice] 04. Tax & Preview')
 @Controller('api/v1/infra/misa')
 export class MisaMeinvoiceTaxPreviewController {
   @ApiOperation({
@@ -290,4 +290,55 @@ export class MisaMeinvoiceTaxPreviewController {
       issuedAt: new Date().toISOString(),
     };
   }
+
+  @ApiOperation({
+    summary: 'Tra cứu trạng thái gửi và nhận từ Cổng Tổng cục Thuế (CQT)',
+    description: 'Endpoint gốc: GET https://api.meinvoice.vn/api/v3/v3invoice/tax-status/:refId | Kiểm tra thông điệp phản hồi từ Cơ quan Thuế theo quy định Nghị định 123 & Thông tư 78',
+  })
+  @ApiParam({ name: 'refId', example: 'HD20261003-001' })
+  @Get('invoice/tax-status/:refId')
+  async getInvoiceTaxStatus(@Param('refId') refId: string) {
+    return {
+      success: true,
+      refId,
+      cqtStatus: 'VALID_ACCEPTED',
+      cqtStatusDescription: 'Hóa đơn hợp lệ đã được CQT tiếp nhận và cấp mã thành công',
+      cqtCode: `00${Date.now().toString().slice(-14)}`,
+      sentToCqtAt: new Date().toISOString(),
+      acceptedAt: new Date().toISOString(),
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Tải tệp XML gốc hóa đơn điện tử (REST standard)',
+    description: 'Endpoint gốc: POST https://api.meinvoice.vn/api/v3/invoices/:id/xml-download | Tải tệp XML chứa chữ ký số hợp lệ của người bán và mã CQT',
+  })
+  @ApiParam({ name: 'id', example: 'HD20261003-001' })
+  @Post('invoices/:id/xml-download')
+  async downloadInvoiceXmlRest(@Param('id') id: string) {
+    return {
+      success: true,
+      invoiceId: id,
+      xmlContentBase64: 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48SERvbj48L0hEb24+',
+      format: 'XML_TCT_TT78',
+      signed: true,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Tải bản thể hiện PDF hóa đơn điện tử (REST standard)',
+    description: 'Endpoint gốc: GET https://api.meinvoice.vn/api/v3/invoices/:id/pdf-download | Lấy file PDF bản thể hiện hóa đơn để lưu trữ hoặc gửi email cho người mua',
+  })
+  @ApiParam({ name: 'id', example: 'HD20261003-001' })
+  @Get('invoices/:id/pdf-download')
+  async downloadInvoicePdfRest(@Param('id') id: string) {
+    return {
+      success: true,
+      invoiceId: id,
+      pdfUrl: `https://meinvoice.vn/tra-cuu/download-pdf?refId=${id}&authCode=MS${Date.now().toString().slice(-6)}`,
+      status: 'PUBLISHED',
+      issuedAt: new Date().toISOString(),
+    };
+  }
 }
+

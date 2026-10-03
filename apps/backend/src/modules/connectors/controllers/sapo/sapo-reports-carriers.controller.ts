@@ -38,7 +38,7 @@ export class SapoCreateShipmentDto {
   @IsNumber() weight: number;
 }
 
-@ApiTags('[POS-Sapo] 19. Reports & Analytics')
+@ApiTags('[02. POS-Sapo] 19. Reports & Analytics')
 @Controller('api/v1/infra/sapo')
 export class SapoReportsController {
   @ApiOperation({
@@ -101,7 +101,7 @@ export class SapoReportsController {
   }
 }
 
-@ApiTags('[POS-Sapo] 18. Shipments & Carriers')
+@ApiTags('[02. POS-Sapo] 18. Shipments & Carriers')
 @Controller('api/v1/infra/sapo')
 export class SapoShipmentsController {
   @ApiOperation({

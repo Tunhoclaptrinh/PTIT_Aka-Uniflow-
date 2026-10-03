@@ -6,7 +6,7 @@ import {
   NhanhCheckPromotionDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 08. Khuyến mãi & Voucher (Promotions)')
+@ApiTags('[02. POS-Nhanh] 08. Khuyến mãi & Voucher (Promotions)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhPromotionsController {
 

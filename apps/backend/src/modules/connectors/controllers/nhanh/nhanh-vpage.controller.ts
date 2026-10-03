@@ -39,7 +39,7 @@ export class NhanhVpageCreateLabelDto {
 }
 
 // ── Controller ──
-@ApiTags('[POS-Nhanh] 12. Vpage — Hội thoại \u0026 Tin nhắn đa kênh (Vpage Chat)')
+@ApiTags('[02. POS-Nhanh] 12. Vpage — Hội thoại \u0026 Tin nhắn đa kênh (Vpage Chat)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhVpageController {
   @ApiOperation({

@@ -6,7 +6,7 @@ import {
   NhanhCashBookDto,
 } from '../../dto/pos-nhanh.dto';
 
-@ApiTags('[POS-Nhanh] 09. Kế toán & Sổ quỹ (Accounting)')
+@ApiTags('[02. POS-Nhanh] 09. Kế toán & Sổ quỹ (Accounting)')
 @Controller('api/v1/infra/nhanh')
 export class NhanhAccountingController {
 

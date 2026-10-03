@@ -12,12 +12,14 @@ import {
   MisaEshopOpenShiftDto,
   MisaEshopCloseShiftDto,
   MisaEshopValidateVoucherDto,
+  MisaEshopCashflowDto,
+  MisaEshopShippingPartnerDto,
 } from '../../dto/pos-misa-eshop.dto';
 
 // ════════════════════════════════════════════════════════════════
 // 1. MISA eShop - ORDERS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 01. Orders')
+@ApiTags('[04. ERP-MISA-eShop] 01. Orders')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopOrdersController {
   @ApiOperation({
@@ -150,7 +152,7 @@ export class MisaEshopOrdersController {
 // ════════════════════════════════════════════════════════════════
 // 2. MISA eShop - PRODUCTS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 02. Products')
+@ApiTags('[04. ERP-MISA-eShop] 02. Products')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopProductsController {
   @ApiOperation({
@@ -268,7 +270,7 @@ export class MisaEshopProductsController {
 // ════════════════════════════════════════════════════════════════
 // 3. MISA eShop - INVENTORY RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 03. Inventory')
+@ApiTags('[04. ERP-MISA-eShop] 03. Inventory')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopInventoryController {
   @ApiOperation({
@@ -334,7 +336,7 @@ export class MisaEshopInventoryController {
 // ════════════════════════════════════════════════════════════════
 // 4. MISA eShop - CUSTOMERS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 04. Customers')
+@ApiTags('[04. ERP-MISA-eShop] 04. Customers')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopCustomersController {
   @ApiOperation({
@@ -423,7 +425,7 @@ export class MisaEshopCustomersController {
 // ════════════════════════════════════════════════════════════════
 // 5. MISA eShop - SHIFTS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 05. Shifts')
+@ApiTags('[04. ERP-MISA-eShop] 05. Shifts')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopShiftsController {
   @ApiOperation({
@@ -531,7 +533,7 @@ export class MisaEshopShiftsController {
 // ════════════════════════════════════════════════════════════════
 // 6. MISA eShop - PROMOTIONS RESOURCE
 // ════════════════════════════════════════════════════════════════
-@ApiTags('[MISA-eShop] 06. Promotions')
+@ApiTags('[04. ERP-MISA-eShop] 06. Promotions')
 @Controller('api/v1/infra/misa-eshop')
 export class MisaEshopPromotionsController {
   @ApiOperation({
@@ -581,3 +583,129 @@ export class MisaEshopPromotionsController {
     };
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// 7. MISA eShop - CASHFLOW (SỔ QUỸ TIỀN MẶT CỬA HÀNG)
+// ════════════════════════════════════════════════════════════════
+@ApiTags('[04. ERP-MISA-eShop] 07. Cashflow')
+@Controller('api/v1/infra/misa-eshop')
+export class MisaEshopCashflowController {
+  @ApiOperation({
+    summary: '[Cashflow - Phiếu thu tiền mặt] [POST /cashflow/receipt] Lập phiếu thu quỹ tại cửa hàng',
+    description: 'Endpoint gốc: POST /api/cashflow/receipt | Lập phiếu thu tiền mặt vào két thu ngân ngoài tiền bán hàng (thu nợ, bán phế liệu, tiền nạp đầu ca...)',
+  })
+  @ApiBody({ type: MisaEshopCashflowDto })
+  @Post('cashflow/receipt')
+  async createCashReceipt(@Body() dto: MisaEshopCashflowDto) {
+    return {
+      success: true,
+      voucherId: `ESHOP_CR_${Date.now()}`,
+      branchCode: dto.branchCode,
+      voucherType: 'RECEIPT',
+      amount: dto.amount,
+      reason: dto.reason,
+      createdByName: dto.createdByName,
+      createdAt: new Date().toISOString(),
+      message: 'Lập phiếu thu tiền mặt vào quỹ thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Cashflow - Phiếu chi tiền mặt] [POST /cashflow/payment] Lập phiếu chi quỹ tại cửa hàng',
+    description: 'Endpoint gốc: POST /api/cashflow/payment | Lập phiếu chi tiền mặt từ két (chi mua đồ vặt, tiền ship ứng, nộp tiền về ngân hàng...)',
+  })
+  @ApiBody({ type: MisaEshopCashflowDto })
+  @Post('cashflow/payment')
+  async createCashPayment(@Body() dto: MisaEshopCashflowDto) {
+    return {
+      success: true,
+      voucherId: `ESHOP_CP_${Date.now()}`,
+      branchCode: dto.branchCode,
+      voucherType: 'PAYMENT',
+      amount: dto.amount,
+      reason: dto.reason,
+      createdByName: dto.createdByName,
+      createdAt: new Date().toISOString(),
+      message: 'Lập phiếu chi tiền mặt thành công',
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Cashflow - Danh sách sổ quỹ] [GET /cashflow/transactions] Lịch sử thu/chi tiền mặt theo chi nhánh',
+    description: 'Endpoint gốc: GET /api/cashflow/transactions | Tra cứu lịch sử dòng tiền mặt vào/ra két thu ngân theo ngày',
+  })
+  @ApiQuery({ name: 'branchCode', example: 'CN_CAUGIAY' })
+  @ApiQuery({ name: 'fromDate', example: '2026-10-01', required: false })
+  @ApiQuery({ name: 'toDate', example: '2026-10-03', required: false })
+  @Get('cashflow/transactions')
+  async listCashflowTransactions(
+    @Query('branchCode') branchCode: string,
+    @Query('fromDate') fromDate?: string,
+    @Query('toDate') toDate?: string,
+  ) {
+    return {
+      total: 2,
+      branchCode: branchCode || 'CN_CAUGIAY',
+      period: { fromDate: fromDate || '2026-10-01', toDate: toDate || '2026-10-03' },
+      data: [
+        {
+          voucherId: 'ESHOP_CR_001',
+          type: 'RECEIPT',
+          amount: 2500000,
+          reason: 'Bán thùng carton cũ',
+          createdByName: 'Thu Ngân 1',
+          date: '2026-10-03T11:00:00Z',
+        },
+        {
+          voucherId: 'ESHOP_CP_001',
+          type: 'PAYMENT',
+          amount: 150000,
+          reason: 'Mua nước lau kính và giấy in nhiệt',
+          createdByName: 'Thu Ngân 1',
+          date: '2026-10-03T14:30:00Z',
+        },
+      ],
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 8. MISA eShop - SHIPPING PARTNERS (ĐỐI TÁC VẬN CHUYỂN LIÊN KẾT)
+// ════════════════════════════════════════════════════════════════
+@ApiTags('[04. ERP-MISA-eShop] 08. Shipping Partners')
+@Controller('api/v1/infra/misa-eshop')
+export class MisaEshopShippingPartnersController {
+  @ApiOperation({
+    summary: '[Shipping Partners - Danh sách hãng ship] [GET /shipping-partners] Danh sách hãng ship kết nối',
+    description: 'Endpoint gốc: GET /api/shipping-partners | Tra cứu các đối tác vận chuyển đã kết nối với tài khoản MISA eShop (GHTK, GHN, Viettel Post...)',
+  })
+  @Get('shipping-partners')
+  async listShippingPartners() {
+    return {
+      total: 3,
+      data: [
+        { carrierCode: 'GHTK', carrierName: 'Giao Hàng Tiết Kiệm (GHTK)', status: 'CONNECTED', isDefault: true },
+        { carrierCode: 'GHN', carrierName: 'Giao Hàng Nhanh Express', status: 'CONNECTED', isDefault: false },
+        { carrierCode: 'VIETTEL_POST', carrierName: 'Viettel Post', status: 'NOT_CONNECTED', isDefault: false },
+      ],
+    };
+  }
+
+  @ApiOperation({
+    summary: '[Shipping Partners - Kết nối hãng ship] [POST /shipping-partners/connect] Cấu hình Token hãng vận chuyển',
+    description: 'Endpoint gốc: POST /api/shipping-partners/connect | Thiết lập API Token của hãng vận chuyển để tự động đẩy vận đơn từ MISA eShop',
+  })
+  @ApiBody({ type: MisaEshopShippingPartnerDto })
+  @Post('shipping-partners/connect')
+  async connectShippingPartner(@Body() dto: MisaEshopShippingPartnerDto) {
+    return {
+      success: true,
+      carrierCode: dto.carrierCode,
+      carrierName: dto.carrierName,
+      status: 'CONNECTED',
+      connectedAt: new Date().toISOString(),
+      message: `Đã kết nối thành công hãng vận chuyển ${dto.carrierName} với MISA eShop`,
+    };
+  }
+}
+

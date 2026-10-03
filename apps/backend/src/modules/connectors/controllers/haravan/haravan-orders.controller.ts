@@ -7,6 +7,7 @@ import {
   HaravanOrderTagsDto,
   HaravanAssignOrderDto,
   HaravanCreateDraftOrderDto,
+  HaravanUpdateDraftOrderDto,
   HaravanFulfillOrderDto,
   HaravanTransactionDto,
   HaravanRefundDto,
@@ -16,7 +17,7 @@ import {
 // 1. ORDERS CATEGORY (Order, Draft Order, Fulfillment, Transaction, Refund)
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanOrdersController {
   @ApiOperation({
@@ -232,7 +233,7 @@ export class HaravanOrdersController {
 // DRAFT ORDERS SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanDraftOrdersController {
   @ApiOperation({
@@ -297,10 +298,11 @@ export class HaravanDraftOrdersController {
   })
   @ApiHeader({ name: 'x-uniflow-mode', required: false, description: 'SANDBOX hoặc LIVE' })
   @ApiParam({ name: 'id', example: '2001' })
+  @ApiBody({ type: HaravanUpdateDraftOrderDto })
   @Put('com/draft_orders/:id.json')
-  async updateDraftOrder(@Param('id') id: string, @Body() body: any, @Headers('x-uniflow-mode') mode?: string) {
+  async updateDraftOrder(@Param('id') id: string, @Body() body: HaravanUpdateDraftOrderDto, @Headers('x-uniflow-mode') mode?: string) {
     return {
-      draft_order: { id: Number(id), status: 'open', updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
+      draft_order: { id: Number(id), status: 'open', ...body.draft_order, updated_at: new Date().toISOString(), mode: mode || 'SANDBOX' },
     };
   }
 
@@ -335,7 +337,7 @@ export class HaravanDraftOrdersController {
 // FULFILLMENT SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanFulfillmentsController {
   @ApiOperation({
@@ -407,7 +409,7 @@ export class HaravanFulfillmentsController {
 // TRANSACTION SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanTransactionsController {
   @ApiOperation({
@@ -468,7 +470,7 @@ export class HaravanTransactionsController {
 // REFUND SUB-RESOURCE
 // ═══════════════════════════════════════════════════════════════
 
-@ApiTags('[POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
+@ApiTags('[02. POS-Haravan] 01. Orders (Đơn hàng & Giao vận)')
 @Controller('api/v1/infra/haravan')
 export class HaravanRefundsController {
   @ApiOperation({
