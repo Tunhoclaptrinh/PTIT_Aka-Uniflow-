@@ -72,6 +72,30 @@ export const ACTIONS_CATALOG: ActionMetadata[] = [
     },
   },
   {
+    id: 'sapo_adjust_stock',
+    name: 'Cân bằng tồn kho Sapo',
+    platform: PlatformType.SAPO,
+    category: 'INVENTORY',
+    description: 'Cập nhật số lượng tồn khả dụng cho biến thể tại một kho xác định',
+    parameters: {
+      locationId: { type: 'number', required: true, description: 'ID chi nhánh kho' },
+      variantId: { type: 'number', required: true, description: 'ID biến thể sản phẩm' },
+      available: { type: 'number', required: true, description: 'Số lượng tồn khả dụng mới' },
+    },
+  },
+  {
+    id: 'sapo_transfer_stock',
+    name: 'Chuyển kho nội bộ Sapo',
+    platform: PlatformType.SAPO,
+    category: 'INVENTORY',
+    description: 'Tạo lệnh điều chuyển hàng hóa giữa các kho nội bộ Sapo',
+    parameters: {
+      fromLocationId: { type: 'number', required: true, description: 'ID kho gửi' },
+      toLocationId: { type: 'number', required: true, description: 'ID kho nhận' },
+      lineItems: { type: 'array', required: true, description: 'Danh sách mặt hàng chuyển' },
+    },
+  },
+  {
     id: 'sapo_get_variants',
     name: 'Lấy biến thể & tồn kho Sapo',
     platform: PlatformType.SAPO,
@@ -126,6 +150,65 @@ export const ACTIONS_CATALOG: ActionMetadata[] = [
     category: 'INVENTORY',
     description: 'Truy vấn danh mục tất cả chi nhánh điểm kho của doanh nghiệp trên Nhanh.vn',
     parameters: {},
+  },
+  {
+    id: 'nhanh_cancel_order',
+    name: 'Hủy đơn hàng Nhanh.vn',
+    platform: PlatformType.NHANH_VN,
+    category: 'ORDER',
+    description: 'Hủy đơn hàng và cập nhật lý do hủy trên Nhanh.vn',
+    parameters: {
+      orderId: { type: 'number', required: true, description: 'ID đơn hàng' },
+      reason: { type: 'string', required: false, description: 'Lý do hủy đơn' },
+    },
+  },
+  {
+    id: 'nhanh_calculate_fee',
+    name: 'Tính phí vận chuyển Nhanh.vn',
+    platform: PlatformType.NHANH_VN,
+    category: 'ORDER',
+    description: 'Tính toán cước phí vận chuyển tối ưu theo các hãng liên kết Nhanh Ship',
+    parameters: {
+      fromDepotId: { type: 'number', required: true, description: 'ID kho gửi' },
+      toDistrictId: { type: 'number', required: true, description: 'ID quận huyện nhận' },
+      weight: { type: 'number', required: true, description: 'Khối lượng gram' },
+    },
+  },
+  {
+    id: 'nhanh_add_invoice',
+    name: 'Xuất hóa đơn điện tử Nhanh.vn',
+    platform: PlatformType.NHANH_VN,
+    category: 'INVOICE',
+    description: 'Phát hành hóa đơn VAT điện tử cho đơn hàng theo chuẩn Tổng Cục Thuế',
+    parameters: {
+      orderId: { type: 'number', required: true, description: 'ID đơn hàng' },
+      buyerTaxCode: { type: 'string', required: true, description: 'Mã số thuế bên mua' },
+      buyerLegalName: { type: 'string', required: true, description: 'Tên công ty bên mua' },
+    },
+  },
+  {
+    id: 'nhanh_send_zns',
+    name: 'Gửi Zalo ZNS Nhanh.vn',
+    platform: PlatformType.NHANH_VN,
+    category: 'NOTIFY',
+    description: 'Gửi tin nhắn chăm sóc khách hàng tự động qua Zalo ZNS Official Account',
+    parameters: {
+      phone: { type: 'string', required: true, description: 'Số điện thoại nhận tin' },
+      templateId: { type: 'string', required: true, description: 'Mã template ZNS' },
+      templateData: { type: 'object', required: true, description: 'Dữ liệu điền mẫu ZNS' },
+    },
+  },
+  {
+    id: 'nhanh_sync_ecom_stock',
+    name: 'Đồng bộ tồn sàn TMĐT Nhanh.vn',
+    platform: PlatformType.NHANH_VN,
+    category: 'INVENTORY',
+    description: 'Đồng bộ số lượng tồn kho tức thời lên Shopee, TikTok Shop, Lazada',
+    parameters: {
+      depotId: { type: 'number', required: true, description: 'ID kho POS' },
+      marketplace: { type: 'string', required: true, description: 'Sàn TMĐT' },
+      items: { type: 'array', required: true, description: 'Danh sách SKU và tồn' },
+    },
   },
 
   // ── 3. PANCAKE POS & SOCIAL ──
@@ -411,10 +494,29 @@ export class ActionsService {
     tenantId: string = '66c0e812a1b2c3d4e5f60001',
   ) {
     const startTime = Date.now();
-    const actionMeta = this.getActionInfo(actionId);
+    let actionMeta = this.getActionInfo(actionId);
 
     if (!actionMeta) {
-      throw new NotFoundException(`Hành động #${actionId} không tồn tại trong danh mục điều khiển UniFlow`);
+      const prefix = actionId.split('_')[0];
+      const platformMap: Record<string, PlatformType> = {
+        shopee: PlatformType.SHOPEE,
+        tiktok: PlatformType.TIKTOK_SHOP,
+        lazada: PlatformType.SHOPEE,
+        tiki: PlatformType.SHOPEE,
+        shopify: PlatformType.SHOPEE,
+      };
+      if (platformMap[prefix]) {
+        actionMeta = {
+          id: actionId,
+          name: `Hành động ${actionId}`,
+          platform: platformMap[prefix],
+          category: 'MARKETPLACE',
+          description: `Định tuyến tự động cho ${actionId}`,
+          parameters: {},
+        };
+      } else {
+        throw new NotFoundException(`Hành động #${actionId} không tồn tại trong danh mục điều khiển UniFlow`);
+      }
     }
 
     const traceId = `act_${actionId}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
@@ -548,8 +650,11 @@ export class ActionsService {
         if (meta.id === 'sapo_cancel_order') {
           return { success: true, platform: 'SAPO_SANDBOX', orderId: payload.order_id, status: 'cancelled' };
         }
-        if (meta.id === 'sapo_adjust_inventory') {
-          return { success: true, platform: 'SAPO_SANDBOX', locationId: payload.location_id, adjusted: payload.available_adjustment };
+        if (meta.id === 'sapo_adjust_inventory' || meta.id === 'sapo_adjust_stock') {
+          return { success: true, platform: 'SAPO_SANDBOX', locationId: payload.location_id || payload.locationId, adjusted: payload.available_adjustment || payload.available };
+        }
+        if (meta.id === 'sapo_transfer_stock') {
+          return { success: true, platform: 'SAPO_SANDBOX', transfer_id: Date.now(), status: 'pending', note: payload.note };
         }
         return this.sandboxService.handleSapoSandbox(`/admin/orders/${payload.status || 'open'}.json`, 'GET', payload);
 
@@ -568,6 +673,21 @@ export class ActionsService {
               { id: 103, name: 'Kho Chi Nhánh Tân Bình - TP.HCM', address: '123 Cộng Hòa, TP.HCM' },
             ],
           };
+        }
+        if (meta.id === 'nhanh_cancel_order') {
+          return { code: 1, message: `Đã hủy đơn hàng Nhanh.vn #${payload.orderId} thành công`, orderId: payload.orderId };
+        }
+        if (meta.id === 'nhanh_calculate_fee') {
+          return { code: 1, data: { carrier: 'GHTK', fee: 28000, estimatedDelivery: '1-2 ngày' } };
+        }
+        if (meta.id === 'nhanh_add_invoice') {
+          return { code: 1, data: { invoiceId: `INV_${payload.orderId}`, invoiceNumber: '0001428', status: 'ISSUED' } };
+        }
+        if (meta.id === 'nhanh_send_zns') {
+          return { code: 1, data: { msgId: `ZNS_${Date.now()}`, phone: payload.phone, status: 'SENT' } };
+        }
+        if (meta.id === 'nhanh_sync_ecom_stock') {
+          return { code: 1, data: { synced: true, marketplace: payload.marketplace, itemsCount: payload.items?.length || 0 } };
         }
         return { code: 1, data: { page: payload.page || 1, totalRecords: 1, orders: [{ id: 'ORD-NHANH-992', status: 'Confirmed' }] } };
 
@@ -598,7 +718,7 @@ export class ActionsService {
         return this.sandboxService.handleTelegramSandbox('/bot<token>/sendMessage', 'POST', payload);
 
       case PlatformType.SHOPEE:
-        if (meta.id === 'shopee_create_voucher') {
+        if (meta.id === 'shopee_create_voucher' || meta.id === 'shopee_add_voucher') {
           return {
             error: '',
             message: 'success',
@@ -610,6 +730,87 @@ export class ActionsService {
               status: 'upcoming',
             },
           };
+        }
+        if (meta.id === 'shopee_get_voucher_list') {
+          return {
+            error: '',
+            message: 'success',
+            response: {
+              voucher_list: [
+                { voucher_id: 991823, voucher_code: 'SPVIP10', voucher_name: 'Giảm 10% đơn từ 200k', discount_amount: 20000, status: payload.status || 'ongoing' }
+              ],
+              more: false,
+            },
+          };
+        }
+        if (meta.id === 'shopee_download_airwaybill') {
+          return {
+            error: '',
+            message: 'success',
+            response: {
+              order_sn: payload.order_sn,
+              url: 'https://shopee.vn/api/v2/logistics/sample-airwaybill.pdf',
+              status: 'READY_TO_PRINT',
+            },
+          };
+        }
+        if (meta.id === 'shopee_get_escrow_detail') {
+          return {
+            error: '',
+            message: 'success',
+            response: {
+              order_sn: payload.order_sn,
+              escrow_amount: 380000,
+              buyer_total_amount: 400000,
+              seller_service_fee: 20000,
+              payout_status: 'COMPLETED',
+            },
+          };
+        }
+        if (meta.id === 'shopee_update_price' || meta.id === 'shopee_update_stock') {
+          return {
+            error: '',
+            message: 'success',
+            response: {
+              item_id: payload.item_id || 10029,
+              status: 'UPDATED',
+            },
+          };
+        }
+        if (meta.id.startsWith('shopify_')) {
+          if (meta.id === 'shopify_get_orders') {
+            return {
+              orders: [
+                { id: 5519283749, name: '#1001', total_price: '450000', currency: 'VND', financial_status: 'paid', fulfillment_status: null }
+              ],
+            };
+          }
+          if (meta.id === 'shopify_create_fulfillment') {
+            return {
+              fulfillment: { id: 1029384, order_id: payload.order_id || 5519283749, status: 'success', tracking_number: 'VNPOST12345' },
+            };
+          }
+          if (meta.id === 'shopify_set_inventory') {
+            return {
+              inventory_level: { location_id: payload.location_id || 1, inventory_item_id: payload.inventory_item_id || 991, available: payload.available || 100 },
+            };
+          }
+        }
+        if (meta.id.startsWith('lazada_')) {
+          if (meta.id === 'lazada_get_document') {
+            return { code: '0', data: { document: { url: 'https://lazada-express.vn/awb/sample.pdf', doc_type: 'shippingLabel' } } };
+          }
+          return { code: '0', message: 'Success', data: payload };
+        }
+        if (meta.id.startsWith('tiki_')) {
+          if (meta.id === 'tiki_get_orders') {
+            return {
+              data: [
+                { code: 'TK_99812', status: payload.status || 'handling', grand_total: 350000, items: [{ product_id: 1102, qty: 1 }] }
+              ],
+            };
+          }
+          return { success: true, message: 'Thao tác Tiki thành công', data: payload };
         }
         return {
           error: '',
@@ -632,6 +833,35 @@ export class ActionsService {
               title: payload.title || 'Voucher TikTok Shop 2026',
               status: 'EFFECTIVE',
             },
+          };
+        }
+        if (meta.id === 'tiktok_get_products') {
+          return {
+            code: 0,
+            message: 'Success',
+            data: {
+              products: [
+                { id: '17293847291', title: 'Áo Thun Unisex Cotton 100%', status: 'ACTIVATE', skus: [{ id: 'SKU_01', price: { tax_exclusive_price: '180000' }, stock_infos: [{ available_stock: 50 }] }] }
+              ],
+              total: 1,
+            },
+          };
+        }
+        if (meta.id === 'tiktok_get_shipping_label') {
+          return {
+            code: 0,
+            message: 'Success',
+            data: {
+              doc_url: 'https://open-api.tiktokglobalshop.com/documents/sample-shipping-label.pdf',
+              format: 'PDF',
+            },
+          };
+        }
+        if (meta.id === 'tiktok_ship_package' || meta.id === 'tiktok_update_inventory' || meta.id === 'tiktok_update_price') {
+          return {
+            code: 0,
+            message: 'Success',
+            data: payload,
           };
         }
         return {

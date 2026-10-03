@@ -1,7 +1,9 @@
 import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
+import { ApiExcludeController } from '@nestjs/swagger';
 import { Response } from 'express';
 import { SandboxService } from './sandbox.service';
 
+@ApiExcludeController()
 @Controller()
 export class SwaggerController {
   constructor(private readonly sandboxService: SandboxService) {}
