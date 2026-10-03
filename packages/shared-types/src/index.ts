@@ -138,6 +138,11 @@ export enum PlatformType {
   SAPO = 'SAPO',
   KIOTVIET = 'KIOTVIET',
   HARAVAN = 'HARAVAN',
+  NHANH_VN = 'NHANH_VN',
+  PANCAKE = 'PANCAKE',
+  MISA_CRM = 'MISA_CRM',
+  MISA_MEINVOICE = 'MISA_MEINVOICE',
+  TELEGRAM = 'TELEGRAM',
 
   // Đơn vị Vận chuyển (Logistics Carriers)
   GHN = 'GHN',

@@ -1,0 +1,524 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — Sapo Omnichannel Deep Multi-Level Specification",
+    "version": "2024.1",
+    "description": "Đặc tả chuẩn hóa cấu trúc lồng nhau đa tầng (Deeply Nested Hierarchy) của Sapo POS & Retail API, kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/sapo",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://core.sapo.vn",
+      "description": "Sapo Production API Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "SAPO",
+    "category": "POS_ERP",
+    "authType": "OAUTH2_HEADER_TOKEN",
+    "baseUrls": {
+      "production": "https://core.sapo.vn/admin"
+    },
+    "headers": {
+      "tokenHeader": "X-Sapo-Access-Token"
+    },
+    "webhookSecurity": {
+      "signatureHeader": "X-Sapo-Hmac-Sha256",
+      "signatureAlgorithm": "HMAC_SHA256",
+      "signatureBase": "raw_body"
+    },
+    "rateLimit": {
+      "requestsPerSecond": 2,
+      "burstCapacity": 5
+    }
+  },
+  "paths": {
+    "/admin/orders.json": {
+      "post": {
+        "summary": "Tạo đơn hàng mới sang Sapo để xuất bán & trừ tồn kho (Outbound Push)",
+        "operationId": "sapo_create_order",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapoOrderRoot"
+              },
+              "example": {
+                "order": {
+                  "reference_number": "ORD-SHOPEE-889921",
+                  "note": "Giao giờ hành chính, khách cần hóa đơn",
+                  "financial_status": "paid",
+                  "fulfillment_status": "unfulfilled",
+                  "tags": "uniflow_sync, shopee_mall",
+                  "shipping_address": {
+                    "first_name": "Tuấn",
+                    "last_name": "Nguyễn",
+                    "address1": "Tòa Discovery Complex, 302 Cầu Giấy",
+                    "city": "Hà Nội",
+                    "district": "Quận Cầu Giấy",
+                    "ward": "Phường Dịch Vọng",
+                    "phone": "0987654321"
+                  },
+                  "line_items": [
+                    {
+                      "variant_id": 4264112,
+                      "sku": "AO-POLO-NAM-DEN-L",
+                      "title": "Áo Polo Nam Classic - Đen / L",
+                      "quantity": 2,
+                      "price": 199000,
+                      "properties": [
+                        { "name": "Màu sắc", "value": "Đen" },
+                        { "name": "Size", "value": "L" }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Đơn hàng tạo thành công trên Sapo (HTTP 201 Created)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SapoOrderRoot"
+                },
+                "example": {
+                  "order": {
+                    "id": 450789469,
+                    "order_number": "#1001",
+                    "reference_number": "ORD-SHOPEE-889921",
+                    "financial_status": "paid",
+                    "fulfillment_status": "unfulfilled",
+                    "currency": "VND",
+                    "total_price": 398000,
+                    "subtotal_price": 398000,
+                    "total_discounts": 0,
+                    "total_tax": 31840,
+                    "created_on": "2026-10-03T10:15:30Z",
+                    "processed_on": "2026-10-03T10:15:30Z",
+                    "customer": {
+                      "id": 207119551,
+                      "first_name": "Tuấn",
+                      "last_name": "Nguyễn",
+                      "phone": "0987654321",
+                      "orders_count": 1,
+                      "total_spent": 398000,
+                      "default_address": {
+                        "address1": "Tòa Discovery Complex, 302 Cầu Giấy",
+                        "city": "Hà Nội",
+                        "district": "Quận Cầu Giấy",
+                        "ward": "Phường Dịch Vọng",
+                        "phone": "0987654321"
+                      }
+                    },
+                    "shipping_address": {
+                      "address1": "Tòa Discovery Complex, 302 Cầu Giấy",
+                      "city": "Hà Nội",
+                      "district": "Quận Cầu Giấy",
+                      "ward": "Phường Dịch Vọng",
+                      "phone": "0987654321"
+                    },
+                    "line_items": [
+                      {
+                        "id": 669751112,
+                        "variant_id": 4264112,
+                        "product_id": 7513594,
+                        "sku": "AO-POLO-NAM-DEN-L",
+                        "title": "Áo Polo Nam Classic",
+                        "variant_title": "Đen / L",
+                        "name": "Áo Polo Nam Classic - Đen / L",
+                        "price": 199000,
+                        "quantity": 2,
+                        "grams": 350,
+                        "tax_lines": [
+                          { "title": "VAT", "price": 31840, "rate": 0.08 }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Lỗi dữ liệu đầu vào hoặc trùng mã tham chiếu",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": {
+                    "reference_number": ["Mã đơn hàng ORD-SHOPEE-889921 đã tồn tại trên hệ thống Sapo"]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token truy cập Sapo không hợp lệ hoặc đã hết hạn",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": "X-Sapo-Access-Token header is missing or expired"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Quét danh sách đơn hàng đối soát (Pull Polling)",
+        "operationId": "sapo_get_orders",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["open", "closed", "cancelled", "any"] } },
+          { "name": "financial_status", "in": "query", "schema": { "type": "string", "enum": ["pending", "authorized", "paid", "partially_paid", "refunded", "voided"] } },
+          { "name": "fulfillment_status", "in": "query", "schema": { "type": "string", "enum": ["fulfilled", "partial", "unfulfilled", "restocked"] } },
+          { "name": "created_on_min", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "since_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách đơn hàng",
+            "content": {
+              "application/json": {
+                "example": {
+                  "orders": [
+                    {
+                      "id": 450789469,
+                      "order_number": "#1001",
+                      "reference_number": "ORD-SHOPEE-889921",
+                      "financial_status": "paid",
+                      "fulfillment_status": "unfulfilled",
+                      "total_price": 398000,
+                      "created_on": "2026-10-03T10:15:30Z"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders/{id}.json": {
+      "get": {
+        "summary": "Chi tiết đơn hàng đa tầng",
+        "operationId": "sapo_get_order_detail",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 450789469 }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết đơn hàng",
+            "content": {
+              "application/json": {
+                "example": {
+                  "order": {
+                    "id": 450789469,
+                    "order_number": "#1001",
+                    "reference_number": "ORD-SHOPEE-889921",
+                    "financial_status": "paid",
+                    "total_price": 398000,
+                    "created_on": "2026-10-03T10:15:30Z"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders/{id}/cancel.json": {
+      "post": {
+        "summary": "Hủy đơn hàng trên Sapo và tự động hoàn trả tồn kho",
+        "operationId": "sapo_order_cancel",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 450789469 }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "reason": "customer",
+                "email": false,
+                "restock": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hủy đơn thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "order": {
+                    "id": 450789469,
+                    "status": "cancelled",
+                    "cancel_reason": "customer",
+                    "cancelled_on": "2026-10-03T10:50:00Z"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/variants.json": {
+      "get": {
+        "summary": "Quét toàn bộ biến thể SKU và số lượng tồn kho (Inventory Pull)",
+        "operationId": "sapo_variant_list",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 250 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách tồn kho biến thể",
+            "content": {
+              "application/json": {
+                "example": {
+                  "variants": [
+                    {
+                      "id": 4264112,
+                      "product_id": 7513594,
+                      "title": "Đen / L",
+                      "sku": "AO-POLO-NAM-DEN-L",
+                      "price": 199000,
+                      "inventory_quantity": 48,
+                      "old_inventory_quantity": 50
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/inventory_levels/adjust.json": {
+      "post": {
+        "summary": "Điều chỉnh tăng/giảm số lượng tồn kho theo chi nhánh (Stock Adjust)",
+        "operationId": "sapo_inventory_adjust",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "location_id": 10293,
+                "inventory_item_id": 4264112,
+                "available_adjustment": -2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Điều chỉnh tồn thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "inventory_level": {
+                    "location_id": 10293,
+                    "inventory_item_id": 4264112,
+                    "available": 46,
+                    "updated_at": "2026-10-03T10:52:00Z"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "sapo_order_create": {
+      "post": {
+        "summary": "Webhook nhận đơn hàng mới phát sinh từ Sapo (Inbound Push)",
+        "x-uniflow-flow-type": "PUSH_WEBHOOK",
+        "x-uniflow-hmac-header": "X-Sapo-Hmac-Sha256",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SapoOrderRoot"
+              },
+              "example": {
+                "order": {
+                  "id": 450789469,
+                  "order_number": "#1001",
+                  "financial_status": "paid",
+                  "total_price": 398000,
+                  "customer": {
+                    "first_name": "Tuấn",
+                    "phone": "0987654321"
+                  },
+                  "line_items": [
+                    {
+                      "sku": "AO-POLO-NAM-DEN-L",
+                      "quantity": 2,
+                      "price": 199000
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SapoOrderRoot": {
+        "type": "object",
+        "required": ["order"],
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/SapoOrder"
+          }
+        }
+      },
+      "SapoOrder": {
+        "type": "object",
+        "description": "Cấp độ 1: Root Order Object",
+        "required": ["line_items"],
+        "properties": {
+          "id": { "type": "integer" },
+          "order_number": { "type": "string" },
+          "reference_number": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "created_on": { "type": "string", "format": "date-time" },
+          "processed_on": { "type": "string", "format": "date-time" },
+          "financial_status": {
+            "type": "string",
+            "enum": ["pending", "authorized", "paid", "partially_paid", "refunded", "voided"],
+            "default": "paid"
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": ["fulfilled", "partial", "unfulfilled", "restocked"],
+            "default": "unfulfilled"
+          },
+          "currency": { "type": "string", "default": "VND", "x-uniflow-udm-target": "order.currency" },
+          "total_price": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "subtotal_price": { "type": "number", "x-uniflow-udm-target": "order.totals.subtotal" },
+          "total_discounts": { "type": "number", "x-uniflow-udm-target": "order.totals.discountPlatform" },
+          "total_tax": { "type": "number", "default": 0 },
+          "note": { "type": "string" },
+          "tags": { "type": "string" },
+          "customer": { "$ref": "#/components/schemas/SapoCustomer" },
+          "billing_address": { "$ref": "#/components/schemas/SapoAddress" },
+          "shipping_address": { "$ref": "#/components/schemas/SapoAddress" },
+          "line_items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SapoLineItem" }
+          },
+          "fulfillments": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SapoFulfillment" }
+          },
+          "refunds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SapoRefund" }
+          }
+        }
+      },
+      "SapoCustomer": {
+        "type": "object",
+        "description": "Cấp độ 2: Khách hàng chi tiết",
+        "properties": {
+          "id": { "type": "integer" },
+          "email": { "type": "string" },
+          "first_name": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedName" },
+          "last_name": { "type": "string" },
+          "phone": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedPhone" },
+          "orders_count": { "type": "integer" },
+          "total_spent": { "type": "number" },
+          "default_address": { "$ref": "#/components/schemas/SapoAddress" }
+        }
+      },
+      "SapoAddress": {
+        "type": "object",
+        "description": "Địa chỉ hành chính đa tầng",
+        "properties": {
+          "address1": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.fullAddress" },
+          "city": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.city" },
+          "district": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.district" },
+          "ward": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.ward" },
+          "phone": { "type": "string" }
+        }
+      },
+      "SapoLineItem": {
+        "type": "object",
+        "description": "Cấp độ 2: Chi tiết dòng hàng",
+        "required": ["quantity", "price"],
+        "properties": {
+          "id": { "type": "integer" },
+          "variant_id": { "type": "integer" },
+          "product_id": { "type": "integer" },
+          "title": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceItemName" },
+          "variant_title": { "type": "string" },
+          "sku": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceSkuCode" },
+          "quantity": { "type": "integer", "x-uniflow-udm-target": "order.items[].quantity" },
+          "price": { "type": "number", "x-uniflow-udm-target": "order.items[].unitPrice" },
+          "properties": {
+            "type": "array",
+            "description": "Cấp độ 3: Thuộc tính biến thể tùy biến",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "value": { "type": "string" }
+              }
+            }
+          },
+          "tax_lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "price": { "type": "number" },
+                "rate": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "SapoFulfillment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "order_id": { "type": "integer" },
+          "status": { "type": "string" },
+          "tracking_company": { "type": "string" },
+          "tracking_number": { "type": "string" },
+          "tracking_url": { "type": "string" }
+        }
+      },
+      "SapoRefund": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "order_id": { "type": "integer" },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,99 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow Connector Specification — Shopee Open Platform API v2",
+    "version": "v2",
+    "description": "Chuẩn hóa API Shopee phục vụ AI Code Generation, Mock Server và Test thủ công trên Swagger UI của UniFlow AI"
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/shopee",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://partner.shopeemobile.com/api/v2",
+      "description": "Shopee Open Platform Production"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "SHOPEE",
+    "category": "MARKETPLACE",
+    "authType": "OAUTH2_HMAC"
+  },
+  "paths": {
+    "/order/get_order_detail": {
+      "get": {
+        "summary": "Lấy chi tiết đơn hàng Shopee (sau khi nhận push webhook notification)",
+        "operationId": "shopee_get_order_detail",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "parameters": [
+          { "name": "order_sn_list", "in": "query", "required": true, "schema": { "type": "string" }, "example": "241003VNSHOPEE01" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dữ liệu đơn hàng chi tiết Shopee",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ShopeeOrder" },
+                "example": {
+                  "order_sn": "241003VNSHOPEE01",
+                  "order_status": "READY_TO_SHIP",
+                  "total_amount": 500000,
+                  "recipient_address": {
+                    "name": "Tuấn Nguyễn",
+                    "phone": "0987654321",
+                    "full_address": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                    "city": "Hà Nội",
+                    "district": "Quận Cầu Giấy"
+                  },
+                  "item_list": [
+                    {
+                      "item_id": 99881122,
+                      "model_sku": "AO-POLO-NAM-DEN-L",
+                      "item_name": "Áo Polo Nam Classic",
+                      "model_quantity_purchased": 2,
+                      "model_discounted_price": 250000
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ShopeeOrder": {
+        "type": "object",
+        "properties": {
+          "order_sn": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "order_status": { "type": "string", "x-uniflow-udm-target": "order.status" },
+          "total_amount": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "recipient_address": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "phone": { "type": "string" },
+              "full_address": { "type": "string" }
+            }
+          },
+          "item_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "model_sku": { "type": "string" },
+                "item_name": { "type": "string" },
+                "model_quantity_purchased": { "type": "integer" },
+                "model_discounted_price": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

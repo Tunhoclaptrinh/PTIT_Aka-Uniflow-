@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TikTokWebhookController } from './tiktok.webhook.controller';
 import { ShopeeWebhookController } from './shopee.webhook.controller';
+import { SapoWebhookController } from './sapo.webhook.controller';
+import { NhanhWebhookController } from './nhanh.webhook.controller';
+import { PancakeWebhookController } from './pancake.webhook.controller';
+import { TelegramWebhookController } from './telegram.webhook.controller';
 import { SecurityService } from '../../security/security.service';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { NormalizerModule } from '../normalizer/normalizer.module';
@@ -21,7 +25,14 @@ import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping
       { name: SKUMapping.name, schema: SKUMappingSchema },
     ]),
   ],
-  controllers: [TikTokWebhookController, ShopeeWebhookController],
+  controllers: [
+    TikTokWebhookController,
+    ShopeeWebhookController,
+    SapoWebhookController,
+    NhanhWebhookController,
+    PancakeWebhookController,
+    TelegramWebhookController,
+  ],
   providers: [SecurityService],
 })
 export class WebhooksModule {}

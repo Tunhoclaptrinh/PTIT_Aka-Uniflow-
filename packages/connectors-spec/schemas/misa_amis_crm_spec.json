@@ -1,0 +1,194 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — MISA AMIS CRM Deep Multi-Level Specification",
+    "version": "2.0.0",
+    "description": "Đặc tả chuẩn hóa toàn diện cấu trúc Open API tích hợp MISA CRM (AMIS ACTOPEN), kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/misa-crm",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://amisapp.misa.vn/crm/gc/api/public/api/v2",
+      "description": "MISA AMIS CRM Production Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "MISA_CRM",
+    "category": "CRM_ERP",
+    "authType": "CLIENT_CREDENTIALS_HEADER",
+    "baseUrls": {
+      "production": "https://amisapp.misa.vn/crm/gc/api/public/api/v2"
+    },
+    "headers": {
+      "tokenHeader": "X-MISA-AccessToken"
+    }
+  },
+  "paths": {
+    "/api/oauth/actopen/connect": {
+      "post": {
+        "summary": "Lấy Access Token kết nối MISA CRM",
+        "operationId": "misa_crm_connect",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["client_id", "client_secret"],
+                "properties": {
+                  "client_id": { "type": "string" },
+                  "client_secret": { "type": "string" }
+                }
+              },
+              "example": {
+                "client_id": "uniflow_crm_client_id_01",
+                "client_secret": "uniflow_crm_client_secret_sec"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trả về token kết nối thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "code": 200,
+                  "data": "misa_crm_actopen_access_token_88992200"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync/actopen/save": {
+      "post": {
+        "summary": "Đồng bộ tạo mới Đơn đặt hàng / Chứng từ bán hàng sang MISA CRM (Outbound Order Sync)",
+        "operationId": "misa_crm_save_order",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MisaCrmSalesOrderPayload"
+              },
+              "example": {
+                "order_no": "ORD-SHOPEE-889921",
+                "order_date": "2026-10-03T10:15:30Z",
+                "customer_name": "Tuấn Nguyễn",
+                "customer_phone": "0987654321",
+                "shipping_address": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                "total_amount": 500000,
+                "order_details": [
+                  {
+                    "inventory_item_code": "AO-POLO-NAM-DEN-L",
+                    "inventory_item_name": "Áo Polo Nam Classic",
+                    "quantity": 2,
+                    "unit_price": 250000,
+                    "amount": 500000
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đồng bộ đơn sang CRM thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "code": 200,
+                  "message": "Lưu chứng từ bán hàng thành công vào MISA CRM",
+                  "data": {
+                    "voucher_id": "CRM-VOUCHER-102938",
+                    "order_no": "ORD-SHOPEE-889921"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apir/sync/actopen/get_dictionary": {
+      "post": {
+        "summary": "Lấy dữ liệu danh mục Khách hàng, Hàng hóa, Kho từ MISA CRM (Pull Polling)",
+        "operationId": "misa_crm_get_dictionary",
+        "x-uniflow-flow-type": "PULL_POLLING",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "dictionary_type": "InventoryItem",
+                "page_index": 1,
+                "page_size": 50
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "code": 200,
+                  "data": [
+                    {
+                      "inventory_item_id": "ITM-01",
+                      "inventory_item_code": "AO-POLO-NAM-DEN-L",
+                      "inventory_item_name": "Áo Polo Nam Classic",
+                      "unit_name": "Chiếc",
+                      "unit_price": 250000
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MisaCrmSalesOrderPayload": {
+        "type": "object",
+        "required": ["order_no", "customer_name", "total_amount", "order_details"],
+        "properties": {
+          "order_no": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "order_date": { "type": "string", "format": "date-time" },
+          "customer_name": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedName" },
+          "customer_phone": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedPhone" },
+          "shipping_address": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.fullAddress" },
+          "total_amount": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "order_details": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MisaCrmSalesOrderDetail" }
+          }
+        }
+      },
+      "MisaCrmSalesOrderDetail": {
+        "type": "object",
+        "required": ["inventory_item_code", "quantity", "unit_price", "amount"],
+        "properties": {
+          "inventory_item_code": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceSkuCode" },
+          "inventory_item_name": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceItemName" },
+          "quantity": { "type": "number", "x-uniflow-udm-target": "order.items[].quantity" },
+          "unit_price": { "type": "number", "x-uniflow-udm-target": "order.items[].unitPrice" },
+          "amount": { "type": "number" }
+        }
+      }
+    }
+  }
+}
+

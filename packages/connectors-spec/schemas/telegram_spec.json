@@ -1,0 +1,116 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — Telegram Bot API Deep Specification",
+    "version": "7.1.0",
+    "description": "Đặc tả OpenAPI 3.1 toàn diện phục vụ Bot Thông Báo & Điều Khiển Tác Vụ UniFlow qua Telegram, kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/telegram",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://api.telegram.org/bot{token}",
+      "description": "Telegram Bot API Production Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "TELEGRAM",
+    "category": "NOTIFICATION_BOT",
+    "authType": "URL_BOT_TOKEN",
+    "baseUrls": {
+      "production": "https://api.telegram.org/bot{token}"
+    }
+  },
+  "paths": {
+    "/sendMessage": {
+      "post": {
+        "summary": "Gửi tin nhắn văn bản thông báo đơn hàng / cảnh báo hệ thống (Outbound Message)",
+        "operationId": "telegram_send_message",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["chat_id", "text"],
+                "properties": {
+                  "chat_id": { "type": "string" },
+                  "text": { "type": "string" },
+                  "parse_mode": { "type": "string", "enum": ["HTML", "MarkdownV2"], "default": "HTML" }
+                }
+              },
+              "example": {
+                "chat_id": "-100192837465",
+                "text": "🚨 <b>[UniFlow Alert]</b> Đơn hàng mới <b>#ORD-SHOPEE-889921</b> phát sinh từ Shopee Mall.\nTổng tiền: <b>500,000 VND</b>\nTrạng thái: <i>Đã đồng bộ sang Sapo POS</i>",
+                "parse_mode": "HTML"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tin nhắn đã gửi thành công lên Telegram Group / Channel",
+            "content": {
+              "application/json": {
+                "example": {
+                  "ok": true,
+                  "result": {
+                    "message_id": 10429,
+                    "from": {
+                      "id": 789123456,
+                      "is_bot": true,
+                      "first_name": "UniFlow Notification Bot",
+                      "username": "uniflow_ops_bot"
+                    },
+                    "chat": {
+                      "id": -100192837465,
+                      "title": "UniFlow Ops & Sales Alerts",
+                      "type": "supergroup"
+                    },
+                    "date": 1727953200,
+                    "text": "[UniFlow Alert] Đơn hàng mới #ORD-SHOPEE-889921 phát sinh từ Shopee Mall."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "telegram_update": {
+      "post": {
+        "summary": "Inbound Webhook nhận tin nhắn và lệnh điều khiển từ người dùng Telegram",
+        "x-uniflow-flow-type": "PUSH_WEBHOOK",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "update_id": 99881122,
+                "message": {
+                  "message_id": 10430,
+                  "from": {
+                    "id": 123456789,
+                    "first_name": "Tuấn",
+                    "username": "tuann_lead"
+                  },
+                  "chat": {
+                    "id": -100192837465,
+                    "type": "supergroup"
+                  },
+                  "date": 1727953250,
+                  "text": "/status ORD-SHOPEE-889921"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

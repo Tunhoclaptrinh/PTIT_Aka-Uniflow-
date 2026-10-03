@@ -1,0 +1,51 @@
+{
+  "platform": "TELEGRAM_BOT",
+  "sourceUrl": "https://core.telegram.org/bots/api",
+  "crawledAt": "2026-10-03T03:30:27.606Z",
+  "apiBase": "https://api.telegram.org/bot<token>",
+  "coreMethods": [
+    {
+      "method": "sendMessage",
+      "type": "Outbound Alert",
+      "desc": "Bắn tin nhắn thông báo đơn hàng / cảnh báo sự cố"
+    },
+    {
+      "method": "sendPhoto",
+      "type": "Outbound",
+      "desc": "Gửi ảnh sản phẩm hoặc mã QR thanh toán"
+    },
+    {
+      "method": "sendDocument",
+      "type": "Outbound",
+      "desc": "Gửi file hóa đơn PDF hoặc báo cáo Excel"
+    },
+    {
+      "method": "setWebhook",
+      "type": "Inbound Setup",
+      "desc": "Cài đặt webhook URL để UniFlow nhận tin nhắn từ Telegram"
+    },
+    {
+      "method": "getWebhookInfo",
+      "type": "Diagnostics",
+      "desc": "Kiểm tra độ trễ và trạng thái kết nối webhook"
+    },
+    {
+      "method": "deleteWebhook",
+      "type": "Management",
+      "desc": "Xóa webhook khi chuyển sang chế độ long-polling"
+    },
+    {
+      "method": "getUpdates",
+      "type": "Pull Polling",
+      "desc": "Lấy tin nhắn mới theo cơ chế quét chủ động"
+    }
+  ],
+  "updateTypes": [
+    "message",
+    "edited_message",
+    "channel_post",
+    "callback_query",
+    "shipping_query",
+    "pre_checkout_query"
+  ]
+}

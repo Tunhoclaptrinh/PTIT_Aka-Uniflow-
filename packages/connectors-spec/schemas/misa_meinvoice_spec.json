@@ -1,0 +1,257 @@
+﻿{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UniFlow AI — MISA meInvoice Deep Multi-Level Specification",
+    "version": "2024.1",
+    "description": "Đặc tả chuẩn hóa toàn diện cấu trúc đa tầng của API Hóa đơn điện tử MISA meInvoice, kèm Response mẫu thực tế 100% phục vụ Mock Server, Test tự động và Swagger UI."
+  },
+  "servers": [
+    {
+      "url": "/api/v1/sandbox/misa-meinvoice",
+      "description": "UniFlow Built-in Sandbox Simulator (Thử nghiệm & Test thủ công cho Lập trình viên & Tester)"
+    },
+    {
+      "url": "https://api.meinvoice.vn",
+      "description": "MISA meInvoice Production Gateway"
+    },
+    {
+      "url": "https://testapi.meinvoice.vn",
+      "description": "MISA meInvoice Sandbox Gateway"
+    }
+  ],
+  "x-uniflow-platform": {
+    "code": "MISA_MEINVOICE",
+    "category": "FINANCE_INVOICE",
+    "authType": "BEARER_TOKEN_LOGIN",
+    "baseUrls": {
+      "production": "https://api.meinvoice.vn",
+      "sandbox": "https://testapi.meinvoice.vn"
+    },
+    "authEndpoint": "/api/v1/Account/Login"
+  },
+  "paths": {
+    "/api/v1/Account/Login": {
+      "post": {
+        "summary": "Đăng nhập lấy Token xác thực MISA meInvoice",
+        "operationId": "meinvoice_login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password", "taxCode"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" },
+                  "taxCode": { "type": "string" }
+                }
+              },
+              "example": {
+                "username": "uniflow_finance_admin",
+                "password": "SecurePassword@123",
+                "taxCode": "0101243150"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đăng nhập thành công, trả về Access Token",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1JU0EiLCJleHAiOjE3Mjc5NTMyMDB9.sapo_token_mock_signature",
+                    "token_type": "Bearer",
+                    "expires_in": 86400
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sai tài khoản hoặc mã số thuế",
+            "content": {
+              "application/json": {
+                "example": {
+                  "errorCode": "INVALID_CREDENTIALS",
+                  "description": "Tên đăng nhập hoặc mật khẩu không chính xác"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Invoice/Save": {
+      "post": {
+        "summary": "Lập hóa đơn điện tử mới (Lưu nháp / Chưa phát hành)",
+        "operationId": "meinvoice_save_invoice",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MisaInvoicePayload"
+              },
+              "example": {
+                "refID": "ORD-SHOPEE-889921",
+                "invSeries": "1C24TUU",
+                "invoiceDate": "2026-10-03",
+                "currency": "VND",
+                "buyerLegalName": "Tuấn Nguyễn",
+                "buyerTaxCode": "0101243150",
+                "buyerAddress": "Tòa Discovery Complex, 302 Cầu Giấy, Hà Nội",
+                "buyerPhoneNumber": "0987654321",
+                "paymentMethod": "TM/CK",
+                "totalAmount": 540000,
+                "totalVATAmount": 40000,
+                "originalInvoiceDetail": [
+                  {
+                    "itemCode": "AO-POLO-NAM-DEN-L",
+                    "itemName": "Áo Polo Nam Classic",
+                    "unitName": "Chiếc",
+                    "quantity": 2,
+                    "unitPrice": 250000,
+                    "amount": 500000,
+                    "vatRateName": "8%",
+                    "vatAmount": 40000
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lập hóa đơn nháp thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "errorCode": null,
+                  "description": "Lập hóa đơn thành công",
+                  "data": {
+                    "transactionID": "TRX-MISA-20261003-889921",
+                    "refID": "ORD-SHOPEE-889921",
+                    "invSeries": "1C24TUU",
+                    "invNo": null,
+                    "status": "Draft"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Invoice/PublishHSM": {
+      "post": {
+        "summary": "Ký số và Phát hành hóa đơn điện tử bằng Cloud HSM",
+        "operationId": "meinvoice_publish_hsm",
+        "x-uniflow-flow-type": "OUTBOUND_ACTION",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "refID": "ORD-SHOPEE-889921",
+                "invSeries": "1C24TUU"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phát hành hóa đơn thành công",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "errorCode": null,
+                  "data": {
+                    "transactionID": "TRX-MISA-20261003-889921",
+                    "invNo": "00000892",
+                    "invSeries": "1C24TUU",
+                    "publishedDate": "2026-10-03T10:30:00Z",
+                    "viewUrl": "https://meinvoice.vn/tra-cuu/00000892-1C24TUU"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Invoice/GetByRefId": {
+      "get": {
+        "summary": "Tra cứu thông tin và trạng thái hóa đơn theo RefID của UniFlow",
+        "operationId": "meinvoice_get_by_refid",
+        "parameters": [
+          { "name": "refID", "in": "query", "required": true, "schema": { "type": "string" }, "example": "ORD-SHOPEE-889921" }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "refID": "ORD-SHOPEE-889921",
+                    "invNo": "00000892",
+                    "invSeries": "1C24TUU",
+                    "totalAmount": 540000,
+                    "status": "Published"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MisaInvoicePayload": {
+        "type": "object",
+        "required": ["refID", "invSeries", "invoiceDate", "buyerLegalName", "originalInvoiceDetail"],
+        "properties": {
+          "refID": { "type": "string", "x-uniflow-udm-target": "order.sourceOrderId" },
+          "invSeries": { "type": "string" },
+          "invoiceDate": { "type": "string", "format": "date", "x-uniflow-udm-target": "meta.createdAt" },
+          "currency": { "type": "string", "default": "VND", "x-uniflow-udm-target": "order.currency" },
+          "buyerLegalName": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedName" },
+          "buyerTaxCode": { "type": "string" },
+          "buyerAddress": { "type": "string", "x-uniflow-udm-target": "order.customer.shippingAddress.fullAddress" },
+          "buyerPhoneNumber": { "type": "string", "x-uniflow-udm-target": "order.customer.maskedPhone" },
+          "paymentMethod": { "type": "string", "example": "TM/CK" },
+          "totalAmount": { "type": "number", "x-uniflow-udm-target": "order.totals.grandTotal" },
+          "totalVATAmount": { "type": "number", "default": 0 },
+          "originalInvoiceDetail": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MisaInvoiceItemDetail" }
+          }
+        }
+      },
+      "MisaInvoiceItemDetail": {
+        "type": "object",
+        "required": ["itemName", "quantity", "unitPrice", "amount"],
+        "properties": {
+          "itemCode": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceSkuCode" },
+          "itemName": { "type": "string", "x-uniflow-udm-target": "order.items[].sourceItemName" },
+          "unitName": { "type": "string", "default": "Cái" },
+          "quantity": { "type": "number", "x-uniflow-udm-target": "order.items[].quantity" },
+          "unitPrice": { "type": "number", "x-uniflow-udm-target": "order.items[].unitPrice" },
+          "amount": { "type": "number" },
+          "vatRateName": { "type": "string", "enum": ["0%", "5%", "8%", "10%", "KCT"], "default": "8%" },
+          "vatAmount": { "type": "number", "default": 0 }
+        }
+      }
+    }
+  }
+}
+

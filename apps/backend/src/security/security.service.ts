@@ -41,6 +41,35 @@ export class SecurityService {
   }
 
   /**
+   * Xác thực chữ ký số HMAC-SHA256 từ Sapo Webhook
+   */
+  verifySapoHmac(rawBody: string | Buffer, signatureHeader: string, secret: string): boolean {
+    if (!signatureHeader || !secret) return false;
+    const calculated = crypto.createHmac('sha256', secret).update(rawBody).digest('base64');
+    try {
+      return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(calculated));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Xác thực verify token từ Nhanh.vn Webhook
+   */
+  verifyNhanhToken(receivedToken: string, expectedToken: string): boolean {
+    if (!receivedToken || !expectedToken) return false;
+    return receivedToken === expectedToken;
+  }
+
+  /**
+   * Xác thực secret token từ Telegram Bot Webhook
+   */
+  verifyTelegramSecret(receivedHeader: string, expectedSecret: string): boolean {
+    if (!receivedHeader || !expectedSecret) return false;
+    return receivedHeader === expectedSecret;
+  }
+
+  /**
    * Mã hóa AES-256-GCM bảo vệ Access Token & Secrets
    */
   encryptCredential(plainText: string): { cipherText: string; iv: string; authTag: string } {

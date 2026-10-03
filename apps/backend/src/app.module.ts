@@ -21,6 +21,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 import { ConnectorsModule } from './modules/connectors/connectors.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { CopilotModule } from './modules/copilot/copilot.module';
+import { DeveloperPortalModule } from './modules/developer-portal/developer-portal.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { CopilotModule } from './modules/copilot/copilot.module';
     TenantsModule,
     ConnectorsModule,
     CopilotModule,
+    DeveloperPortalModule,
   ],
 })
 export class AppModule {}

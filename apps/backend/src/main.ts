@@ -43,6 +43,8 @@ async function bootstrap() {
   logger.log(`=======================================================`);
   logger.log(`⚡ UniFlow AI Backend API Gateway is RUNNING`);
   logger.log(`🚀 Port: http://localhost:${port}`);
+  logger.log(`📑 Swagger UI & Testing Portal: http://localhost:${port}/docs`);
+  logger.log(`🧪 Partner Sandbox Gateway: http://localhost:${port}/api/v1/sandbox/:platform`);
   logger.log(`🔌 Inbound Webhooks: http://localhost:${port}/api/v1/webhooks`);
   logger.log(`📡 WebSocket Gateway: ws://localhost:${port}`);
   logger.log(`=======================================================`);

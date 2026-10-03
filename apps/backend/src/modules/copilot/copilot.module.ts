@@ -6,6 +6,7 @@ import { SyncEventLog, SyncEventLogSchema } from '../../database/schemas/sync-ev
 import { SKUMapping, SKUMappingSchema } from '../../database/schemas/sku-mapping.schema';
 import { Connector, ConnectorSchema } from '../../database/schemas/connector.schema';
 import { CopilotSession, CopilotSessionSchema } from '../../database/schemas/copilot-session.schema';
+import { ConnectorsModule } from '../connectors/connectors.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CopilotSession, CopilotSessionSchema } from '../../database/schemas/cop
       { name: Connector.name, schema: ConnectorSchema },
       { name: CopilotSession.name, schema: CopilotSessionSchema },
     ]),
+    ConnectorsModule,
   ],
   controllers: [CopilotController],
   providers: [CopilotService],

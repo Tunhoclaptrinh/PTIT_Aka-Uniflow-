@@ -6,10 +6,11 @@ import { SKUMapping, SKUMappingDocument } from '../../database/schemas/sku-mappi
 import { Connector, ConnectorDocument } from '../../database/schemas/connector.schema';
 import { CopilotSession, CopilotSessionDocument } from '../../database/schemas/copilot-session.schema';
 import { AiGatewayService, FPT_MODELS } from '../../common/services/ai-gateway.service';
+import { ActionsService } from '../connectors/actions.service';
 
 export interface CopilotChatResponse {
   text: string;
-  actionType: 'EXCEL_EXPORT' | 'SKU_APPROVAL' | 'ADD_PRODUCT' | 'CARRIER_OPTIMIZE' | 'TAX_ACCOUNTING' | 'GENERAL';
+  actionType: 'EXCEL_EXPORT' | 'SKU_APPROVAL' | 'ADD_PRODUCT' | 'CARRIER_OPTIMIZE' | 'TAX_ACCOUNTING' | 'CONNECTOR_ACTION' | 'GENERAL';
   actionData?: any;
   provider: string;
   latencyMs: number;
@@ -25,6 +26,7 @@ export class CopilotService {
     @InjectModel(SKUMapping.name) private readonly skuMappingModel: Model<SKUMappingDocument>,
     @InjectModel(Connector.name) private readonly connectorModel: Model<ConnectorDocument>,
     @InjectModel(CopilotSession.name) private readonly sessionModel: Model<CopilotSessionDocument>,
+    private readonly actionsService: ActionsService,
   ) {}
 
   async getSessions(tenantId?: string) {
@@ -91,11 +93,16 @@ export class CopilotService {
       : '96.2';
 
     // 1. Phân tích Ý định (Intent Classification)
+    const isDirectPublishMisa = (lower.includes('phát hành') || lower.includes('ký hsm') || lower.includes('xuất hóa đơn')) && (lower.includes('misa') || lower.includes('hóa đơn'));
+    const isTelegramAlert = (lower.includes('bắn tin') || lower.includes('cảnh báo') || lower.includes('gửi')) && lower.includes('telegram');
+    const isStockCheck = (lower.includes('tồn kho') || lower.includes('kiểm tra kho')) && (lower.includes('nhanh') || lower.includes('sapo'));
+    const isCreateOrder = lower.includes('tạo đơn') && (lower.includes('sapo') || lower.includes('nhanh') || lower.includes('pancake'));
+
     const isExcelExport = lower.includes('doanh thu') || lower.includes('thống kê') || lower.includes('excel') || lower.includes('bảng tính') || lower.includes('xuất');
     const isSkuApproval = lower.includes('duyệt') || lower.includes('sku') || lower.includes('khớp') || lower.includes('pending') || lower.includes('đối soát');
     const isAddProduct = lower.includes('bổ sung') || lower.includes('thêm sản phẩm') || lower.includes('mặt hàng mới');
     const isCarrierOptimize = lower.includes('cước') || lower.includes('vận chuyển') || lower.includes('ghtk') || lower.includes('viettel') || lower.includes('ghn') || lower.includes('tối ưu phí');
-    const isTax = lower.includes('thuế') || lower.includes('vat') || lower.includes('hóa đơn') || lower.includes('misa') || lower.includes('kê khai');
+    const isTax = !isDirectPublishMisa && (lower.includes('thuế') || lower.includes('vat') || lower.includes('kê khai') || (lower.includes('hóa đơn') && !lower.includes('phát hành')));
 
     // ── Xử lý Tool: Xuất Báo Cáo Doanh Thu / Excel Thật từ MongoDB Atlas ───
     if (isExcelExport) {
@@ -240,6 +247,64 @@ export class CopilotService {
           rows: taxRows,
         },
         provider: 'FPT_GENAI',
+        latencyMs: Date.now() - startTime,
+      };
+
+      const activeSessionId = sessionId || `session_${effectiveTenantId}_default`;
+      await this.persistChatToSession(activeSessionId, effectiveTenantId, userMessage, finalResponse, attachment);
+      finalResponse.sessionId = activeSessionId;
+      return finalResponse;
+    }
+
+    // ── Xử lý Tool: Điều Khiển Trực Tiếp Kênh Kết Nối (Connector Outbound Action) ─
+    if (isDirectPublishMisa || isTelegramAlert || isStockCheck || isCreateOrder) {
+      let actionId = 'misa_publish_hsm';
+      let actionPayload: any = { refID: `ORD-REF-${Date.now()}` };
+      let actionLabel = 'Phát hành HĐĐT MISA';
+
+      if (isTelegramAlert) {
+        actionId = 'telegram_send_alert';
+        actionPayload = { text: `🚨 [Cảnh Báo UniFlow] ${userMessage}` };
+        actionLabel = 'Bắn tin cảnh báo Telegram';
+      } else if (isStockCheck) {
+        if (lower.includes('sapo')) {
+          actionId = 'sapo_get_variants';
+          actionPayload = { limit: 10 };
+          actionLabel = 'Tra cứu tồn kho Sapo';
+        } else {
+          actionId = 'nhanh_check_stock';
+          actionPayload = { depotId: 102 };
+          actionLabel = 'Kiểm tra tồn kho Nhanh.vn';
+        }
+      } else if (isCreateOrder) {
+        if (lower.includes('sapo')) {
+          actionId = 'sapo_create_order';
+          actionPayload = { order: { reference_number: `ORD-COPILOT-${Date.now()}`, line_items: [{ sku: 'POLO-BLK-L', price: 250000, quantity: 1 }] } };
+          actionLabel = 'Khởi tạo đơn hàng Sapo';
+        } else if (lower.includes('pancake')) {
+          actionId = 'pancake_create_order';
+          actionPayload = { page_id: 'PANCAKE_PAGE_01', customer_name: 'Khách hàng Copilot', phone_number: '0988776655', items: [] };
+          actionLabel = 'Khởi tạo đơn Pancake POS';
+        } else {
+          actionId = 'nhanh_add_order';
+          actionPayload = { depotId: 102, customerName: 'Khách hàng Copilot', customerMobile: '0988776655', customerAddress: 'Hà Nội', productList: [] };
+          actionLabel = 'Khởi tạo đơn hàng Nhanh.vn';
+        }
+      }
+
+      const execResult = await this.actionsService.executeAction(actionId, actionPayload, 'SANDBOX', effectiveTenantId);
+
+      const finalResponse: CopilotChatResponse = {
+        text: `⚡ **UniFlow Connector Action Gateway** đã thực thi thành công lệnh **${actionLabel}**:\n\n` +
+          `- 🎯 **Lệnh**: \`${actionId}\`\n` +
+          `- 🏢 **Kênh đích**: **${execResult.platform}**\n` +
+          `- ⏱️ **Thời gian xử lý**: **${execResult.durationMs}ms**\n` +
+          `- 🏷️ **Mã Trace ID**: \`${execResult.traceId}\`\n` +
+          `- 📡 **Trạng thái**: **${execResult.success ? 'THÀNH CÔNG (COMPLETED)' : 'THẤT BẠI'}**\n\n` +
+          `Sự kiện đã được ghi nhận vào nhật ký kiểm toán MongoDB Atlas và phát sóng thời gian thực lên Dashboard!`,
+        actionType: 'CONNECTOR_ACTION',
+        actionData: execResult,
+        provider: 'UNIFLOW_CONNECTOR_ACTION_DISPATCHER',
         latencyMs: Date.now() - startTime,
       };
 
